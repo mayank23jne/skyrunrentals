@@ -48,6 +48,21 @@ async function bootstrap() {
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
 
+  // Frontend SPA Fallback
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.use((req: any, res: any, next: any) => {
+    if (req.method !== 'GET') {
+      return next();
+    }
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    if (req.path.match(/\.[^\/]+$/)) {
+      return next();
+    }
+    res.sendFile(join(__dirname, '..', 'public', 'index.html'));
+  });
+
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   console.log(`Backend is running on: http://localhost:${port}`);

@@ -142,7 +142,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
             <p className="item-label">Arrive</p>
             <DatePicker
               selected={searchData.arrive ? new Date(searchData.arrive) : null}
-              onChange={(date) => {
+              onChange={(date: Date | null) => {
                 if (date) {
                   // Format as YYYY-MM-DD to keep the date format consistent
                   const year = date.getFullYear();
@@ -169,7 +169,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
             <p className="item-label">Depart</p>
             <DatePicker
               selected={searchData.depart ? new Date(searchData.depart) : null}
-              onChange={(date) => {
+              onChange={(date: Date | null) => {
                 if (date) {
                   const year = date.getFullYear();
                   const month = String(date.getMonth() + 1).padStart(2, '0');

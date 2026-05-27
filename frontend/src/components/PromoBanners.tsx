@@ -61,7 +61,7 @@ const cardVariants = {
     y: 0,
     scale: 1,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       stiffness: 80,
       damping: 15,
       delay: i * 0.12,
@@ -76,7 +76,7 @@ const textVariants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { type: 'spring', stiffness: 100, damping: 14 }
+    transition: { type: 'spring' as const, stiffness: 100, damping: 14 }
   }
 };
 
@@ -86,7 +86,7 @@ const brushVariants = {
     opacity: 1,
     scale: 1,
     rotate: -3,
-    transition: { type: 'spring', stiffness: 70, damping: 11 }
+    transition: { type: 'spring' as const, stiffness: 70, damping: 11 }
   }
 };
 
@@ -96,7 +96,7 @@ const parachuteVariants = {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { type: 'spring', stiffness: 60, damping: 10, delay: 0.4 }
+    transition: { type: 'spring' as const, stiffness: 60, damping: 10, delay: 0.4 }
   }
 };
 
@@ -106,7 +106,7 @@ const airplaneVariants = {
     opacity: 0.75,
     x: 0,
     y: 0,
-    transition: { type: 'spring', stiffness: 50, damping: 12, delay: 0.6 }
+    transition: { type: 'spring' as const, stiffness: 50, damping: 12, delay: 0.6 }
   }
 };
 
@@ -229,7 +229,7 @@ const PromoBanners: React.FC = () => {
               animate={{ x: `-${currentIndex * (100 / visibleCount)}%` }}
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.8 }}
             >
-              {dynamicDestinations.map((dest, index) => {
+              {dynamicDestinations.map((dest: any, index: number) => {
                 const isActive = index >= currentIndex && index < currentIndex + visibleCount;
                 return (
                   <motion.div

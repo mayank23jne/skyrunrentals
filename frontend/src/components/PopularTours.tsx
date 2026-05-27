@@ -239,7 +239,7 @@ const PopularTours: React.FC = () => {
               animate={{ x: `-${currentIndex * (100 / visibleCardsCount)}%` }}
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
             >
-              {properties.map((property, idx) => {
+              {properties.map((property: any, idx: number) => {
                 const isVisible = idx >= currentIndex && idx < currentIndex + visibleCardsCount;
 
                 return (

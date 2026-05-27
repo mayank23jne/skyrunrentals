@@ -24,7 +24,7 @@ const RegisterCTA: React.FC = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ type: 'spring', stiffness: 80, damping: 15 }}
+          transition={{ type: 'spring' as const, stiffness: 80, damping: 15 }}
           whileHover={{ y: -4 }}
         >
           {/* Animated Background Geometric Vector Lines & Blobs */}

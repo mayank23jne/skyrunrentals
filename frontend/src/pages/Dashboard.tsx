@@ -186,7 +186,7 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      <style jsx>{`
+      <style>{`
         .h-screen { height: 100vh; }
         .bg-bg-main { background-color: var(--bg-main); }
         .bg-primary { background-color: var(--primary); }

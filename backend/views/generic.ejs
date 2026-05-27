@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head') %>
+<body>
+    <div class="layout">
+        <%- include('partials/sidebar', { activePage: activePage }) %>
+        <main>
+            <%- include('partials/header', { pageTitle: pageTitle }) %>
+            
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h3><%= pageTitle %> Management</h3>
+                    <button class="btn-primary">Add New <%= pageTitle %></button>
+                </div>
+                
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">
+                    This is a placeholder for the <%= pageTitle %> module. 
+                    Real data table and filters will be implemented here.
+                </p>
+
+                <div style="background: var(--bg-main); height: 400px; border-radius: 1rem; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                    [Data Grid Placeholder]
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

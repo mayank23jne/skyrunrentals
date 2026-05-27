@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../partials/head') %>
+<body>
+    <div class="layout">
+        <%- include('../partials/sidebar', { activePage: 'users' }) %>
+        <main>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+                <a href="/api/admin/users" class="action-btn" style="width: 40px; height: 40px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none;">
+                    <i data-lucide="arrow-left"></i>
+                </a>
+                <%- include('../partials/header', { pageTitle: 'User Details' }) %>
+            </div>
+
+            <style>
+                .detail-card { background: white; border-radius: 2rem; border: 1px solid var(--border); overflow: hidden; }
+                .detail-header { padding: 3rem; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; display: flex; align-items: center; gap: 2rem; }
+                .detail-avatar { width: 120px; height: 120px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); color: white; border-radius: 3rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; border: 2px solid rgba(255, 255, 255, 0.3); }
+                .detail-basic h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+                .detail-basic p { opacity: 0.8; font-size: 1.1rem; }
+                
+                .detail-body { padding: 3rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 3rem; }
+                .detail-section h3 { font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-main); }
+                .detail-row { display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #f1f5f9; }
+                .detail-row:last-child { border-bottom: none; }
+                .detail-label { color: var(--text-muted); font-weight: 500; }
+                .detail-value { font-weight: 600; color: var(--text-main); }
+                
+                .status-tag { padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.875rem; font-weight: 700; }
+            </style>
+
+            <div class="detail-card">
+                <div class="detail-header">
+                    <div class="detail-avatar"><%= user.firstname.charAt(0) %></div>
+                    <div class="detail-basic">
+                        <h2><%= user.firstname %> <%= user.lastname %></h2>
+                        <p><%= user.email %></p>
+                        <div style="margin-top: 1rem;">
+                            <span class="status-tag <%= user.status === 0 ? 'status-active' : 'status-inactive' %>" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                                <%= user.status === 0 ? 'Active User' : 'Deactivated' %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h3><i data-lucide="info"></i> Personal Information</h3>
+                        <div class="detail-row"><span class="detail-label">First Name</span><span class="detail-value"><%= user.firstname %></span></div>
+                        <div class="detail-row"><span class="detail-label">Last Name</span><span class="detail-value"><%= user.lastname %></span></div>
+                        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><%= user.email %></span></div>
+                        <div class="detail-row"><span class="detail-label">Contact</span><span class="detail-value"><%= user.contact_number %></span></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i data-lucide="map-pin"></i> Location Details</h3>
+                        <div class="detail-row"><span class="detail-label">Address</span><span class="detail-value"><%= user.address %></span></div>
+                        <div class="detail-row"><span class="detail-label">City</span><span class="detail-value"><%= user.city %></span></div>
+                        <div class="detail-row"><span class="detail-label">State</span><span class="detail-value"><%= user.state %></span></div>
+                        <div class="detail-row"><span class="detail-label">Zip Code</span><span class="detail-value"><%= user.zipcode %></span></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i data-lucide="settings"></i> System Details</h3>
+                        <div class="detail-row"><span class="detail-label">User Type</span><span class="detail-value"><%= user.usertype === '0' ? 'Admin' : 'General User' %></span></div>
+                        <div class="detail-row"><span class="detail-label">Joined Date</span><span class="detail-value"><%= new Date(user.create_date).toLocaleDateString() %></span></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

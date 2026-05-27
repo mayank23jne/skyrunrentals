@@ -1,0 +1,79 @@
+<% if (employees && employees.length > 0) { %>
+    <% employees.forEach(e => { %>
+        <tr id="employee-<%= e.id %>">
+            <!-- ID -->
+            <td>
+                <span style="font-weight: 600; color: var(--text-muted); font-size: 0.875rem;">#<%= e.id %></span>
+            </td>
+
+            <!-- Name -->
+            <td>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 36px; height: 36px; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0;">
+                        <%= e.firstname.charAt(0).toUpperCase() %>
+                    </div>
+                    <span style="font-weight: 600; color: var(--text-main);"><%= e.firstname %> <%= e.lastname %></span>
+                </div>
+            </td>
+
+            <!-- Email -->
+            <td>
+                <span style="color: var(--text-muted); font-size: 0.9rem;"><%= e.email %></span>
+            </td>
+
+            <!-- Status -->
+            <td>
+                <div class="status-toggle" onclick="toggleEmployeeStatus('<%= e.id %>')" style="cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <% if (e.status === 0) { %>
+                        <span style="background: #ecfdf5; color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; border: 1px solid rgba(16,185,129,0.1);">
+                            Active
+                        </span>
+                    <% } else { %>
+                        <span style="background: #fef2f2; color: #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; border: 1px solid rgba(239,68,68,0.1);">
+                            Inactive
+                        </span>
+                    <% } %>
+                </div>
+            </td>
+
+            <!-- Actions -->
+            <td>
+                <div class="action-btns">
+                    <button class="action-btn" title="Change Password" onclick="openPasswordModal('<%= e.id %>')" style="gap:0.35rem; padding: 0 0.75rem; width:auto;">
+                        <i data-lucide="key" style="width:14px;height:14px;"></i>
+                        <span style="font-size:0.75rem; font-weight:600;">Change Password</span>
+                    </button>
+                    <button class="action-btn" title="Edit Employee" 
+                            data-employee='<%- JSON.stringify(e).replace(/'/g, "&#39;") %>' 
+                            onclick="openEditModal(this.getAttribute('data-employee'))" 
+                            style="gap:0.35rem; padding: 0 0.75rem; width:auto;">
+                        <i data-lucide="edit-3" style="width:14px;height:14px;"></i>
+                        <span style="font-size:0.75rem; font-weight:600;">Edit</span>
+                    </button>
+                    <button class="action-btn btn-delete" title="Delete Employee" onclick="deleteEmployee('<%= e.id %>')" style="gap:0.35rem; padding: 0 0.75rem; width:auto;">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                        <span style="font-size:0.75rem; font-weight:600;">Delete</span>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    <% }) %>
+<% } else { %>
+    <tr>
+        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 4rem;">
+            <i data-lucide="users" size="48" style="opacity: 0.2; margin-bottom: 1rem;"></i>
+            <p>No staff members found.</p>
+        </td>
+    </tr>
+<% } %>
+
+<!-- Pagination Data (Hidden) -->
+<tr style="display: none;">
+    <td colspan="5">
+        <div id="pagination-data"
+             data-current-page="<%= currentPage %>"
+             data-total-pages="<%= totalPages %>"
+             data-total-count="<%= totalCount %>">
+        </div>
+    </td>
+</tr>

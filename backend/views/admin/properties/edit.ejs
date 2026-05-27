@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../../partials/head') %>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <style>
+        .form-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-header-title {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .form-header-meta {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-header-meta span {
+            color: var(--primary);
+            margin-left: 0.25rem;
+        }
+
+        .tabs-wrapper {
+            margin-bottom: 2rem;
+        }
+
+        .tabs-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+        }
+
+        .tab-item {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-item.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .tabs-nav {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 0.5rem;
+            }
+            .form-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .form-header-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        .progress-track {
+            height: 4px;
+            background: #eef2ff;
+            border-radius: 2px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            position: absolute;
+            height: 100%;
+            background: var(--primary);
+            width: 16.66%;
+            transition: width 0.4s ease;
+        }
+
+        .form-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--text-main);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem 2.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-align: right;
+            min-width: 140px;
+            padding-top: 0.75rem;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .field-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .form-group label {
+                text-align: left;
+                padding-top: 0;
+            }
+        }
+
+        .field-input-wrapper {
+            flex: 1;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            font-size: 0.9375rem;
+            outline: none;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        #editor {
+            height: 150px;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .photo-upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 1.5rem;
+            padding: 3.5rem 2rem;
+            text-align: center;
+            background: #fafbfc;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .photo-card {
+            aspect-ratio: 4/3;
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .status-booked {
+            background: #1e293b !important;
+            color: white !important;
+        }
+
+        .status-booked-am {
+            background: linear-gradient(135deg, #1e293b 50%, #ffffff 50%) !important;
+            color: #1e293b !important;
+        }
+
+        .status-booked-pm {
+            background: linear-gradient(135deg, #ffffff 50%, #1e293b 50%) !important;
+            color: #1e293b !important;
+        }
+
+        /* Tab 6: Availability Calendar */
+        .calendar-banner {
+            background: #1e293b;
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-icon-box {
+            background: white;
+            color: #1e293b;
+            width: 48px;
+            height: 54px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+        }
+
+        .calendar-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .calendar-toggle-tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 0.4rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            width: fit-content;
+            border: 1px solid #e2e8f0;
+        }
+
+        .calendar-toggle-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: #64748b;
+        }
+
+        .calendar-toggle-btn.active {
+            background: #1e293b;
+            color: white;
+        }
+
+        .calendar-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dotted #cbd5e1;
+        }
+
+        .click-method-select {
+            padding: 0.5rem;
+            border: 1.5px solid #1e293b;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .calendar-instruction-bar {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #92400e;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .months-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .months-container {
+                grid-template-columns: 1fr;
+            }
+            .calendar-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+        }
+
+        .calendar-month {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .month-header {
+            background: #1e293b;
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.03em;
+        }
+
+        .weekdays-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            padding: 0.4rem 0;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.15s;
+            color: #1e293b;
+            min-height: 36px;
+        }
+
+        .day-cell:hover:not(.other-month) {
+            background: #f1f5f9;
+        }
+
+        .day-cell:nth-child(7n) {
+            border-right: none;
+        }
+
+        .day-cell.other-month {
+            color: #cbd5e1;
+            background: #fafafa;
+            cursor: default;
+            font-weight: 400;
+        }
+
+        .day-cell.today {
+            background: #1e293b;
+            color: white;
+            font-weight: 800;
+            z-index: 1;
+        }
+
+        .day-cell.today:hover {
+            background: #1e293b;
+        }
+
+        /* Override today when it has a booking status */
+        .day-cell.today.status-booked {
+            background: #1e293b !important;
+            color: white !important;
+        }
+
+        .calendar-key {
+            margin-top: 2rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .key-header {
+            background: #1e293b;
+            color: white;
+            padding: 0.6rem;
+            font-weight: 700;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .key-items {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 1rem 1.5rem;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .key-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .key-color {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #cbd5e1;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .key-color.status-booked {
+            background: #1e293b;
+            border-color: #1e293b;
+        }
+
+        .key-color.status-booked-am {
+            background: linear-gradient(135deg, #1e293b 50%, #ffffff 50%);
+        }
+
+        .key-color.status-booked-pm {
+            background: linear-gradient(135deg, #ffffff 50%, #1e293b 50%);
+        }
+
+        .btn-remove-photo {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+
+        .btn-main-photo {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-muted);
+        }
+
+        .btn-main-photo.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .main-badge {
+            position: absolute;
+            bottom: 0.75rem;
+            left: 0.75rem;
+            background: #10b981;
+            color: white;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Amenities Tab Styles */
+        .amenity-section {
+            background: #fafbfc;
+            border-radius: 1.25rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .amenity-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .amenity-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .btn-continue {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.6rem 1.75rem;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-continue:hover {
+            background-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-continue-outline {
+            background-color: white;
+            color: var(--primary);
+            padding: 0.6rem 1.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--primary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-continue-outline:hover {
+            background-color: #f0fff4;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-back {
+            background-color: #e2e8f0;
+            color: #64748b;
+            padding: 0.6rem 1.75rem;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-back:hover {
+            background-color: #cbd5e1;
+            color: #475569;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Bedding Info Styles */
+        .bedding-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem 3rem;
+            padding: 1rem 0;
+        }
+
+        .bed-input-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .bed-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            text-align: right;
+            min-width: 100px;
+        }
+
+        .bed-count-select {
+            width: 120px;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            background-color: white;
+            font-size: 0.875rem;
+            color: #1e293b;
+            outline: none;
+        }
+
+        .bed-count-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.1);
+        }
+
+        .bedding-note-wrapper {
+            grid-column: span 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bedding-note-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            width: 100%;
+        }
+
+        /* Nearby Places Styles */
+        .nearby-item-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 100px 100px;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .nearby-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .nearby-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            width: 100%;
+        }
+
+        .nearby-dist-input {
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .nearby-unit-select {
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background-color: white;
+        }
+    </style>
+
+    <body>
+        <div class="layout">
+            <%- include('../../partials/sidebar', { activePage: 'properties' }) %>
+                <main>
+                    <%- include('../../partials/header', { pageTitle: 'Edit Property' }) %>
+
+                        <div class="card">
+                            <div class="form-container">
+                                <div class="form-header">
+                                    <div class="form-header-title">EDIT PROPERTY</div>
+                                    <div class="form-header-meta">
+                                        <div>PROPERTY ID -> <span>
+                                                <%=property.id%>
+                                            </span></div>
+                                        <div>OWNER ID -> <span>
+                                                <%=property.createdBy%>
+                                            </span></div>
+                                    </div>
+                                </div>
+
+                                <div class="tabs-wrapper">
+                                    <div class="tabs-nav">
+                                        <div class="tab-item active" data-tab="1" onclick="nextTab(1)">
+                                            Description & Location
+                                        </div>
+                                        <div class="tab-item" data-tab="2" onclick="nextTab(2)">Contact</div>
+                                        <div class="tab-item" data-tab="3" onclick="nextTab(3)">Photos</div>
+                                        <div class="tab-item" data-tab="4" onclick="nextTab(4)">Amenities & Attractions
+                                        </div>
+                                        <div class="tab-item" data-tab="5" onclick="nextTab(5)">Rates</div>
+                                        <div class="tab-item" data-tab="6" onclick="nextTab(6)">Calendar</div>
+                                    </div>
+                                    <div class="progress-track">
+                                        <div class="progress-bar"></div>
+                                    </div>
+                                </div>
+
+                                <form id="edit-property-form">
+
+                                <style>
+                                    .alert { padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; display: none; font-weight: 500; }
+                                    .alert-success { background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+                                    .alert-error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+                                </style>
+                                <div id="alert" class="alert"></div>
+
+                                    <!-- TAB 1: General Info -->
+                                    <div class="tab-content active" id="tab-1">
+                                        <div class="form-section-title">General Property Information</div>
+                                        <div class="form-grid">
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property Headline</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="propertyHeadline" class="form-control"
+                                                            value="<%=property.propertyHeadline%>" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="field-row">
+                                                    <label>Country</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="country" class="form-control" id="country-select" required>
+                                                            <option value="">Select Country</option>
+                                                            <% countries.forEach(function(c) { %>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>"
+                                                                    <%=property && property.country===c.id.toString()
+                                                                    ? 'selected' : '' %>>
+                                                                    <%= c.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="field-row">
+                                                    <label>State / Region</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="state" class="form-control" id="state-select" required>
+                                                            <option value="">Select State</option>
+                                                            <% states.forEach(function(s) { %>
+                                                                <option value="<%= s.id %>" data-name="<%= s.name %>"
+                                                                    <%=property && property.state===s.id.toString() ? 'selected'
+                                                                    : '' %>>
+                                                                    <%= s.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="field-row">
+                                                    <label>City</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="city" class="form-control" id="city-select" required>
+                                                            <option value="">Select City</option>
+                                                            <% cities.forEach(function(c) { %>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>"
+                                                                    <%=property && property.city===c.id.toString() ? 'selected'
+                                                                    : '' %>>
+                                                                    <%= c.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="field-row">
+                                                    <label>Zip Code</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="zip" class="form-control"
+                                                            value="<%=property.zip%>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Street Address</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="streetAddress" class="form-control"
+                                                            value="<%=property.streetAddress%>">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property Description</label>
+                                                    <div class="field-input-wrapper">
+                                                        <div id="editor-container"
+                                                            style="height: 250px; background: white;"><%-
+                                                                property.propertyDescription %></div>
+                                                        <input type="hidden" name="propertyDescription"
+                                                            id="propertyDescriptionInput">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width" style="margin-top: 1rem;">
+                                                <div class="field-row">
+                                                    <label>Bedroom</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="bedroom" class="form-control"
+                                                            style="max-width: 400px;">
+                                                            <% for(let i=0; i<=10; i++) { %>
+                                                                <option value="<%=i%>" <%=property.bedroom==i
+                                                                    ? 'selected' : '' %>><%=i%>
+                                                                </option>
+                                                                <% } %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Bathroom</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="bathroom" class="form-control"
+                                                            style="max-width: 400px;">
+                                                            <% for(let i=0; i<=10; i++) { %>
+                                                                <option value="<%=i%>" <%=property.bathroom==i
+                                                                    ? 'selected' : '' %>><%=i%>
+                                                                </option>
+                                                                <% } %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property Type</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="propertyType" class="form-control"
+                                                            style="max-width: 400px;">
+                                                            <% propertyTypes.forEach(t=> { %>
+                                                                <option value="<%=t.propertyName%>"
+                                                                    <%=property.propertyType===t.propertyName
+                                                                    ? 'selected' : '' %>><%=t.propertyName%>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property View</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="propertyViewId" class="form-control"
+                                                            style="max-width: 400px;">
+                                                            <option value="">Select View</option>
+                                                            <% propertyViews.forEach(v=> { %>
+                                                                <option value="<%=v.id%>"
+                                                                    <%=Number(property.propertyViewId) === Number(v.id) ? 'selected' : ''
+                                                                    %>><%=v.name%>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>On which floor</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="onWhichFloor" class="form-control"
+                                                            value="<%=property.onWhichFloor%>"
+                                                            style="max-width: 400px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Elevator</label>
+                                                    <div class="field-input-wrapper"
+                                                        style="display: flex; align-items: center; min-height: 40px;">
+                                                        <input type="checkbox" name="elevator" value="Yes"
+                                                            <%=property.elevator==='Yes' ? 'checked' : '' %>
+                                                        style="width: 18px; height: 18px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Sleeps</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="sleeps" class="form-control"
+                                                            style="max-width: 400px;">
+                                                            <% for(let i=1; i<=20; i++) { %>
+                                                                <option value="<%=i%>" <%=property.sleeps==i
+                                                                    ? 'selected' : '' %>><%=i%>
+                                                                </option>
+                                                                <% } %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Assign Property</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="assignTo" class="form-control"
+                                                            style="max-width: 400px;">
+                                                            <option value="">Select Owner</option>
+                                                            <% users.forEach(u=> { %>
+                                                                <option value="<%=u.id%>" <%=property.assignTo===u.id
+                                                                    ? 'selected' : '' %>><%=u.firstname%>
+                                                                        <%=u.lastname%>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-footer"
+                                            style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                            <button type="button" class="btn-continue-outline"
+                                                onclick="nextTab(2)">Continue ></button>
+                                            <button type="submit" class="btn-continue">Save</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 2: Contact -->
+                                    <div class="tab-content" id="tab-2">
+                                        <div class="form-section-title"
+                                            style="font-weight: 300; font-size: 1.5rem; color: #555; margin-bottom: 2rem;">
+                                            Provide your Contact details</div>
+                                        <div class="form-grid">
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Name</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactName" class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].name : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Country</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="contactCountry" class="form-control" id="contact-country-select"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                            <option value="">Select Country</option>
+                                                            <% countries.forEach(function(c) { %>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>" <%=(property && property.contacts && property.contacts[0] && property.contacts[0].country===c.id.toString()) ? 'selected' : '' %>>
+                                                                    <%= c.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>State</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="contactState" class="form-control" id="contact-state-select"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                            <option value="">Select State</option>
+                                                            <% contactStates.forEach(function(s) { %>
+                                                                <option value="<%= s.id %>" data-name="<%= s.name %>" <%=(property && property.contacts && property.contacts[0] && property.contacts[0].state===s.id.toString()) ? 'selected' : '' %>>
+                                                                    <%= s.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>City</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="contactCity" class="form-control" id="contact-city-select"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                            <option value="">Select City</option>
+                                                            <% contactCities.forEach(function(c) { %>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>" <%=(property &&
+                                                                    property.contacts && property.contacts[0] &&
+                                                                    property.contacts[0].city===c.name) ? 'selected' : '' %>>
+                                                                    <%= c.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Street Address</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactStreetAddress"
+                                                            class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].streetAddress : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>ZIP</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactZip" class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].zip : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Email</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="email" name="contactEmail" class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].email : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Re-Type Email</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="email" name="contactRegEmail" class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].regEmail : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Mobile Number</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactMobileNumber"
+                                                            class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].mobileNumber : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Calling Hours</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactCallingHours"
+                                                            class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].callingHours : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Alternate Email</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="email" name="contactAltEmail" class="form-control"
+                                                            value="<%=property.contacts && property.contacts[0] ? property.contacts[0].altEmail : ''%>"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-footer"
+                                            style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                            <button type="button" class="btn-back" onclick="prevTab(1)">
+                                                < Back</button>
+                                                    <button type="button" class="btn-continue-outline"
+                                                        onclick="nextTab(3)">Continue ></button>
+                                                    <button type="submit" class="btn-continue">Save</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 3: Photos -->
+                                    <div class="tab-content" id="tab-3">
+                                        <div class="form-section-title">Property Photos</div>
+                                        <div class="photo-upload-zone" id="drop-zone">
+                                            <input type="file" id="photo-input" multiple accept="image/*">
+                                            <div class="upload-icon-box">
+                                                <i data-lucide="upload-cloud" size="32"></i>
+                                            </div>
+                                            <h3 style="margin-bottom: 0.5rem">Click or drag photos to upload</h3>
+                                            <p style="color: var(--text-muted); font-size: 0.875rem">Upload up to 20
+                                                high-quality images of your property</p>
+                                        </div>
+
+                                        <div class="photo-grid" id="photo-preview-grid">
+                                            <!-- Existing photos -->
+                                            <% property.photos.forEach(photo=> { %>
+                                                <div class="photo-card" data-id="<%=photo.id%>">
+                                                    <img src="<%=photo.imageName%>">
+                                                    <% if (photo.defaultImage===1) { %>
+                                                        <div class="main-badge"><i data-lucide="check" size="12"></i>
+                                                            MAIN PHOTO</div>
+                                                        <% } %>
+                                                            <div class="photo-actions">
+                                                                <button type="button"
+                                                                    class="action-icon btn-main-photo <%=photo.defaultImage === 1 ? 'active' : ''%>"
+                                                                    title="Set as main"
+                                                                    onclick="setMainPhoto(<%= photo.id %>, this)">
+                                                                    <i data-lucide="star" size="14"></i>
+                                                                </button>
+                                                                <button type="button"
+                                                                    class="action-icon btn-remove-photo" title="Remove"
+                                                                    onclick="removeExistingPhoto(<%= photo.id %>, this)">
+                                                                    <i data-lucide="x" size="14"></i>
+                                                                </button>
+                                                            </div>
+                                                </div>
+                                                <% }) %>
+                                        </div>
+
+                                        <input type="hidden" name="removedPhotos" id="removedPhotosInput">
+                                        <input type="hidden" name="mainPhotoId" id="mainPhotoIdInput"
+                                            value="<%= property.photos.find(p => p.defaultImage === 1)?.id || '' %>">
+
+                                        <div class="form-footer"
+                                            style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                            <button type="button" class="btn-back" onclick="prevTab(2)">
+                                                < Back</button>
+                                                    <button type="button" class="btn-continue-outline"
+                                                        onclick="nextTab(4)">Continue ></button>
+                                                    <button type="submit" class="btn-continue">Save</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 4: Amenities -->
+                                    <div class="tab-content" id="tab-4">
+                                        <% const hasAmenity=(field, value)=> {
+                                            if (!property.amenities || property.amenities.length === 0) return false;
+                                            const amen = property.amenities[0][field];
+                                            if (!amen) return false;
+                                            return typeof amen === 'string' && amen.split(', ').includes(value);
+                                            };
+                                            const bedding = (property.beddingInfo && property.beddingInfo[0]) ?
+                                            property.beddingInfo[0] : {};
+                                            const nearby = (property.nearbyPlaces && property.nearbyPlaces[0]) ?
+                                            property.nearbyPlaces[0] : {};
+                                            const amenity = (property.amenities && property.amenities[0]) ?
+                                            property.amenities[0] : {};
+                                            %>
+                                            <!-- Bedding Info -->
+                                            <div class="amenity-section">
+                                                <div class="amenity-section-title">
+                                                    Bedding Info
+                                                </div>
+                                                <div class="bedding-grid">
+                                                    <% const bedTypes=[ { label: 'Kings' , name: 'king' }, {
+                                                        label: 'Queen' , name: 'queen' }, { label: 'Double' ,
+                                                        name: 'doubleBed' }, { label: 'Twin/ Single' ,
+                                                        name: 'twinSingle' }, { label: 'Child Bed' , name: 'childBed' },
+                                                        { label: 'Baby Crib' , name: 'babyCrib' } ]; %>
+                                                        <% bedTypes.forEach(bed=> { %>
+                                                            <div class="bed-input-wrapper">
+                                                                <span class="bed-label">
+                                                                    <%= bed.label %>
+                                                                </span>
+                                                                <select name="<%= bed.name %>" class="bed-count-select">
+                                                                    <% for(let i=0; i<=10; i++) { %>
+                                                                        <option value="<%=i%>" <%=bedding[bed.name]==i
+                                                                            ? 'selected' : '' %>><%=i%>
+                                                                        </option>
+                                                                        <% } %>
+                                                                </select>
+                                                            </div>
+                                                            <% }) %>
+
+                                                                <div class="bed-input-wrapper">
+                                                                    <span class="bed-label">Sleep Sofa /Futon</span>
+                                                                    <select name="sleepSofaFuton"
+                                                                        class="bed-count-select">
+                                                                        <% for(let i=0; i<=10; i++) { %>
+                                                                            <option value="<%=i%>"
+                                                                                <%=bedding.sleepSofaFuton==i
+                                                                                ? 'selected' : '' %>><%=i%>
+                                                                            </option>
+                                                                            <% } %>
+                                                                    </select>
+                                                                </div>
+
+                                                                <div class="bed-input-wrapper"
+                                                                    style="grid-column: span 2;">
+                                                                    <span class="bed-label">Note</span>
+                                                                    <input type="text" name="beddingNote"
+                                                                        class="bedding-note-input"
+                                                                        value="<%= bedding.note || '' %>"
+                                                                        placeholder="Note">
+                                                                </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="amenity-section">
+                                                <div class="amenity-section-title">
+                                                    <i data-lucide="map-pin"></i> Nearby Places & Activities
+                                                </div>
+                                                <div class="nearby-grid"
+                                                    style="display: grid; grid-template-columns: 1fr; gap: 1rem; padding-left: 110px;">
+                                                    <% const mainPlaces=[ { label: 'Nearest Airport' ,
+                                                        name: 'nearestAirport' , distName: 'airportDistance' ,
+                                                        unitName: 'nearestAirportUnit' }, { label: 'Nearest Beach' ,
+                                                        name: 'nearestBeach' , distName: 'beachDistance' ,
+                                                        unitName: 'nearestBeachUnit' }, { label: 'Nearest Ferry' ,
+                                                        name: 'nearestFerry' , distName: 'ferryDistance' ,
+                                                        unitName: 'nearestFerryUnit' }, { label: 'Nearest Train' ,
+                                                        name: 'nearestTrain' , distName: 'trainDistance' ,
+                                                        unitName: 'nearestTrainUnit' }, { label: 'Nearest Highway' ,
+                                                        name: 'nearestHighway' , distName: 'highwayDistance' ,
+                                                        unitName: 'nearestHighwayUnit' }, { label: 'Nearest Bar' ,
+                                                        name: 'nearestBar' , distName: 'barDistance' ,
+                                                        unitName: 'nearestBarUnit' }, { label: 'Nearest Ski' ,
+                                                        name: 'nearestSki' , distName: 'skiDistance' ,
+                                                        unitName: 'nearestSkiUnit' }, { label: 'Nearest Golf' ,
+                                                        name: 'nearestGolf' , distName: 'golfDistance' ,
+                                                        unitName: 'nearestGolfUnit' }, { label: 'Nearest Restaurant' ,
+                                                        name: 'nearestRestaurant' , distName: 'restaurantDistance' ,
+                                                        unitName: 'nearestRestaurantUnit' } ]; %>
+
+                                                        <% mainPlaces.forEach(place=> {
+                                                            const fullDist = nearby[place.distName] || '';
+                                                            const distVal = fullDist.replace(/[^0-9.]/g, '');
+                                                            const unitVal = fullDist.includes('km') ? 'km' : 'miles';
+                                                            %>
+                                                            <div class="nearby-item-row"
+                                                                style="display: grid; grid-template-columns: 160px 1fr 100px 100px; gap: 1rem; align-items: center;">
+                                                                <label class="nearby-label"
+                                                                    style="font-size: 0.875rem; color: #64748b; font-weight: 500; text-align: right;">
+                                                                    <%= place.label %>
+                                                                </label>
+                                                                <input type="text" name="<%= place.name %>"
+                                                                    class="form-control"
+                                                                    style="height: 38px; border-radius: 4px;"
+                                                                    value="<%= nearby[place.name] || '' %>">
+                                                                <input type="text" name="<%= place.distName %>"
+                                                                    class="form-control"
+                                                                    style="height: 38px; border-radius: 4px; text-align: center;"
+                                                                    value="<%= distVal || '0.00' %>">
+                                                                <select name="<%= place.unitName %>"
+                                                                    class="form-control"
+                                                                    style="height: 38px; border-radius: 4px;">
+                                                                    <option value="miles" <%=unitVal==='miles'
+                                                                        ? 'selected' : '' %>>miles</option>
+                                                                    <option value="km" <%=unitVal==='km' ? 'selected'
+                                                                        : '' %>>km</option>
+                                                                </select>
+                                                            </div>
+                                                            <% }) %>
+                                                </div>
+                                            </div>
+
+                                            <hr
+                                                style="margin: 4rem 0 2rem 0; border: none; border-top: 1px solid #edf2f9;">
+
+                                            <div class="amenity-section">
+                                                <div class="amenity-section-title">
+                                                    <i data-lucide="check-circle-2"></i> Suitability
+                                                </div>
+                                                <div class="form-grid"
+                                                    style="grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                                                    <div class="form-group row-align"
+                                                        style="display:flex; align-items:center; gap:1rem; justify-content: flex-end;">
+                                                        <label
+                                                            style="width: 100px; text-align: right; color: #64748b; font-weight: 500;">Children</label>
+                                                        <select name="childrenSuitability" class="form-control"
+                                                            style="max-width: 250px;">
+                                                            <option value="children welcome"
+                                                                <%=amenity.childrenSuitability==='children welcome'
+                                                                ? 'selected' : '' %>>children welcome</option>
+                                                            <option value="not suitable"
+                                                                <%=amenity.childrenSuitability==='not suitable'
+                                                                ? 'selected' : '' %>>not suitable</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group row-align"
+                                                        style="display:flex; align-items:center; gap:1rem; justify-content: flex-start;">
+                                                        <label
+                                                            style="width: 100px; text-align: right; color: #64748b; font-weight: 500;">Smoking</label>
+                                                        <select name="smokingSuitability" class="form-control"
+                                                            style="max-width: 250px;">
+                                                            <option value="smoking allowed"
+                                                                <%=amenity.smokingSuitability==='smoking allowed'
+                                                                ? 'selected' : '' %>>smoking allowed</option>
+                                                            <option value="non smoking only"
+                                                                <%=amenity.smokingSuitability==='non smoking only'
+                                                                ? 'selected' : '' %>>non smoking only</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group row-align"
+                                                        style="display:flex; align-items:center; gap:1rem; justify-content: flex-end;">
+                                                        <label
+                                                            style="width: 100px; text-align: right; color: #64748b; font-weight: 500;">Wheel
+                                                            Chairs</label>
+                                                        <select name="wheelchairSuitability" class="form-control"
+                                                            style="max-width: 250px;">
+                                                            <option value="wheelchair inaccessible"
+                                                                <%=amenity.wheelchairSuitability==='wheelchair inaccessible'
+                                                                ? 'selected' : '' %>>Wheelchair inaccessible</option>
+                                                            <option value="wheelchair accessible"
+                                                                <%=amenity.wheelchairSuitability==='wheelchair accessible'
+                                                                ? 'selected' : '' %>>Wheelchair accessible</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group row-align"
+                                                        style="display:flex; align-items:center; gap:1rem; justify-content: flex-start;">
+                                                        <label
+                                                            style="width: 100px; text-align: right; color: #64748b; font-weight: 500;">Pets</label>
+                                                        <select name="petsSuitability" class="form-control"
+                                                            style="max-width: 250px;">
+                                                            <option value="pets considered"
+                                                                <%=amenity.petsSuitability==='pets considered'
+                                                                ? 'selected' : '' %>>pets considered</option>
+                                                            <option value="pets not allowed"
+                                                                <%=amenity.petsSuitability==='pets not allowed'
+                                                                ? 'selected' : '' %>>pets not allowed</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="checkbox-grid"
+                                                    style="grid-template-columns: repeat(2, 1fr); gap: 1rem; padding-left: 110px;">
+                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Minimum Age Limit for Renters" <%=(amenity.otherSuitability||'').includes('Minimum Age Limit for Renters') ? 'checked' : '' %>> <span>Minimum Age Limit for Renters</span></label>
+                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Senior Adults Only Community" <%=(amenity.otherSuitability||'').includes('Senior Adults Only Community') ? 'checked' : '' %>> <span>Senior Adults Only Community</span></label>
+                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Long-term Renters" <%=(amenity.otherSuitability||'').includes('Long-term Renters') ? 'checked' : '' %>> <span>Long-term Renters Welcome</span></label>
+                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Events Allowed" <%=(amenity.otherSuitability||'').includes('Events Allowed') ? 'checked' : '' %>> <span>Events Allowed</span></label>
+                                                </div>
+
+                                            </div>
+                                            
+                                            <div class="amenity-section">
+                                                <div class="amenity-section-title">
+                                                    <i data-lucide="home"></i> Accommodations
+                                                </div>
+                                                <div class="form-grid"
+                                                    style="grid-template-columns: 1fr; gap: 1.5rem; padding-left: 110px;">
+                                                    <div class="form-group row-align"
+                                                        style="display:flex; align-items:center; gap:2rem;">
+                                                        <label
+                                                            style="width: 155px; text-align: right; color: #64748b; font-weight: 500;">Accommodation
+                                                            Type</label>
+                                                        <div
+                                                            style="display:flex; flex-direction: column; gap: 0.25rem;">
+                                                            <span style="font-size: 0.75rem; color: #94a3b8;">This
+                                                                property operates as a:</span>
+                                                            <div
+                                                                style="display:flex; gap: 1.5rem; align-items: center;">
+                                                                <% ['Vacation Rental', 'Bed & Breakfast' , 'Hotel'
+                                                                    ].forEach(type=> { %>
+                                                                    <label
+                                                                        style="display: flex; align-items:center; gap:0.5rem; font-size: 0.875rem; color: #1e293b; cursor: pointer;">
+                                                                        <input type="radio" name="accommodationType"
+                                                                            value="<%=type%>"
+                                                                            <%=amenity.accommodationType===type
+                                                                            ? 'checked' : '' %> style="accent-color:
+                                                                        #1abc9c;">
+                                                                        <%=type%>
+                                                                    </label>
+                                                                    <% }) %>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row-align"
+                                                        style="display:flex; align-items:center; gap:2rem;">
+                                                        <label
+                                                            style="width: 155px; text-align: right; color: #64748b; font-weight: 500;">Meals</label>
+                                                        <select name="meals" class="form-control"
+                                                            style="max-width: 400px; border-radius: 4px;">
+                                                            <option value="Guests provide their own meals"
+                                                                <%=amenity.meals==='Guests provide their own meals'
+                                                                ? 'selected' : '' %>>Guests provide their own meals
+                                                            </option>
+                                                            <option value="Meals included in price"
+                                                                <%=amenity.meals==='Meals included in price'
+                                                                ? 'selected' : '' %>>Meals included in price</option>
+                                                            <option value="Catering available"
+                                                                <%=amenity.meals==='Catering available' ? 'selected'
+                                                                : '' %>>Catering available</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <% [['Breakfast', 'breakfast' ], ['Lunch', 'lunch' ],
+                                                        ['Dinner', 'dinner' ]].forEach(([label, name])=> { %>
+                                                        <div class="form-group row-align"
+                                                            style="display:flex; align-items:center; gap:2rem;">
+                                                            <label
+                                                                style="width: 155px; text-align: right; color: #64748b; font-weight: 500;">
+                                                                <%=label%>
+                                                            </label>
+                                                            <div
+                                                                style="display:flex; gap: 1.5rem; align-items: center;">
+                                                                <% ['Not Available', 'Booking Possible'
+                                                                    , 'Included In Price' ].forEach(status=> { %>
+                                                                    <label
+                                                                        style="display:flex; align-items:center; gap:0.5rem; font-size: 0.875rem; color: #1e293b; cursor: pointer;">
+                                                                        <input type="radio" name="<%=name%>"
+                                                                            value="<%=status%>"
+                                                                            <%=amenity[name]===status ? 'checked' : ''
+                                                                            %> style="accent-color: #1abc9c;">
+                                                                        <%=status%>
+                                                                    </label>
+                                                                    <% }) %>
+                                                            </div>
+                                                        </div>
+                                                        <% }) %>
+
+                                                            <div class="form-group row-align"
+                                                                style="display:flex; align-items:center; gap:2rem;">
+                                                                <label
+                                                                    style="width: 155px; text-align: right; color: #64748b; font-weight: 500;">Housekeeping</label>
+                                                                <div
+                                                                    style="display:flex; gap: 1.5rem; align-items: center;">
+                                                                    <% ['Ask Owner', 'Housekeeper Included'
+                                                                        , 'Housekeeper Optional' ].forEach(status=> { %>
+                                                                        <label
+                                                                            style="display:flex; align-items:center; gap:0.5rem; font-size: 0.875rem; color: #1e293b; cursor: pointer;">
+                                                                            <input type="radio" name="houseKeeping"
+                                                                                value="<%=status%>"
+                                                                                <%=amenity.houseKeeping===status
+                                                                                ? 'checked' : '' %> style="accent-color:
+                                                                            #1abc9c;">
+                                                                            <%=status%>
+                                                                        </label>
+                                                                        <% }) %>
+                                                                </div>
+                                                            </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="amenity-section">
+                                                <div class="amenity-section-title">
+                                                    <i data-lucide="map"></i> Other Services
+                                                </div>
+                                                <div class="checkbox-grid"
+                                                    style="grid-template-columns: repeat(2, 1fr); gap: 1rem; padding-left: 110px;">
+                                                    <% ['Car Available', 'Chauffeur' , 'Concierge' , 'Massage'
+                                                        , 'Private Chef' , 'Staff' ].forEach(item=> { %>
+                                                        <label class="checkbox-item">
+                                                            <input type="checkbox" name="otherServices"
+                                                                value="<%=item%>" <%=hasAmenity('otherServices',
+                                                                item)?'checked':''%>>
+                                                            <span>
+                                                                <%=item%>
+                                                            </span>
+                                                        </label>
+                                                        <% }) %>
+                                                </div>
+                                            </div>
+
+                                            <div class="amenity-section">
+                                                <div class="amenity-section-title">
+                                                    <i data-lucide="sparkles"></i> Themes
+                                                </div>
+                                                <div class="checkbox-grid"
+                                                    style="grid-template-columns: repeat(2, 1fr); gap: 1rem; padding-left: 110px;">
+                                                    <% ['Adventure', 'Away From It All' , 'Budget' , 'Family'
+                                                        , 'Historic' , 'Romantic' , 'Spa' , 'Sports & Activities'
+                                                        , 'Tourist Attractions' ].forEach(item=> { %>
+                                                        <label class="checkbox-item">
+                                                            <input type="checkbox" name="themes" value="<%=item%>"
+                                                                <%=hasAmenity('themes', item)?'checked':''%>>
+                                                            <span>
+                                                                <%=item%>
+                                                            </span>
+                                                        </label>
+                                                        <% }) %>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="amenity-section">
+                                                <div class="amenity-section-title">
+                                                    <i data-lucide="info"></i> Additional Info
+                                                </div>
+                                                <div class="form-group full-width">
+                                                    <div class="field-input-wrapper">
+                                                        <div id="additional-info-editor"
+                                                            style="height: 200px; background: white;"><%-
+                                                                amenity.additionalInfo || '' %></div>
+                                                        <input type="hidden" name="additionalInfo"
+                                                            id="additionalInfoInput">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Dynamic Amenities -->
+                                            <% const propertyAmenityIds = (property.propertyAmenities || []).map(pa => pa.amenityItemId); %>
+                                            <% if (typeof amenityCategories !== 'undefined' && amenityCategories.length > 0) { %>
+                                                <div class="amenity-category-filter" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                                    <button type="button" class="btn-filter active" data-filter="all" style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: var(--primary); color: white; cursor: pointer; transition: all 0.2s;">All</button>
+                                                    <% amenityCategories.forEach(category => { %>
+                                                        <% if (category.items && category.items.length > 0) { %>
+                                                            <button type="button" class="btn-filter" data-filter="cat-<%= category.id %>" style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: white; color: var(--text-main); cursor: pointer; transition: all 0.2s;"><%= category.name %></button>
+                                                        <% } %>
+                                                    <% }) %>
+                                                </div>
+                                                <div class="dynamic-amenities-container">
+                                                    <% amenityCategories.forEach(category => { %>
+                                                        <% if (category.items && category.items.length > 0) { %>
+                                                            <div class="amenity-section dynamic-cat-section" id="cat-<%= category.id %>">
+                                                                <div class="amenity-section-title">
+                                                                    <i data-lucide="check-square"></i> <%= category.name %>
+                                                                </div>
+                                                                <div class="checkbox-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; padding-left: 110px;">
+                                                                    <% category.items.forEach(item => { %>
+                                                                        <label class="checkbox-item">
+                                                                            <input type="checkbox" name="dynamicAmenities" value="<%= item.id %>" <%= propertyAmenityIds.includes(item.id) ? 'checked' : '' %>>
+                                                                            <span>
+                                                                                <% if (item.icon) { %>
+                                                                                    <i data-lucide="<%= item.icon %>" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></i>
+                                                                                <% } %>
+                                                                                <%= item.name %>
+                                                                            </span>
+                                                                        </label>
+                                                                    <% }) %>
+                                                                </div>
+                                                            </div>
+                                                        <% } %>
+                                                    <% }) %>
+                                                </div>
+                                                <script>
+                                                    document.addEventListener('DOMContentLoaded', () => {
+                                                        const filterBtns = document.querySelectorAll('.btn-filter');
+                                                        const sections = document.querySelectorAll('.dynamic-cat-section');
+                                                        
+                                                        filterBtns.forEach(btn => {
+                                                            btn.addEventListener('click', (e) => {
+                                                                filterBtns.forEach(b => {
+                                                                    b.style.background = 'white';
+                                                                    b.style.color = 'var(--text-main)';
+                                                                    b.classList.remove('active');
+                                                                });
+                                                                e.target.style.background = 'var(--primary)';
+                                                                e.target.style.color = 'white';
+                                                                e.target.classList.add('active');
+                                                                
+                                                                const filter = e.target.dataset.filter;
+                                                                sections.forEach(sec => {
+                                                                    if (filter === 'all' || sec.id === filter) {
+                                                                        sec.style.display = 'block';
+                                                                    } else {
+                                                                        sec.style.display = 'none';
+                                                                    }
+                                                                });
+                                                            });
+                                                        });
+                                                    });
+                                                </script>
+                                            <% } %>
+                                            <div class="form-footer"
+                                                style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                                <button type="button" class="btn-back" onclick="prevTab(3)">
+                                                    < Back</button>
+                                                        <button type="button" class="btn-continue-outline"
+                                                            onclick="nextTab(5)">Continue ></button>
+                                                        <button type="submit" class="btn-continue">Save</button>
+                                            </div>
+                                    </div>
+
+                                    <!-- TAB 5: Rates -->
+                                    <!-- TAB 5: Rates -->
+                                    <div class="tab-content" id="tab-5">
+                                        <% const extra=(property.propertyExtras && property.propertyExtras[0]) ?
+                                            property.propertyExtras[0] : {}; %>
+                                            <div class="form-section-title">Rates & Pricing</div>
+
+                                            <!-- Rate Entry Form -->
+                                            <div class="rate-entry-panel"
+                                                style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
+                                                <div
+                                                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <input type="text" id="rate-season-name" class="form-control"
+                                                            placeholder="Season Name">
+                                                    </div>
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <input type="date" id="rate-start-date" class="form-control"
+                                                            placeholder="Select start date">
+                                                    </div>
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <input type="date" id="rate-end-date" class="form-control"
+                                                            placeholder="Select end date">
+                                                    </div>
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <select id="rate-min-stay" class="form-control">
+                                                            <option value="">Minimum Stay</option>
+                                                            <% for(let i=1; i<=6; i++) { %>
+                                                                <option value="<%=i%>-Night">
+                                                                    <%=i%>-Night
+                                                                </option>
+                                                                <% } %>
+                                                                    <option disabled>----</option>
+                                                                    <% for(let i=1; i<=3; i++) { %>
+                                                                        <option value="<%=i%>-Weeks">
+                                                                            <%=i%>-Weeks
+                                                                        </option>
+                                                                        <% } %>
+                                                                            <option disabled>-----</option>
+                                                                            <% for(let i=1; i<=12; i++) { %>
+                                                                                <option value="<%=i%>-Months">
+                                                                                    <%=i%>-Months
+                                                                                </option>
+                                                                                <% } %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; align-items: center;">
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <input type="text" id="rate-weekend-night" class="form-control"
+                                                            placeholder="Weekend night">
+                                                    </div>
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <input type="number" id="rate-nightly" class="form-control"
+                                                            placeholder="Nightly">
+                                                    </div>
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <input type="number" id="rate-weekly" class="form-control"
+                                                            placeholder="Weekly">
+                                                    </div>
+                                                    <div class="form-group" style="margin: 0;">
+                                                        <input type="number" id="rate-monthly" class="form-control"
+                                                            placeholder="Monthly">
+                                                    </div>
+                                                </div>
+                                                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                                                    <button type="button" class="btn-save-rate" onclick="saveRate()"
+                                                        style="background: #1abc9c; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 4px; cursor: pointer;">Save</button>
+                                                    <button type="button" class="btn-clear-rate"
+                                                        onclick="clearRateForm()"
+                                                        style="background: #ff7675; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 4px; cursor: pointer;">Clear</button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Rates Table -->
+                                            <div class="table-container" style="margin-bottom: 3rem; overflow-x: auto;">
+                                                <table id="rates-table"
+                                                    style="width: 100%; border-collapse: collapse; background: white; border: 1px solid #edf2f9; min-width: 800px;">
+                                                    <thead>
+                                                        <tr
+                                                            style="background: #f8fafc; text-align: left; font-size: 0.85rem; color: #64748b; border-bottom: 2px solid #edf2f9;">
+                                                            <th style="padding: 1rem;">Season name</th>
+                                                            <th style="padding: 1rem;">Starts</th>
+                                                            <th style="padding: 1rem;">Ends</th>
+                                                            <th style="padding: 1rem;">Min Stay</th>
+                                                            <th style="padding: 1rem;">Nightly</th>
+                                                            <th style="padding: 1rem;">Weekly</th>
+                                                            <th style="padding: 1rem;">Weekend-Night</th>
+                                                            <th style="padding: 1rem;">Monthly</th>
+                                                            <th style="padding: 1rem; width: 100px;">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="rates-table-body">
+                                                        <!-- Dynamic content -->
+                                                    </tbody>
+                                                </table>
+                                                <input type="hidden" name="seasonalRates" id="seasonalRatesInput">
+                                            </div>
+
+                                            <!-- Fees and Taxes -->
+                                            <div style="margin-bottom: 2rem;">
+                                                <div class="form-section-title"
+                                                    style="font-size: 1.1rem; margin-bottom: 1rem;">Fees and Taxes</div>
+                                                <div
+                                                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                                                    <div class="form-group">
+                                                        <input type="text" name="petFee" class="form-control"
+                                                            placeholder="Pet fee" value="<%= extra.petFee || '' %>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input type="text" name="cleaningFee" class="form-control"
+                                                            placeholder="Cleaning fee"
+                                                            value="<%= extra.cleaningFee || '' %>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input type="text" name="taxes" class="form-control"
+                                                            placeholder="Taxes" value="<%= extra.taxes || '' %>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Damage Protection -->
+                                            <div style="margin-bottom: 2rem;">
+                                                <div class="form-section-title"
+                                                    style="font-size: 1.1rem; margin-bottom: 1rem;">Damage Protection
+                                                </div>
+                                                <div class="form-group" style="max-width: 300px;">
+                                                    <input type="text" name="damageProtection" class="form-control"
+                                                        placeholder="99" value="<%= extra.damageProtection || '' %>">
+                                                </div>
+                                            </div>
+
+                                            <!-- Payment Terms -->
+                                            <div style="margin-bottom: 2rem;">
+                                                <div class="form-section-title"
+                                                    style="font-size: 1.1rem; margin-bottom: 1rem;">Payment Terms</div>
+                                                <div class="form-group full-width">
+                                                    <div id="payment-terms-editor"
+                                                        style="height: 250px; background: white;"><%- extra.paymentTerms
+                                                            || '' %></div>
+                                                    <input type="hidden" name="paymentTerms" id="paymentTermsInput">
+                                                </div>
+                                            </div>
+
+                                            <div class="form-footer"
+                                                style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                                <button type="button" class="btn-back" onclick="prevTab(4)">
+                                                    < Back</button>
+                                                        <button type="button" class="btn-continue-outline"
+                                                            onclick="nextTab(6)">Continue ></button>
+                                                        <button type="submit" class="btn-continue">Save</button>
+                                            </div>
+                                    </div>
+
+                                    <!-- TAB 6: Availability -->
+                                    <div class="tab-content" id="tab-6">
+                                        <!-- Calendar Banner -->
+                                        <div class="calendar-banner">
+                                            <div class="calendar-icon-box">
+                                                <span style="font-size: 0.7rem; font-weight: 700;">
+                                                    <%= new Date().toLocaleString('en-US', { month: 'short'
+                                                        }).toUpperCase() %>
+                                                </span>
+                                                <span style="font-size: 1.5rem; font-weight: 800; line-height: 1;">
+                                                    <%= new Date().getDate() %>
+                                                </span>
+                                            </div>
+                                            <div class="calendar-title">Availability Calendar</div>
+                                        </div>
+
+                                        <!-- Toggle Tabs -->
+                                        <div class="calendar-toggle-tabs">
+                                            <button type="button" class="calendar-toggle-btn">Booking Items</button>
+                                            <button type="button" class="calendar-toggle-btn active">Bookings</button>
+                                        </div>
+
+                                        <div
+                                            style="font-size: 0.9rem; color: #444; margin-bottom: 1.5rem; font-weight: 600;">
+                                            >> Bookings</div>
+
+                                        <!-- Controls -->
+                                        <div class="calendar-controls">
+                                            <div
+                                                style="display: flex; align-items: center; gap: 0.5rem; background: #1e293b; color: white; padding: 0.4rem 1rem; border-radius: 4px; font-size: 0.85rem;">
+                                                Click Method:</div>
+                                            <select class="click-method-select">
+                                                <option value="cycle">click-through (cycle through all states)</option>
+                                                <option value="booked">Booked</option>
+                                                <option value="am">Booked am</option>
+                                                <option value="pm">Booked pm</option>
+                                                <option value="available">Available</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Instruction Bar -->
+                                        <div class="calendar-instruction-bar">
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div style="display: flex; gap: 0.5rem;">
+                                                    <button type="button" class="action-icon"
+                                                        style="border:1px solid #ddd; background:white;"
+                                                        onclick="prevYear()"><i data-lucide="chevrons-left"
+                                                            size="14"></i></button>
+                                                    <button type="button" class="action-icon"
+                                                        style="border:1px solid #ddd; background:white;"
+                                                        onclick="prevMonth()"><i data-lucide="chevron-left"
+                                                            size="14"></i></button>
+                                                    <button type="button" class="action-icon"
+                                                        style="border:1px solid #ddd; background:white;"
+                                                        onclick="nextMonth()"><i data-lucide="chevron-right"
+                                                            size="14"></i></button>
+                                                    <button type="button" class="action-icon"
+                                                        style="border:1px solid #ddd; background:white;"
+                                                        onclick="nextYear()"><i data-lucide="chevrons-right"
+                                                            size="14"></i></button>
+                                                </div>
+                                                <div>click on the dates to change the state</div>
+                                                <div style="width: 80px;"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Months Container -->
+                                        <div class="months-container" id="calendar-render-area">
+                                            <!-- JS will inject months here -->
+                                        </div>
+
+                                        <!-- Key / Legend -->
+                                        <div class="calendar-key">
+                                            <div class="key-header">Key</div>
+                                            <div class="key-items">
+                                                <div class="key-item">
+                                                    <div class="key-color" style="background: white;"></div>
+                                                    <span>Available</span>
+                                                </div>
+                                                <div class="key-item">
+                                                    <div class="key-color status-booked"></div>
+                                                    <span>Booked</span>
+                                                </div>
+                                                <div class="key-item">
+                                                    <div class="key-color status-booked-am"></div>
+                                                    <span>Booked am</span>
+                                                </div>
+                                                <div class="key-item">
+                                                    <div class="key-color status-booked-pm"></div>
+                                                    <span>Booked pm</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" name="calendarBlockedDates" id="calendarBlockedDatesInput">
+
+                                        <div class="form-footer"
+                                            style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                            <button type="button" class="btn-back" onclick="prevTab(5)">
+                                                < Back</button>
+                                                    <button type="submit" class="btn-continue">Save</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                </main>
+        </div>
+
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                try {
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                    const quillConfig = {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                ['bold', 'italic', 'underline'],
+                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                ['clean']
+                            ]
+                        }
+                    };
+
+                    // Initialize editors
+                    const editorMap = [
+                        { id: '#editor-container', input: '#propertyDescriptionInput', name: 'descQuill' },
+                        { id: '#additional-info-editor', input: '#additionalInfoInput', name: 'amenityQuill' },
+                        { id: '#payment-terms-editor', input: '#paymentTermsInput', name: 'paymentTermsQuill' }
+                    ];
+
+                    editorMap.forEach(ed => {
+                        const container = document.querySelector(ed.id);
+                        if (container) {
+                            window[ed.name] = new Quill(ed.id, quillConfig);
+                        }
+                    });
+
+                    // Update hidden inputs on form submission
+                    const form = document.getElementById('edit-property-form');
+                    if (form) {
+                        form.addEventListener('submit', (e) => {
+                            editorMap.forEach(ed => {
+                                if (window[ed.name]) {
+                                    const input = document.querySelector(ed.input);
+                                    if (input) input.value = window[ed.name].root.innerHTML;
+                                }
+                            });
+                        });
+                    }
+
+                    // Reusable location logic
+                    const setupLocationDependency = (countryEl, stateEl, cityEl) => {
+                        if (!countryEl || !stateEl || !cityEl) return;
+
+                        countryEl.addEventListener('change', async () => {
+                            const selectedOption = countryEl.options[countryEl.selectedIndex];
+                            const countryId = countryEl.value;
+                            
+                            stateEl.innerHTML = '<option value="">Select State</option>';
+                            cityEl.innerHTML = '<option value="">Select City</option>';
+                            
+                            if (!countryId) return;
+
+                            try {
+                                const response = await fetch(`/api/admin/settings/data/states?countryId=${countryId}`);
+                                const statesData = await response.json();
+                                statesData.forEach(s => {
+                                    const opt = document.createElement('option');
+                                    opt.value = s.id; opt.setAttribute("data-name", s.name);
+                                    opt.textContent = s.name;
+                                    stateEl.appendChild(opt);
+                                });
+                            } catch (error) {
+                                console.error('Failed to fetch states:', error);
+                            }
+                        });
+
+                        stateEl.addEventListener('change', async () => {
+                            const selectedOption = stateEl.options[stateEl.selectedIndex];
+                            const stateId = stateEl.value;
+                            
+                            cityEl.innerHTML = '<option value="">Select City</option>';
+                            
+                            if (!stateId) return;
+
+                            try {
+                                const response = await fetch(`/api/admin/settings/data/cities?stateId=${stateId}`);
+                                const citiesData = await response.json();
+                                citiesData.forEach(c => {
+                                    const opt = document.createElement('option');
+                                    opt.value = c.id; opt.setAttribute("data-name", c.name);
+                                    opt.textContent = c.name;
+                                    cityEl.appendChild(opt);
+                                });
+                            } catch (error) {
+                                console.error('Failed to fetch cities:', error);
+                            }
+                        });
+                    };
+
+                    // Initialize location dependencies for both main and contact
+                    setupLocationDependency(
+                        document.getElementById('country-select'),
+                        document.getElementById('state-select'),
+                        document.getElementById('city-select')
+                    );
+
+                    setupLocationDependency(
+                        document.getElementById('contact-country-select'),
+                        document.getElementById('contact-state-select'),
+                        document.getElementById('contact-city-select')
+                    );
+
+                } catch (e) {
+                    console.error('Initialization failed:', e);
+                }
+
+                // Tab items click logic
+                document.querySelectorAll('.tab-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const tabNum = parseInt(item.dataset.tab);
+                        nextTab(tabNum);
+                    });
+                });
+
+                try {
+                    renderPropertiesCalendar();
+                    renderRatesTable();
+                } catch (e) {
+                    console.error('Table/Calendar initialization failed:', e);
+                }
+
+                // Initial tab switch if requested
+                const urlParams = new URLSearchParams(window.location.search);
+                const initialTab = urlParams.get('tab');
+                if (initialTab && !isNaN(parseInt(initialTab))) {
+                    setTimeout(() => nextTab(parseInt(initialTab)), 100);
+                }
+            });
+
+            let currentTab = 1;
+            const removedPhotos = [];
+
+            function nextTab(n) {
+                if (n > 6 || n < 1) return;
+                const targetTab = document.getElementById('tab-' + n);
+                const targetNav = document.querySelector(`[data-tab="${n}"]`);
+
+                if (!targetTab || !targetNav) {
+                    console.error(`Tab ${n} not found`);
+                    return;
+                }
+
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+                targetTab.classList.add('active');
+                targetNav.classList.add('active');
+
+                const progress = document.querySelector('.progress-bar');
+                if (progress) {
+                    progress.style.width = ((n / 6) * 100) + '%';
+                }
+
+                currentTab = n;
+                window.scrollTo(0, 0);
+            }
+
+            function prevTab(n) {
+                nextTab(n);
+            }
+
+            function removeExistingPhoto(id, btn) {
+                removedPhotos.push(id);
+                document.getElementById('removedPhotosInput').value = removedPhotos.join(',');
+                btn.closest('.photo-card').style.display = 'none';
+            }
+
+            function setMainPhoto(id, btn) {
+                document.querySelectorAll('.btn-main-photo').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('mainPhotoIdInput').value = id;
+            }
+
+            const photoInput = document.getElementById('photo-input');
+            const previewGrid = document.getElementById('photo-preview-grid');
+            let newFiles = [];
+
+            photoInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    newFiles.push(file);
+                    const reader = new FileReader();
+                    reader.onload = (re) => {
+                        const div = document.createElement('div');
+                        div.className = 'photo-card';
+                        div.innerHTML = `<img src="${re.target.result}"><div class="photo-actions"><button type="button" class="action-icon btn-remove-photo" onclick="removeNewPhoto(this, ${newFiles.length - 1})"><i data-lucide="x" size="14"></i></button></div>`;
+                        previewGrid.appendChild(div);
+                        if (window.lucide) lucide.createIcons();
+                    }
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            function removeNewPhoto(btn, index) {
+                newFiles[index] = null;
+                btn.closest('.photo-card').remove();
+            }
+
+            // let paymentTermsQuill = new Quill('#payment-terms-editor', quillConfig); // Moved to DOMContentLoaded
+            let seasonalRates = <%- JSON.stringify(property.rates || []) %>;
+            let editingRateIndex = -1;
+
+            // Calendar Logic
+            let calendarYear = new Date().getFullYear();
+            let calendarMonth = new Date().getMonth();
+            let blockedDates = <%- JSON.stringify(property.calendarBlockedDates || {}) %>;
+
+            function renderPropertiesCalendar() {
+                const container = document.getElementById('calendar-render-area');
+                if (!container) return;
+                container.innerHTML = '';
+
+                // Render 4 months starting from current calendar state
+                for (let i = 0; i < 4; i++) {
+                    let m = calendarMonth + i;
+                    let y = calendarYear;
+                    if (m > 11) {
+                        m -= 12; y++;
+                    }
+                    container.appendChild(generateMonthElement(y, m));
+                }
+                if (window.lucide) lucide.createIcons();
+            }
+
+            function generateMonthElement(year, month) {
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const div = document.createElement('div');
+                div.className = 'calendar-month';
+
+                let html = `
+                    <div class="month-header">${monthNames[month]} ${year}</div>
+                    <div class="weekdays-grid">
+                        <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+                    </div>
+                    <div class="days-grid">
+                `;
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                let startingPadding = firstDay === 0 ? 6 : firstDay - 1;
+
+                const prevMonthDays = new Date(year, month, 0).getDate();
+                for (let i = startingPadding - 1; i >= 0; i--) {
+                    html += `<div class="day-cell other-month">${prevMonthDays - i}</div>`;
+                }
+
+                const today = new Date();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const status = blockedDates[dateStr] || '';
+                    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+
+                    let statusClass = '';
+                    if (status === 'booked') statusClass = 'status-booked';
+                    else if (status === 'am') statusClass = 'status-booked-am';
+                    else if (status === 'pm') statusClass = 'status-booked-pm';
+
+                    html += `
+                        <div class="day-cell ${isToday ? 'today' : ''} ${statusClass}" 
+                             data-date="${dateStr}" onclick="handleDateClick(this)">
+                            ${d}
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+                div.innerHTML = html;
+                return div;
+            }
+
+            function handleDateClick(el) {
+                const dateStr = el.dataset.date;
+                if (!dateStr) return;
+
+                const method = document.querySelector('.click-method-select').value;
+                let currentStatus = blockedDates[dateStr] || 'available';
+
+                if (method === 'cycle') {
+                    if (currentStatus === 'available') currentStatus = 'booked';
+                    else if (currentStatus === 'booked') currentStatus = 'am';
+                    else if (currentStatus === 'am') currentStatus = 'pm';
+                    else currentStatus = 'available';
+                } else {
+                    currentStatus = method;
+                }
+
+                if (currentStatus === 'available') {
+                    delete blockedDates[dateStr];
+                } else {
+                    blockedDates[dateStr] = currentStatus;
+                }
+
+                el.classList.remove('status-booked', 'status-booked-am', 'status-booked-pm');
+                if (currentStatus === 'booked') el.classList.add('status-booked');
+                else if (currentStatus === 'am') el.classList.add('status-booked-am');
+                else if (currentStatus === 'pm') el.classList.add('status-booked-pm');
+
+                document.getElementById('calendarBlockedDatesInput').value = JSON.stringify(blockedDates);
+            }
+
+            function nextMonth() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } renderPropertiesCalendar(); }
+            function prevMonth() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } renderPropertiesCalendar(); }
+            function nextYear() { calendarYear++; renderPropertiesCalendar(); }
+            function prevYear() { calendarYear--; renderPropertiesCalendar(); }
+
+            // Initialize calendar
+            // renderPropertiesCalendar(); // Moved to DOMContentLoaded
+
+            function renderRatesTable() {
+                const tbody = document.getElementById('rates-table-body');
+                tbody.innerHTML = '';
+                seasonalRates.forEach((rate, index) => {
+                    const row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid #edf2f9';
+                    const formatDate = (dateStr) => {
+                        if (!dateStr) return '0000-00-00';
+                        try {
+                            const d = new Date(dateStr);
+                            if (isNaN(d.getTime())) return '0000-00-00';
+                            return d.toISOString().split('T')[0];
+                        } catch (e) {
+                            return '0000-00-00';
+                        }
+                    };
+
+                    row.innerHTML = `
+                        <td style="padding: 1rem;">${rate.seasonName || ''}</td>
+                        <td style="padding: 1rem;">${formatDate(rate.startDate)}</td>
+                        <td style="padding: 1rem;">${formatDate(rate.endDate)}</td>
+                        <td style="padding: 1rem;">${rate.minimumStay || ''}</td>
+                        <td style="padding: 1rem;">${rate.nightly || ''}</td>
+                        <td style="padding: 1rem;">${rate.weekly || ''}</td>
+                        <td style="padding: 1rem;">${rate.weekendNight || ''}</td>
+                        <td style="padding: 1rem;">${rate.monthly || ''}</td>
+                        <td style="padding: 1rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="button" class="action-icon" onclick="editRate(${index})" style="background: none; border: none; cursor: pointer; color: #3498db;"><i data-lucide="edit-2" size="14"></i></button>
+                                <button type="button" class="action-icon" onclick="deleteRate(${index})" style="background: none; border: none; cursor: pointer; color: #e74c3c;"><i data-lucide="trash-2" size="14"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                document.getElementById('seasonalRatesInput').value = JSON.stringify(seasonalRates);
+                if (window.lucide) lucide.createIcons();
+            }
+
+            function saveRate() {
+                const rate = {
+                    seasonName: document.getElementById('rate-season-name').value,
+                    startDate: document.getElementById('rate-start-date').value,
+                    endDate: document.getElementById('rate-end-date').value,
+                    minStay: document.getElementById('rate-min-stay').value,
+                    weekendNight: document.getElementById('rate-weekend-night').value,
+                    nightly: document.getElementById('rate-nightly').value,
+                    weekly: document.getElementById('rate-weekly').value,
+                    monthly: document.getElementById('rate-monthly').value
+                };
+
+                if (!rate.seasonName) {
+                    alert('Please enter a season name');
+                    return;
+                }
+
+                if (editingRateIndex > -1) {
+                    seasonalRates[editingRateIndex] = rate;
+                    editingRateIndex = -1;
+                    const btn = document.querySelector('.btn-save-rate');
+                    btn.textContent = 'Save';
+                    btn.style.background = '#1abc9c';
+                } else {
+                    seasonalRates.push(rate);
+                }
+
+                renderRatesTable();
+                clearRateForm();
+            }
+
+            function editRate(index) {
+                const rate = seasonalRates[index];
+                document.getElementById('rate-season-name').value = rate.seasonName || '';
+                document.getElementById('rate-start-date').value = rate.startDate ? new Date(rate.startDate).toISOString().split('T')[0] : '';
+                document.getElementById('rate-end-date').value = rate.endDate ? new Date(rate.endDate).toISOString().split('T')[0] : '';
+                document.getElementById('rate-min-stay').value = rate.minimumStay || rate.minStay || '';
+                document.getElementById('rate-weekend-night').value = rate.weekendNight || '';
+                document.getElementById('rate-nightly').value = rate.nightly || '';
+                document.getElementById('rate-weekly').value = rate.weekly || '';
+                document.getElementById('rate-monthly').value = rate.monthly || '';
+
+                editingRateIndex = index;
+                const btn = document.querySelector('.btn-save-rate');
+                btn.textContent = 'Update';
+                btn.style.background = '#3498db';
+                document.querySelector('.rate-entry-panel').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function deleteRate(index) {
+                if (confirm('Are you sure you want to delete this rate?')) {
+                    seasonalRates.splice(index, 1);
+                    renderRatesTable();
+                }
+            }
+
+            function clearRateForm() {
+                document.getElementById('rate-season-name').value = '';
+                document.getElementById('rate-start-date').value = '';
+                document.getElementById('rate-end-date').value = '';
+                document.getElementById('rate-min-stay').value = '';
+                document.getElementById('rate-weekend-night').value = '';
+                document.getElementById('rate-nightly').value = '';
+                document.getElementById('rate-weekly').value = '';
+                document.getElementById('rate-monthly').value = '';
+                editingRateIndex = -1;
+                const btn = document.querySelector('.btn-save-rate');
+                btn.textContent = 'Save';
+                btn.style.background = '#1abc9c';
+            }
+
+            // Initialize table
+            // renderRatesTable(); // Moved to DOMContentLoaded
+
+            document.getElementById('edit-property-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+
+                if (window.descQuill) document.getElementById('propertyDescriptionInput').value = window.descQuill.root.innerHTML;
+                if (window.amenityQuill) document.getElementById('additionalInfoInput').value = window.amenityQuill.root.innerHTML;
+                if (window.paymentTermsQuill) document.getElementById('paymentTermsInput').value = window.paymentTermsQuill.root.innerHTML;
+                document.getElementById('seasonalRatesInput').value = JSON.stringify(seasonalRates);
+                document.getElementById('calendarBlockedDatesInput').value = JSON.stringify(blockedDates);
+
+                const formData = new FormData(form);
+                newFiles.filter(f => f !== null).forEach(f => formData.append('photos', f));
+
+                try {
+                    const response = await fetch(`/api/admin/properties/<%=property.id%>/edit`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        
+                        const alertBox = document.getElementById('alert');
+                        alertBox.textContent = 'Property updated successfully!';
+                        alertBox.className = 'alert alert-success';
+                        alertBox.style.display = 'block';
+                        setTimeout(() => { window.location.href = '/api/admin/properties'; }, 1500);
+                    } else {
+                        const err = await response.json();
+                        
+                        const alertBox = document.getElementById('alert');
+                        alertBox.textContent = 'Error: ' + err.message;
+                        alertBox.className = 'alert alert-error';
+                        alertBox.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Update error:', error);
+                    
+                        const alertBox = document.getElementById('alert');
+                        alertBox.textContent = 'An error occurred during update.';
+                        alertBox.className = 'alert alert-error';
+                        alertBox.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                }
+            });
+        </script>
+    </body>
+
+</html>

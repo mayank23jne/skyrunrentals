@@ -1,0 +1,52 @@
+<% if (enquiries && enquiries.length > 0) { %>
+    <% enquiries.forEach(enquiry => { %>
+        <tr>
+            <td style="font-weight: 600; color: var(--text-main);">#<%= enquiry.propertyId %></td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-main);"><%= enquiry.firstname %> <%= enquiry.lastname %></div>
+                <div style="font-size: 0.8125rem; color: var(--text-muted);"><%= enquiry.email %></div>
+                <div style="font-size: 0.8125rem; color: var(--text-muted);"><%= enquiry.phone %></div>
+            </td>
+            <td>
+                <div style="font-weight: 500; color: var(--text-main);">#<%= enquiry.propertyOwner || 'N/A' %></div>
+            </td>
+            <td>
+                <div style="font-size: 0.875rem; color: var(--text-main);">
+                    <%= new Date(enquiry.createdAt).toLocaleDateString() %>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                    <%= new Date(enquiry.createdAt).toLocaleTimeString() %>
+                </div>
+            </td>
+            <td>
+                <div class="action-btns">
+                    <button class="action-btn btn-view" data-message="<%= enquiry.message %>" onclick="viewEnquiry(this.getAttribute('data-message'))" title="View Message">
+                        <i data-lucide="eye"></i>
+                    </button>
+                    <button class="action-btn btn-delete" data-id="<%= enquiry.id %>" onclick="deleteEnquiry(this.getAttribute('data-id'))" title="Delete Enquiry">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    <% }) %>
+    <tr style="display: none;" id="pagination-data"
+        data-current-page="<%= currentPage %>"
+        data-total-pages="<%= totalPages %>"
+        data-total-count="<%= totalCount %>">
+    </tr>
+<% } else { %>
+    <tr>
+        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <i data-lucide="message-square-dashed" style="width: 32px; height: 32px; opacity: 0.5;"></i>
+                <p style="margin: 0;">No enquiries found matching your search.</p>
+            </div>
+        </td>
+    </tr>
+    <tr style="display: none;" id="pagination-data"
+        data-current-page="1"
+        data-total-pages="1"
+        data-total-count="0">
+    </tr>
+<% } %>

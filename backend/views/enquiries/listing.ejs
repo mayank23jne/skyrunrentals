@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../partials/head') %>
+
+<style>
+    .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 2rem;
+    }
+
+    .data-table th {
+        text-align: left;
+        padding: 1.25rem 1.5rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-bottom: 1px solid var(--border);
+        background-color: #fafbfc;
+    }
+
+    .data-table td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9375rem;
+        vertical-align: middle;
+    }
+
+    .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1.25rem;
+        width: 18px;
+        height: 18px;
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    .search-box input {
+        padding: 0.875rem 1.25rem 0.875rem 3.25rem;
+        border-radius: 1rem;
+        border: 1.5px solid var(--border);
+        background: white;
+        min-width: 350px;
+        font-size: 0.9375rem;
+        outline: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: var(--text-main);
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        width: 400px;
+    }
+
+    .pagination-footer {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .pagination-info {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .page-btn {
+        min-width: 40px;
+        height: 40px;
+        border-radius: 0.75rem;
+        border: 1.5px solid var(--border);
+        background: white;
+        color: var(--text-main);
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+        background-color: #f8f9ff;
+    }
+
+    .page-btn.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* ── Shared action icon buttons ── */
+    .action-btns {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .action-btn i {
+        width: 15px;
+        height: 15px;
+        display: flex;
+    }
+
+    .btn-view:hover {
+        color: var(--primary);
+        border-color: var(--primary);
+        background-color: rgba(79, 70, 229, 0.05);
+    }
+
+    .btn-edit:hover {
+        color: #f59e0b;
+        border-color: #f59e0b;
+        background-color: #fffbeb;
+    }
+
+    .btn-delete:hover {
+        color: #ef4444;
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+</style>
+
+<body>
+    <div class="layout">
+        <%- include('../partials/sidebar', { activePage: 'enquiries' }) %>
+        <main>
+            <%- include('../partials/header', { pageTitle: 'Booking Enquiries' }) %>
+
+            <div class="card">
+                <div class="controls-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0">Enquiry Records</h3>
+                        <p style="color: var(--text-muted); font-size: 0.875rem">Track property rental enquiries from potential customers</p>
+                    </div>
+
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="table-search" placeholder="Search by name or email..." value="<%= searchQuery %>">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Property ID</th>
+                                <th>Customer Name</th>
+                                <th>Property Owner ID</th>
+                                <th>Date/Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="enquiries-table-body">
+                            <%- include('partials/table-rows') %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-footer">
+                    <div class="pagination-info">
+                        Showing <span id="start-count">0</span> to <span id="end-count">0</span> of <span id="total-count"><%= totalCount %></span> entries
+                    </div>
+                    <div class="pagination-controls" id="pagination-controls"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.currentPage = parseInt('<%= typeof currentPage !== "undefined" ? currentPage : 1 %>');
+
+        async function updateTable(page = 1, search = '') {
+            const tbody = document.getElementById('enquiries-table-body');
+            const response = await fetch(`/api/admin/enquiries?page=${page}&search=${search}&ajax=true`);
+            const html = await response.text();
+            tbody.innerHTML = html;
+
+            const paginationData = document.getElementById('pagination-data');
+            if (paginationData) {
+                window.currentPage = parseInt(paginationData.dataset.currentPage);
+                renderPagination(window.currentPage, parseInt(paginationData.dataset.totalPages));
+                updateInfo(window.currentPage, parseInt(paginationData.dataset.totalCount));
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function renderPagination(current, total) {
+            const controls = document.getElementById('pagination-controls');
+            if (!controls) return;
+            let html = `<button class="page-btn" ${current === 1 ? 'disabled' : ''} onclick="updateTable(${current - 1}, document.getElementById('table-search').value)">Previous</button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - 1 && i <= current + 1)) {
+                    html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="updateTable(${i}, document.getElementById('table-search').value)">${i}</button>`;
+                } else if (i === current - 2 || i === current + 2) {
+                    html += `<span style="padding: 0.5rem">...</span>`;
+                }
+            }
+            html += `<button class="page-btn" ${current === total || total === 0 ? 'disabled' : ''} onclick="updateTable(${current + 1}, document.getElementById('table-search').value)">Next</button>`;
+            controls.innerHTML = html;
+        }
+
+        function updateInfo(current, total) {
+            const pageSize = 10;
+            const start = total === 0 ? 0 : (current - 1) * pageSize + 1;
+            const end = Math.min(current * pageSize, total);
+            document.getElementById('start-count').textContent = start;
+            document.getElementById('end-count').textContent = end;
+            document.getElementById('total-count').textContent = total;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+
+            let timeout;
+            document.getElementById('table-search').addEventListener('input', (e) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => updateTable(1, e.target.value), 400);
+            });
+
+            const totalPages = parseInt('<%= typeof totalPages !== "undefined" ? totalPages : 1 %>');
+            const totalCount = parseInt('<%= typeof totalCount !== "undefined" ? totalCount : 0 %>');
+            renderPagination(window.currentPage, totalPages);
+            updateInfo(window.currentPage, totalCount);
+        });
+
+        async function deleteEnquiry(id) {
+            if (!confirm('Are you sure you want to delete this enquiry?')) return;
+            try {
+                const response = await fetch(`/api/admin/enquiries/${id}/delete`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    updateTable(window.currentPage, document.getElementById('table-search').value);
+                } else {
+                    alert('Failed to delete enquiry');
+                }
+            } catch (error) {
+                console.error('Error deleting enquiry:', error);
+                alert('An error occurred');
+            }
+        }
+
+        function viewEnquiry(message) {
+            alert('Message Details:\n\n' + message);
+        }
+    </script>
+</body>
+</html>

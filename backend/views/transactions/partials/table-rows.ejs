@@ -1,0 +1,48 @@
+<% if (transactions && transactions.length > 0) { %>
+    <% transactions.forEach(tx => { %>
+        <tr>
+            <td>
+                <div style="font-weight: 600; color: var(--text-main);">#<%= tx.userId %></div>
+            </td>
+            <td>
+                <div style="font-weight: 500; color: var(--text-main);"><%= tx.user ? tx.user.firstname + ' ' + tx.user.lastname : 'Unknown User' %></div>
+                <div style="font-size: 0.8125rem; color: var(--text-muted);"><%= tx.user ? tx.user.email : 'N/A' %></div>
+            </td>
+            <td>
+                <div style="font-size: 0.875rem; color: var(--text-main); font-weight: 500;">
+                    #<%= tx.transactionBy %>
+                </div>
+            </td>
+            <td>
+                <div style="font-weight: 700; color: var(--text-main);">$<%= tx.amount %></div>
+            </td>
+            <td>
+                <div style="font-size: 0.875rem; color: var(--text-main);">
+                    <%= new Date(tx.createdDate).toLocaleDateString() %>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                    <%= new Date(tx.createdDate).toLocaleTimeString() %>
+                </div>
+            </td>
+        </tr>
+    <% }) %>
+    <tr style="display: none;" id="pagination-data" 
+        data-current-page="<%= currentPage %>"
+        data-total-pages="<%= totalPages %>" 
+        data-total-count="<%= totalCount %>">
+    </tr>
+<% } else { %>
+    <tr>
+        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <i data-lucide="receipt" style="width: 32px; height: 32px; opacity: 0.5;"></i>
+                <p style="margin: 0;">No transactions found matching your search.</p>
+            </div>
+            <tr style="display: none;" id="pagination-data" 
+                data-current-page="1" 
+                data-total-pages="1"
+                data-total-count="0">
+            </tr>
+        </td>
+    </tr>
+<% } %>

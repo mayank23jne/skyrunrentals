@@ -1,0 +1,62 @@
+<% if (cities && cities.length > 0) { %>
+    <% cities.forEach(c => { %>
+        <tr id="city-<%= c.id %>">
+            <td>
+                <div style="font-weight: 600; color: var(--text-main);"><%= c.name %></div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.15rem;">
+                    <%= c.state ? c.state.name : '' %> <%= (c.state && c.state.country) ? '— ' + c.state.country.name : '' %>
+                </div>
+            </td>
+            <td>
+                <label class="stunning-toggle" title="<%= c.stunning === 1 ? 'Stunning — click to unset' : 'Standard — click to set as stunning' %>">
+                    <input
+                        type="checkbox"
+                        class="stunning-checkbox"
+                        data-id="<%= c.id %>"
+                        data-state-id="<%= c.stateId %>"
+                        <%= c.stunning === 1 ? 'checked' : '' %>
+                    >
+                    <span class="toggle-track">
+                        <span class="toggle-thumb"></span>
+                    </span>
+                    <span class="toggle-label"><%= c.stunning === 1 ? 'Stunning' : 'Standard' %></span>
+                </label>
+            </td>
+            <td>
+                <div class="action-btns">
+                    <button class="action-btn btn-edit btn-edit-city"
+                            data-id="<%= c.id %>"
+                            data-name="<%= c.name %>"
+                            data-state-id="<%= c.stateId %>"
+                            data-country-id="<%= (c.state && c.state.country) ? c.state.country.id : '' %>"
+                            data-stunning="<%= c.stunning %>"
+                            data-image="<%= c.image %>"
+                            title="Edit City">
+                        <i data-lucide="edit-3"></i>
+                    </button>
+                    <button class="action-btn btn-delete btn-delete-city" data-id="<%= c.id %>" title="Delete City">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    <% }) %>
+<% } else { %>
+    <tr>
+        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 4rem;">
+            <i data-lucide="map-pin" size="48" style="opacity: 0.2; margin-bottom: 1rem;"></i>
+            <p>No cities found matching your criteria.</p>
+        </td>
+    </tr>
+<% } %>
+
+<!-- Pagination Data (Hidden) -->
+<tr style="display: none;">
+    <td colspan="3">
+        <div id="pagination-data"
+             data-current-page="<%= typeof currentPage !== 'undefined' ? currentPage : 1 %>"
+             data-total-pages="<%= typeof totalPages !== 'undefined' ? totalPages : 1 %>"
+             data-total-count="<%= typeof totalCount !== 'undefined' ? totalCount : 0 %>">
+        </div>
+    </td>
+</tr>

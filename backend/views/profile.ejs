@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head') %>
+<body>
+    <div class="layout">
+        <%- include('partials/sidebar', { activePage: 'profile' }) %>
+        <main>
+            <%- include('partials/header', { pageTitle: 'My Profile' }) %>
+
+            <div class="profile-container">
+                <style>
+                    .profile-container { max-width: 900px; margin: 0 auto; }
+                    .tabs-nav { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+                    .tab-btn { background: none; border: none; padding: 0.75rem 1.5rem; border-radius: 0.75rem; color: var(--text-muted); cursor: pointer; font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.75rem; }
+                    .tab-btn:hover { color: var(--primary); background-color: rgba(79, 70, 229, 0.05); }
+                    .tab-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
+                    
+                    .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+                    .tab-content.active { display: block; }
+                    
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+
+                    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+                    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+                    .form-group.full-width { grid-column: span 2; }
+                    label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
+                    input { padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--border); background-color: var(--bg-main); transition: all 0.2s ease; font-size: 1rem; }
+                    input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+                    
+                    .alert { padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; display: none; }
+                    .alert-success { background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+                    .alert-error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+                    .profile-header { display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; background: var(--white); padding: 2rem; border-radius: 2rem; border: 1px solid var(--border); }
+                    .profile-avatar-large { width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border-radius: 2.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.3); }
+                    .profile-info h2 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+                    .profile-info p { color: var(--text-muted); }
+                </style>
+
+                <div class="profile-header">
+                    <div class="profile-avatar-large"><%= admin.firstname.charAt(0) %></div>
+                    <div class="profile-info">
+                        <h2><%= admin.firstname %> <%= admin.lastname %></h2>
+                        <p><%= admin.email %> • <span style="text-transform: capitalize;"><%= admin.usertype %></span></p>
+                    </div>
+                </div>
+
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="account">
+                        <i data-lucide="user"></i> Account Details
+                    </button>
+                    <button class="tab-btn" data-tab="security">
+                        <i data-lucide="shield"></i> Security
+                    </button>
+                </div>
+
+                <!-- Account Tab -->
+                <div class="tab-content active" id="account-tab">
+                    <div class="card">
+                        <div id="account-alert" class="alert"></div>
+                        <form id="profile-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>First Name</label>
+                                    <input type="text" name="firstname" value="<%= admin.firstname %>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input type="text" name="lastname" value="<%= admin.lastname %>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Email Address</label>
+                                    <input type="email" name="email" value="<%= admin.email %>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Contact Number</label>
+                                    <input type="text" name="contact_number" value="<%= admin.contact_number %>" required>
+                                </div>
+                                <div class="form-group full-width" style="margin-top: 1rem;">
+                                    <button type="submit" class="btn-primary" style="width: fit-content;">Save Changes</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Security Tab -->
+                <div class="tab-content" id="security-tab">
+                    <div class="card">
+                        <div id="security-alert" class="alert"></div>
+                        <form id="password-form">
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Current Password</label>
+                                    <input type="password" name="currentPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>New Password</label>
+                                    <input type="password" name="newPassword" required minlength="6">
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirm New Password</label>
+                                    <input type="password" name="confirmPassword" required minlength="6">
+                                </div>
+                                <div class="form-group full-width" style="margin-top: 1rem;">
+                                    <button type="submit" class="btn-primary" style="width: fit-content;">Update Password</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Tab switching logic
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        const showAlert = (id, message, type) => {
+            const alert = document.getElementById(id);
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 5000);
+        };
+
+        // Profile Update
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/api/admin/profile/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showAlert('account-alert', 'Profile updated successfully!', 'success');
+                    // Update header/sidebar info if necessary
+                } else {
+                    const error = await response.json();
+                    showAlert('account-alert', error.message || 'Failed to update profile', 'error');
+                }
+            } catch (err) {
+                showAlert('account-alert', 'A network error occurred', 'error');
+            }
+        });
+
+        // Password Change
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            if (data.newPassword !== data.confirmPassword) {
+                showAlert('security-alert', 'New passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/profile/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showAlert('security-alert', 'Password changed successfully!', 'success');
+                    e.target.reset();
+                } else {
+                    const error = await response.json();
+                    showAlert('security-alert', error.message || 'Failed to change password', 'error');
+                }
+            } catch (err) {
+                showAlert('security-alert', 'A network error occurred', 'error');
+            }
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>

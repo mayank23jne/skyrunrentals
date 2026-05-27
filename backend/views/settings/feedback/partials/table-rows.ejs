@@ -1,0 +1,81 @@
+<% if (feedbacks && feedbacks.length> 0) { %>
+    <% feedbacks.forEach(f=> { %>
+        <tr id="feedback-<%= f.id %>">
+            <td style="width: 80px;">
+                <div
+                    style="width: 50px; height: 50px; border-radius: 12px; overflow: hidden; background: #f1f5f9; border: 1px solid var(--border);">
+                    <% if (f.userImage) { %>
+                        <img src="<%= f.userImage %>" alt="<%= f.name || 'User' %>"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                        <% } else { %>
+                            <div
+                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-weight: 700; font-size: 1.2rem;">
+                                <%= (f.name && f.name.length> 0) ? f.name.charAt(0).toUpperCase() : '?' %>
+                            </div>
+                            <% } %>
+                </div>
+            </td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">
+                    <%= f.name %>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="display: flex; gap: 2px;">
+                        <% const r = parseFloat(f.rating) || 5; %>
+                        <% for(let i=1; i<=5; i++) { 
+                            if (i <= r) { %>
+                                <i data-lucide="star" style="width: 14px; height: 14px; fill: #f59e0b; color: #f59e0b;"></i>
+                            <% } else if (i - 0.5 <= r) { %>
+                                <i data-lucide="star-half" style="width: 14px; height: 14px; fill: #f59e0b; color: #f59e0b;"></i>
+                            <% } else { %>
+                                <i data-lucide="star" style="width: 14px; height: 14px; color: #cbd5e1;"></i>
+                            <% } 
+                        } %>
+                    </div>
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #f59e0b; background: #fffbeb; padding: 2px 6px; border-radius: 6px; border: 1px solid #fde68a;">
+                        <%= r.toFixed(1) %> / 5
+                    </span>
+                </div>
+            </td>
+            <td>
+                <div class="feedback-text-truncate"
+                    style="max-width: 400px; color: var(--text-muted); font-size: 0.875rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    <%- f.feedbackMessage %>
+                </div>
+            </td>
+            <td>
+                <div class="action-btns">
+                    <button class="action-btn btn-edit btn-edit-feedback" data-id="<%= f.id %>"
+                        data-name="<%= f.name %>" data-rating="<%= f.rating %>" data-image="<%= f.userImage %>"
+                        title="Edit Feedback">
+                        <i data-lucide="edit-3"></i>
+                        <!-- Hidden field for the full message to avoid encoding issues -->
+                        <div class="full-message" style="display: none;"><%- f.feedbackMessage %></div>
+                    </button>
+                    <button class="action-btn btn-delete btn-delete-feedback" data-id="<%= f.id %>"
+                        title="Delete Feedback">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+        <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 4rem;">
+                        <i data-lucide="message-square" size="48" style="opacity: 0.2; margin-bottom: 1rem;"></i>
+                        <p>No feedback entries found matching your search.</p>
+                    </td>
+                </tr>
+                <% } %>
+
+                    <!-- Pagination Data (Hidden) -->
+                    <tr style="display: none;">
+                        <td colspan="4">
+                            <div id="pagination-data"
+                                data-current-page="<%= typeof currentPage !== 'undefined' ? currentPage : 1 %>"
+                                data-total-pages="<%= typeof totalPages !== 'undefined' ? totalPages : 1 %>"
+                                data-total-count="<%= typeof totalCount !== 'undefined' ? totalCount : 0 %>">
+                            </div>
+                        </td>
+                    </tr>

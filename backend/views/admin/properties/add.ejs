@@ -1,0 +1,2506 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../../partials/head') %>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <style>
+        .form-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-header-title {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .form-header-meta {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-header-meta span {
+            color: var(--primary);
+            margin-left: 0.25rem;
+        }
+
+        /* Tabs Styling */
+        .tabs-wrapper {
+            margin-bottom: 2rem;
+        }
+
+        .tabs-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+        }
+
+        .tab-item {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-item.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .tabs-nav {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 0.5rem;
+            }
+
+            .form-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+
+        .progress-track {
+            height: 4px;
+            background: #eef2ff;
+            border-radius: 2px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            position: absolute;
+            height: 100%;
+            background: var(--primary);
+            width: 16.66%;
+            /* 1/6 for first tab */
+            transition: width 0.4s ease;
+        }
+
+        /* Form Fields Styling */
+        .form-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--text-main);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem 2.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .tab-check-icon {
+            width: 14px;
+            height: 14px;
+            color: #1abc9c;
+            margin-right: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-align: right;
+            min-width: 140px;
+            padding-top: 0.75rem;
+        }
+
+        /* Standard Flex layout for labels in this specific design */
+        .field-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .field-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .form-group label {
+                text-align: left;
+                padding-top: 0;
+            }
+        }
+
+        .field-input-wrapper {
+            flex: 1;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            font-size: 0.9375rem;
+            outline: none;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        #editor {
+            height: 150px;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        /* Tab 5: Rates & Pricing Refined */
+        .rates-form-container {
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .rates-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-rate-save {
+            background: #1abc9c;
+            color: white;
+            padding: 0.6rem 2rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-rate-clear {
+            background: #e74c3c;
+            color: white;
+            padding: 0.6rem 2rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-rate-save:hover,
+        .btn-rate-clear:hover {
+            opacity: 0.9;
+        }
+
+        .rates-display-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            border: 1px solid #eee;
+        }
+
+        .rates-display-table th {
+            background: #fdfdfd;
+            padding: 0.8rem;
+            text-align: left;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rates-display-table td {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .fee-section-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .rates-action-btn {
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-right: 0.3rem;
+        }
+
+        .btn-edit-rate {
+            color: #3498db;
+        }
+
+        .btn-delete-rate {
+            color: #e74c3c;
+        }
+
+        .payment-terms-wrapper {
+            margin-top: 2rem;
+        }
+
+        #payment-editor {
+            height: 200px;
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Tab 6: Availability Calendar */
+        .calendar-banner {
+            background: #1e293b;
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-icon-box {
+            background: white;
+            color: #1e293b;
+            width: 48px;
+            height: 54px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .calendar-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .calendar-toggle-tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 0.4rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            width: fit-content;
+            border: 1px solid #e2e8f0;
+        }
+
+        .calendar-toggle-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: #64748b;
+        }
+
+        .calendar-toggle-btn.active {
+            background: #1e293b;
+            color: white;
+        }
+
+        .calendar-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dotted #cbd5e1;
+        }
+
+        .click-method-select {
+            padding: 0.5rem;
+            border: 1.5px solid #1e293b;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .calendar-instruction-bar {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #92400e;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .months-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .calendar-month {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .month-header {
+            background: #1e293b;
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .weekdays-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            padding: 0.5rem 0;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            border-right: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .day-cell:nth-child(7n) {
+            border-right: none;
+        }
+
+        .day-cell.other-month {
+            color: #cbd5e1;
+            background: #fdfdfd;
+            cursor: default;
+        }
+
+        .day-cell.today {
+            border: 2px dashed #4f46e5;
+            font-weight: 700;
+            z-index: 1;
+        }
+
+        /* Booking States */
+        .status-booked {
+            background-color: #1e293b !important;
+            color: white !important;
+        }
+
+        .status-booked-am {
+            background: linear-gradient(135deg, #1e293b 50%, #ffffff 50%) !important;
+        }
+
+        .status-booked-pm {
+            background: linear-gradient(135deg, #ffffff 50%, #1e293b 50%) !important;
+        }
+
+        .calendar-key {
+            margin-top: 3rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .key-header {
+            background: #1e293b;
+            color: white;
+            padding: 0.6rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .key-items {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 1.5rem;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        .key-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .key-color {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #cbd5e1;
+            border-radius: 2px;
+        }
+
+        .ql-toolbar {
+            border-radius: 0.5rem 0.5rem 0 0;
+            border-color: var(--border) !important;
+        }
+
+        .ql-container {
+            border-color: var(--border) !important;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .form-footer {
+            margin-top: 3rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-continue {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-continue:hover {
+            background-color: var(--primary-light);
+            opacity: 0.9;
+        }
+
+        .btn-back {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back:hover {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        /* Photos Tab Styles */
+        .photo-upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 1.5rem;
+            padding: 3.5rem 2rem;
+            text-align: center;
+            background: #fafbfc;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .photo-upload-zone:hover,
+        .photo-upload-zone.drag-over {
+            border-color: var(--primary);
+            background: #f8faff;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.05);
+        }
+
+        .photo-upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon-box {
+            width: 64px;
+            height: 64px;
+            background: #ede9fe;
+            border-radius: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: var(--primary);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .photo-card {
+            aspect-ratio: 4/3;
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .btn-remove-photo {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+
+        .btn-remove-photo:hover {
+            background: #ef4444;
+            transform: scale(1.1);
+        }
+
+        .btn-main-photo {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-muted);
+        }
+
+        .btn-main-photo.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .main-badge {
+            position: absolute;
+            bottom: 0.75rem;
+            left: 0.75rem;
+            background: #10b981;
+            color: white;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Amenities Tab Styles */
+        .amenity-section {
+            background: #fafbfc;
+            border-radius: 1.25rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .amenity-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .amenity-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background: #f1f5f9;
+        }
+
+        .nearby-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .nearby-table th {
+            text-align: left;
+            padding: 0.75rem 0;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .nearby-table td {
+            padding: 0.5rem 0;
+        }
+
+        .nearby-input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .bedding-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem 2.5rem;
+        }
+
+        .bed-input-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .bed-label {
+            font-size: 0.875rem;
+            color: var(--text-main);
+            flex: 1;
+        }
+
+        .bed-count-select {
+            width: 100px;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            border: 1.5px solid var(--border);
+            outline: none;
+            background: white;
+        }
+
+        /* Tab content active state */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+
+    <body>
+        <div class="layout">
+            <%- include('../../partials/sidebar', { activePage: 'properties' }) %>
+                <main>
+                    <%- include('../../partials/header', { pageTitle: 'Property Management' }) %>
+
+                        <div class="card">
+                            <div class="form-container">
+                                <!-- Header -->
+                                <div class="form-header">
+                                    <div class="form-header-title">+ ADD PROPERTIES</div>
+                                    <div class="form-header-meta">
+                                        <div>PROPERTY ID -> <span>NEW</span></div>
+                                        <div>CUSTOMER ID -> <span>1</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- Tabs Nav -->
+                                <div class="tabs-wrapper">
+                                    <div class="tabs-nav">
+                                        <div class="tab-item active" data-tab="1">
+                                            <i data-lucide="check" class="tab-check-icon"></i> Description & Location
+                                        </div>
+                                        <div class="tab-item" data-tab="2">
+                                            <i data-lucide="check" class="tab-check-icon"></i> Contact
+                                        </div>
+                                        <div class="tab-item" data-tab="3">
+                                            <i data-lucide="check" class="tab-check-icon"></i> Photos
+                                        </div>
+                                        <div class="tab-item" data-tab="4">
+                                            <i data-lucide="check" class="tab-check-icon"></i> Amenities & Attractions
+                                        </div>
+                                        <div class="tab-item" data-tab="5">Rates</div>
+                                        <div class="tab-item" data-tab="6">Calendar</div>
+                                    </div>
+                                    <div class="progress-track">
+                                        <div class="progress-bar" id="form-progress"></div>
+                                    </div>
+                                </div>
+
+                                <form id="property-form">
+                                    <!-- Tab 1: Description & Location -->
+                                    <div class="tab-content active" id="tab-1">
+                                        <h2 class="form-section-title">Provide location details</h2>
+
+                                        <div class="form-grid">
+                                            <!-- Property Headline -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property Headline</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="propertyHeadline" class="form-control"
+                                                            placeholder="Enticing headline for your property">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Country -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Country</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="country" id="country-select" class="form-control"
+                                                            onchange="handleCountryChange()">
+                                                            <option value="">Select Country</option>
+                                                            <% countries.forEach(c=> { %>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>">
+                                                                    <%= c.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- State -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>State / Province</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="state" id="state-select" class="form-control"
+                                                            onchange="handleStateChange()">
+                                                            <option value="">Select State</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- City -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>City</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="city" id="city-select" class="form-control" required>
+                                                            <option value="">Select City</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Street Address -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Street Address</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="streetAddress" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- ZIP -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>ZIP</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="zip" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Description -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property Description</label>
+                                                    <div class="field-input-wrapper">
+                                                        <div id="editor"></div>
+                                                        <input type="hidden" name="propertyDescription"
+                                                            id="propertyDescription">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Bedroom & Bathroom -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Bedroom</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="bedroom" class="form-control">
+                                                            <option value="">Select</option>
+                                                            <% for(let i=1; i<=20; i++) { %>
+                                                                <option value="<%= i %>">
+                                                                    <%= i %>
+                                                                </option>
+                                                                <% } %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Bathroom</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="bathroom" class="form-control">
+                                                            <option value="">Select</option>
+                                                            <% for(let i=0; i<=20; i+=0.5) { %>
+                                                                <option value="<%= i %>">
+                                                                    <%= i %>
+                                                                </option>
+                                                                <% } %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Property Type -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property Type</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="propertyType" class="form-control">
+                                                            <option value="">Select</option>
+                                                            <% propertyTypes.forEach(t=> { %>
+                                                                <option value="<%= t.propertyName %>">
+                                                                    <%= t.propertyName %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Property View -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Property View</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="propertyViewId" class="form-control">
+                                                            <option value="">Select</option>
+                                                            <% propertyViews.forEach(v=> { %>
+                                                                <option value="<%= v.id %>">
+                                                                    <%= v.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Floor & Elevator -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>On which floor</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="onWhichFloor" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Elevator</label>
+                                                    <div class="field-input-wrapper" style="padding-top: 0.75rem;">
+                                                        <input type="checkbox" name="elevator" value="Yes">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Sleeps -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Sleeps</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="sleeps" class="form-control">
+                                                            <option value="">Select</option>
+                                                            <% for(let i=1; i<=20; i++) { %>
+                                                                <option value="<%= i %>">
+                                                                    <%= i %>
+                                                                </option>
+                                                                <% } %>
+                                                                    <option value="21+">21+</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Assign Property -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Assign Property</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="assignTo" class="form-control">
+                                                            <option value="">Select</option>
+                                                            <% users.forEach(u=> { %>
+                                                                <option value="<%= u.id %>">
+                                                                    <%= u.firstname %>
+                                                                        <%= u.lastname %> (<%= u.email %>)
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-footer">
+                                            <button type="button" class="btn-continue" onclick="nextTab(2)">
+                                                Continue <i data-lucide="chevron-right" size="16"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tab 2: Contact Information -->
+                                    <div class="tab-content" id="tab-2">
+                                        <h2 class="form-section-title">Provide your Contact details</h2>
+
+                                        <div class="form-grid">
+                                            <!-- Name -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Name</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactName" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Country -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Country</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="contactCountry" id="contact-country-select"
+                                                            class="form-control"
+                                                            onchange="handleContactCountryChange()">
+                                                            <option value="">Select Country</option>
+                                                            <% countries.forEach(c=> { %>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>">
+                                                                    <%= c.name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- State -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>State / Province</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="contactState" id="contact-state-select"
+                                                            class="form-control" onchange="handleContactStateChange()">
+                                                            <option value="">Select State</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- City -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>City</label>
+                                                    <div class="field-input-wrapper">
+                                                        <select name="contactCity" id="contact-city-select"
+                                                            class="form-control">
+                                                            <option value="">Select City</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Street Address -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Street Address</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactStreetAddress"
+                                                            class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- ZIP -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>ZIP</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactZip" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Email -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Email</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="email" name="contactEmail" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Re-Type Email -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Re-Type Email</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="email" name="contactReEmail" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Mobile Number -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Mobile Number</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactMobile" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Calling Hours -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Calling Hours</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="text" name="contactCallingHours"
+                                                            class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Alternate Email -->
+                                            <div class="form-group full-width">
+                                                <div class="field-row">
+                                                    <label>Alternate Email</label>
+                                                    <div class="field-input-wrapper">
+                                                        <input type="email" name="contactAltEmail" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-footer" style="gap: 1.5rem;">
+                                            <button type="button" class="btn-back" onclick="prevTab(1)">
+                                                <i data-lucide="chevron-left" size="16"></i> Back
+                                            </button>
+                                            <button type="button" class="btn-continue" onclick="nextTab(3)">
+                                                Continue <i data-lucide="chevron-right" size="16"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Tab 3: Property Photos -->
+                                    <div class="tab-content" id="tab-3">
+                                        <h2 class="form-section-title">Upload Property Photos</h2>
+                                        <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.875rem;">
+                                            Add at least 5 photos for better visibility. The first photo will be your
+                                            main listing image.
+                                        </p>
+
+                                        <div class="photo-upload-zone" id="photo-upload-zone">
+                                            <input type="file" id="photo-input" multiple accept="image/*">
+                                            <div class="upload-icon-box">
+                                                <i data-lucide="camera" style="width:32px;height:32px;"></i>
+                                            </div>
+                                            <h3
+                                                style="font-size: 1.125rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">
+                                                Drag & drop photos here
+                                            </h3>
+                                            <p style="color: var(--text-muted); font-size: 0.875rem;">
+                                                or <strong style="color: var(--primary);">browse files</strong> from
+                                                your computer
+                                            </p>
+                                            <p style="margin-top: 1rem; font-size: 0.75rem; color: #94a3b8;">
+                                                Supports JPG, PNG, WEBP. Max 10MB per file.
+                                            </p>
+                                        </div>
+
+                                        <div class="photo-grid" id="photo-preview-grid">
+                                            <!-- Previews will be injected here by JS -->
+                                        </div>
+
+                                        <div class="form-footer" style="gap: 1.5rem;">
+                                            <button type="button" class="btn-back" onclick="prevTab(2)">
+                                                <i data-lucide="chevron-left" size="16"></i> Back
+                                            </button>
+                                            <button type="button" class="btn-continue" onclick="nextTab(4)">
+                                                Continue <i data-lucide="chevron-right" size="16"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Tab 4: Amenities & Attractions -->
+                                    <div class="tab-content" id="tab-4">
+                                        <h2 class="form-section-title">Amenities & Local Attractions</h2>
+
+                                        <!-- Bedding Info -->
+                                        <div class="amenity-section">
+                                            <div class="amenity-section-title">
+                                                <i data-lucide="bed"></i> Bedding Info
+                                            </div>
+                                            <div class="bedding-grid">
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Kings</span>
+                                                    <select name="king" class="bed-count-select">
+                                                        <% for(let i=0; i<=10; i++) { %>
+                                                            <option value="<%= i %>">
+                                                                <%= i %>
+                                                            </option>
+                                                            <% } %>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Queen</span>
+                                                    <select name="queen" class="bed-count-select">
+                                                        <% for(let i=0; i<=10; i++) { %>
+                                                            <option value="<%= i %>">
+                                                                <%= i %>
+                                                            </option>
+                                                            <% } %>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Double</span>
+                                                    <select name="doubleBed" class="bed-count-select">
+                                                        <% for(let i=0; i<=10; i++) { %>
+                                                            <option value="<%= i %>">
+                                                                <%= i %>
+                                                            </option>
+                                                            <% } %>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Twin/ Single</span>
+                                                    <select name="twinSingle" class="bed-count-select">
+                                                        <% for(let i=0; i<=10; i++) { %>
+                                                            <option value="<%= i %>">
+                                                                <%= i %>
+                                                            </option>
+                                                            <% } %>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Child Bed</span>
+                                                    <select name="childBed" class="bed-count-select">
+                                                        <% for(let i=0; i<=10; i++) { %>
+                                                            <option value="<%= i %>">
+                                                                <%= i %>
+                                                            </option>
+                                                            <% } %>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Baby Crib</span>
+                                                    <select name="babyCrib" class="bed-count-select">
+                                                        <% for(let i=0; i<=10; i++) { %>
+                                                            <option value="<%= i %>">
+                                                                <%= i %>
+                                                            </option>
+                                                            <% } %>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Sleep Sofa /Futon</span>
+                                                    <select name="sleepSofaFuton" class="bed-count-select">
+                                                        <% for(let i=0; i<=10; i++) { %>
+                                                            <option value="<%= i %>">
+                                                                <%= i %>
+                                                            </option>
+                                                            <% } %>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper" style="grid-column: span 2;">
+                                                    <span class="bed-label" style="max-width: 80px;">Note</span>
+                                                    <input type="text" name="beddingNote" class="form-control"
+                                                        placeholder="Additional notes about bedding...">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Nearby Places & Activities -->
+                                        <div class="amenity-section">
+                                            <div class="amenity-section-title">
+                                                <i data-lucide="map-pin"></i> Nearby Places & Activities
+                                            </div>
+                                            <table class="nearby-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Facility Type</th>
+                                                        <th>Location / Name</th>
+                                                        <th style="width: 150px; text-align: center;">Distance</th>
+                                                        <th>Unit</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% const facilities=[ { key: 'nearestAirport' ,
+                                                        distKey: 'airportDistance' , label: 'Nearest Airport' ,
+                                                        placeholder: 'Nearest airport' }, { key: 'nearestBeach' ,
+                                                        distKey: 'beachDistance' , label: 'Nearest Beach' ,
+                                                        placeholder: 'Nearest beach' }, { key: 'nearestFerry' ,
+                                                        distKey: 'ferryDistance' , label: 'Nearest Ferry' ,
+                                                        placeholder: 'Nearest ferry' }, { key: 'nearestTrain' ,
+                                                        distKey: 'trainDistance' , label: 'Nearest Train' ,
+                                                        placeholder: 'Nearest train' }, { key: 'nearestHighway' ,
+                                                        distKey: 'highwayDistance' , label: 'Nearest Highway' ,
+                                                        placeholder: 'Nearest highway' }, { key: 'nearestBar' ,
+                                                        distKey: 'barDistance' , label: 'Nearest Bar' ,
+                                                        placeholder: 'Nearest bar' }, { key: 'nearestSki' ,
+                                                        distKey: 'skiDistance' , label: 'Nearest Ski' ,
+                                                        placeholder: 'Nearest ski' }, { key: 'nearestGolf' ,
+                                                        distKey: 'golfDistance' , label: 'Nearest Golf' ,
+                                                        placeholder: 'Nearest golf' }, { key: 'nearestRestaurant' ,
+                                                        distKey: 'restaurantDistance' , label: 'Nearest Restaurant' ,
+                                                        placeholder: 'Nearest restaurant' } ] %>
+                                                        <% facilities.forEach(f=> { %>
+                                                            <tr>
+                                                                <td style="width: 200px; font-weight: 500;">
+                                                                    <%= f.label %>
+                                                                </td>
+                                                                <td><input type="text" name="<%= f.key %>"
+                                                                        class="form-control"
+                                                                        placeholder="<%= f.placeholder %>"></td>
+                                                                <td style="width: 150px; padding: 0 1rem;">
+                                                                    <div class="nearby-input-group">
+                                                                        <input type="text" name="<%= f.distKey %>"
+                                                                            class="form-control" placeholder="Distan"
+                                                                            style="text-align: center;">
+                                                                    </div>
+                                                                </td>
+                                                                <td style="width: 120px;">
+                                                                    <select name="<%= f.key %>Unit"
+                                                                        class="form-control">
+                                                                        <option value="miles">miles</option>
+                                                                        <option value="kilometers">kilometers</option>
+                                                                        <option value="meters">meters</option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                            <% }) %>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <!-- Suitability -->
+                                        <div class="amenity-section">
+                                            <div class="amenity-section-title">
+                                                <i data-lucide="check-circle-2"></i> Suitability
+                                            </div>
+                                            <div class="bedding-grid"
+                                                style="margin-bottom: 2rem; grid-template-columns: 1fr 1fr;">
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Children</span>
+                                                    <select name="childrenSuitability" class="form-control"
+                                                        style="width: 250px;">
+                                                        <option value="children welcome">children welcome</option>
+                                                        <option value="children not allowed">children not allowed
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Smoking</span>
+                                                    <select name="smokingSuitability" class="form-control"
+                                                        style="width: 250px;">
+                                                        <option value="non smoking only">non smoking only</option>
+                                                        <option value="smoking allowed">smoking allowed</option>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Wheel Chairs</span>
+                                                    <select name="wheelchairSuitability" class="form-control"
+                                                        style="width: 250px;">
+                                                        <option value="wheelchair inaccessible">wheelchair inaccessible
+                                                        </option>
+                                                        <option value="wheelchair accessible">wheelchair accessible
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="bed-input-wrapper">
+                                                    <span class="bed-label">Pets</span>
+                                                    <select name="petsSuitability" class="form-control"
+                                                        style="width: 250px;">
+                                                        <option value="pets not allowed">pets not allowed</option>
+                                                        <option value="pets considered">pets considered</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
+                                                <% const suitabilityChecks=[ { key: 'minAgeLimit' ,
+                                                    label: 'Minimum Age Limit for Renters' }, { key: 'seniorAdultsOnly'
+                                                    , label: 'Senior Adults Only Community' }, { key: 'longTermRenters'
+                                                    , label: 'Long-term Renters Welcome' }, { key: 'eventsAllowed' ,
+                                                    label: 'Events Allowed' } ] %>
+                                                    <% suitabilityChecks.forEach(item=> { %>
+                                                        <label class="checkbox-item">
+                                                            <input type="checkbox" name="otherSuitability"
+                                                                value="<%= item.label %>">
+                                                            <span>
+                                                                <%= item.label %>
+                                                            </span>
+                                                        </label>
+                                                        <% }) %>
+                                            </div>
+                                        </div>
+
+                                        
+                                                <!-- Accommodations -->
+                                                <div class="amenity-section">
+                                                    <div class="amenity-section-title">
+                                                        <i data-lucide="home"></i> Accommodations
+                                                    </div>
+                                                    <div class="bedding-grid"
+                                                        style="grid-template-columns: 200px 1fr; gap: 2rem 1rem;">
+                                                        <span class="bed-label" style="font-weight: 500;">Accommodation
+                                                            Type</span>
+                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                            <span
+                                                                style="font-size: 0.8rem; color: #64748b; margin-right: 0.5rem;">This
+                                                                property operates as a:</span>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="accommodationType"
+                                                                    value="Vacation Rental" checked>
+                                                                <span>Vacation Rental</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="accommodationType"
+                                                                    value="Bed & Breakfast">
+                                                                <span>Bed & Breakfast</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="accommodationType"
+                                                                    value="Hotel">
+                                                                <span>Hotel</span>
+                                                            </label>
+                                                        </div>
+
+                                                        <span class="bed-label" style="font-weight: 500;">Meals</span>
+                                                        <div style="max-width: 300px;">
+                                                            <select name="mealsPolicy" class="form-control">
+                                                                <option value="Guests provide their own meals">Guests
+                                                                    provide
+                                                                    their own meals</option>
+                                                                <option value="Meals provided">Meals provided</option>
+                                                                <option value="Negotiable">Negotiable</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <span class="bed-label" style="font-weight: 500;">Break
+                                                            Fast</span>
+                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="breakfastPolicy"
+                                                                    value="Not Available" checked>
+                                                                <span>Not Available</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="breakfastPolicy"
+                                                                    value="Booking Possible">
+                                                                <span>Booking Possible</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="breakfastPolicy"
+                                                                    value="Included In Price">
+                                                                <span>Included In Price</span>
+                                                            </label>
+                                                        </div>
+
+                                                        <span class="bed-label" style="font-weight: 500;">Lunch</span>
+                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="lunchPolicy"
+                                                                    value="Not Available" checked>
+                                                                <span>Not Available</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="lunchPolicy"
+                                                                    value="Booking Possible">
+                                                                <span>Booking Possible</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="lunchPolicy"
+                                                                    value="Included In Price">
+                                                                <span>Included In Price</span>
+                                                            </label>
+                                                        </div>
+
+                                                        <span class="bed-label" style="font-weight: 500;">Dinner</span>
+                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="dinnerPolicy"
+                                                                    value="Not Available" checked>
+                                                                <span>Not Available</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="dinnerPolicy"
+                                                                    value="Booking Possible">
+                                                                <span>Booking Possible</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="dinnerPolicy"
+                                                                    value="Included In Price">
+                                                                <span>Included In Price</span>
+                                                            </label>
+                                                        </div>
+
+                                                        <span class="bed-label"
+                                                            style="font-weight: 500;">Housekeeping</span>
+                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="housekeepingPolicy"
+                                                                    value="Ask Owner" checked>
+                                                                <span>Ask Owner</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="housekeepingPolicy"
+                                                                    value="Housekeeper Included">
+                                                                <span>Housekeeper Included</span>
+                                                            </label>
+                                                            <label class="checkbox-item" style="margin: 0;">
+                                                                <input type="radio" name="housekeepingPolicy"
+                                                                    value="Housekeeper Optional">
+                                                                <span>Housekeeper Optional</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Other Services -->
+                                                <div class="amenity-section">
+                                                    <div class="amenity-section-title">
+                                                        <i data-lucide="map"></i> Other Services
+                                                    </div>
+                                                    <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
+                                                        <% const otherSvcItems=[['Car Available', 'Chauffeur' ],
+                                                            ['Concierge', 'Massage' ], ['Private Chef', 'Staff' ]] %>
+                                                            <% otherSvcItems.forEach(row=> { %>
+                                                                <label class="checkbox-item">
+                                                                    <input type="checkbox" name="otherServices"
+                                                                        value="<%= row[0] %>">
+                                                                    <span>
+                                                                        <%= row[0] %>
+                                                                    </span>
+                                                                </label>
+                                                                <label class="checkbox-item">
+                                                                    <input type="checkbox" name="otherServices"
+                                                                        value="<%= row[1] %>">
+                                                                    <span>
+                                                                        <%= row[1] %>
+                                                                    </span>
+                                                                </label>
+                                                                <% }) %>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Themes -->
+                                                <div class="amenity-section">
+                                                    <div class="amenity-section-title">
+                                                        <i data-lucide="sparkles"></i> Themes
+                                                    </div>
+                                                    <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
+                                                        <% const themeItems=[['Adventure', 'Away From It All' ],
+                                                            ['Budget', 'Family' ], ['Historic', 'Romantic' ],
+                                                            ['Spa', 'Sports & Activities' ], ['Tourist Attractions', ''
+                                                            ]] %>
+                                                            <% themeItems.forEach(row=> { %>
+                                                                <label class="checkbox-item">
+                                                                    <input type="checkbox" name="themes"
+                                                                        value="<%= row[0] %>">
+                                                                    <span>
+                                                                        <%= row[0] %>
+                                                                    </span>
+                                                                </label>
+                                                                <% if(row[1]) { %>
+                                                                    <label class="checkbox-item">
+                                                                        <input type="checkbox" name="themes"
+                                                                            value="<%= row[1] %>">
+                                                                        <span>
+                                                                            <%= row[1] %>
+                                                                        </span>
+                                                                    </label>
+                                                                    <% } %>
+                                                                        <% }) %>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Additional Info -->
+                                                <div class="amenity-section">
+                                                    <div class="amenity-section-title">
+                                                        <i data-lucide="info"></i> Additional Info
+                                                    </div>
+                                                    <div class="field-input-wrapper">
+                                                        <div id="amenity-editor"></div>
+                                                        <input type="hidden" name="additionalInfo" id="additionalInfo">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Dynamic Amenities -->
+                                        <% if (typeof amenityCategories !=='undefined' && amenityCategories.length> 0) {
+                                            %>
+                                            <div class="amenity-category-filter"
+                                                style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                                <button type="button" class="btn-filter active" data-filter="all"
+                                                    style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: var(--primary); color: white; cursor: pointer; transition: all 0.2s;">All</button>
+                                                <% amenityCategories.forEach(category=> { %>
+                                                    <% if (category.items && category.items.length> 0) { %>
+                                                        <button type="button" class="btn-filter"
+                                                            data-filter="cat-<%= category.id %>"
+                                                            style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: white; color: var(--text-main); cursor: pointer; transition: all 0.2s;">
+                                                            <%= category.name %>
+                                                        </button>
+                                                        <% } %>
+                                                            <% }) %>
+                                            </div>
+
+                                            <div class="dynamic-amenities-container">
+                                                <% amenityCategories.forEach(category=> { %>
+                                                    <% if (category.items && category.items.length> 0) { %>
+                                                        <div class="amenity-section dynamic-cat-section"
+                                                            id="cat-<%= category.id %>">
+                                                            <div class="amenity-section-title">
+                                                                <i data-lucide="check-square"></i>
+                                                                <%= category.name %>
+                                                            </div>
+                                                            <div class="checkbox-grid"
+                                                                style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                                                                <% category.items.forEach(item=> { %>
+                                                                    <label class="checkbox-item">
+                                                                        <input type="checkbox" name="dynamicAmenities"
+                                                                            value="<%= item.id %>">
+                                                                        <span>
+                                                                            <% if (item.icon) { %>
+                                                                                <i data-lucide="<%= item.icon %>"
+                                                                                    style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></i>
+                                                                                <% } %>
+                                                                                    <%= item.name %>
+                                                                        </span>
+                                                                    </label>
+                                                                    <% }) %>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+                                                            <% }) %>
+                                            </div>
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', () => {
+                                                    const filterBtns = document.querySelectorAll('.btn-filter');
+                                                    const sections = document.querySelectorAll('.dynamic-cat-section');
+
+                                                    filterBtns.forEach(btn => {
+                                                        btn.addEventListener('click', (e) => {
+                                                            filterBtns.forEach(b => {
+                                                                b.style.background = 'white';
+                                                                b.style.color = 'var(--text-main)';
+                                                                b.classList.remove('active');
+                                                            });
+                                                            e.target.style.background = 'var(--primary)';
+                                                            e.target.style.color = 'white';
+                                                            e.target.classList.add('active');
+
+                                                            const filter = e.target.dataset.filter;
+                                                            sections.forEach(sec => {
+                                                                if (filter === 'all' || sec.id === filter) {
+                                                                    sec.style.display = 'block';
+                                                                } else {
+                                                                    sec.style.display = 'none';
+                                                                }
+                                                            });
+                                                        });
+                                                    });
+                                                });
+                                            </script>
+                                            <% } %>
+                                                <div class="form-footer" style="gap: 1.5rem;">
+                                                    <button type="button" class="btn-back" onclick="prevTab(3)">
+                                                        <i data-lucide="chevron-left" size="16"></i> Back
+                                                    </button>
+                                                    <button type="button" class="btn-continue" onclick="nextTab(5)">
+                                                        Continue <i data-lucide="chevron-right" size="16"></i>
+                                                    </button>
+                                                </div>
+                                    </div>
+
+                                    <!-- Tab 5: Rates & Pricing -->
+                                    <div class="tab-content" id="tab-5">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
+                                            <h3
+                                                style="color: var(--primary-color); font-size: 1.1rem; border-left: 4px solid var(--primary-color); padding-left: 10px;">
+                                                + ADD PROPERTIES</h3>
+                                        </div>
+
+                                        <!-- Seasonal Rate Input Form -->
+                                        <div class="rates-form-container">
+                                            <div class="rates-input-grid">
+                                                <input type="text" id="rate_season_name" class="form-control"
+                                                    placeholder="Season Name">
+                                                <input type="date" id="rate_start_date" class="form-control">
+                                                <input type="date" id="rate_end_date" class="form-control">
+                                                <select id="rate_min_stay" class="form-control">
+                                                    <option value="">Minimum Stay</option>
+                                                    <% for(let i=1; i<=6; i++) { %>
+                                                        <option value="<%= i %>">
+                                                            <%= i %> Nights
+                                                        </option>
+                                                        <% } %>
+                                                            <option disabled>-----</option>
+                                                            <% for(let i=1; i<=3; i++) { %>
+                                                                <option value="<%=i%>-Weeks">
+                                                                    <%=i%>-Weeks
+                                                                </option>
+                                                                <% } %>
+                                                                    <option disabled>-----</option>
+                                                                    <% for(let i=1; i<=12; i++) { %>
+                                                                        <option value="<%=i%>-Months">
+                                                                            <%=i%>-Months
+                                                                        </option>
+                                                                        <% } %>
+                                                </select>
+                                                <input type="number" id="rate_weekend_night" class="form-control"
+                                                    placeholder="Weekend night">
+                                            </div>
+                                            <div class="rates-input-grid"
+                                                style="grid-template-columns: repeat(3, 1fr); max-width: 600px;">
+                                                <input type="number" id="rate_nightly" class="form-control"
+                                                    placeholder="Nightly">
+                                                <input type="number" id="rate_weekly" class="form-control"
+                                                    placeholder="Weekly">
+                                                <input type="number" id="rate_monthly" class="form-control"
+                                                    placeholder="Monthly">
+                                            </div>
+                                            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                                                <button type="button" class="btn-rate-save"
+                                                    onclick="saveSeasonalRate()">Save</button>
+                                                <button type="button" class="btn-rate-clear"
+                                                    onclick="clearRateForm()">Clear</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Rates Table -->
+                                        <table class="rates-display-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Season name</th>
+                                                    <th>Starts</th>
+                                                    <th>Ends</th>
+                                                    <th>Min Stay</th>
+                                                    <th>Nightly</th>
+                                                    <th>Weekly</th>
+                                                    <th>Weekend-Night</th>
+                                                    <th>Monthly</th>
+                                                    <th style="width: 100px;">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rates-table-body">
+                                                <!-- Dynamic content -->
+                                            </tbody>
+                                        </table>
+
+                                        <input type="hidden" name="seasonalRates" id="seasonalRatesInput">
+
+                                        <!-- Fees and Taxes -->
+                                        <div style="margin-top: 2rem;">
+                                            <label class="fee-section-label">Fees and Taxes</label>
+                                            <div class="rates-input-grid"
+                                                style="grid-template-columns: repeat(3, 1fr);">
+                                                <input type="number" name="petFee" class="form-control"
+                                                    placeholder="Pet fee">
+                                                <input type="number" name="cleaningFee" class="form-control"
+                                                    placeholder="Cleaning fee">
+                                                <input type="number" name="taxes" class="form-control"
+                                                    placeholder="Taxes">
+                                            </div>
+                                        </div>
+
+                                        <!-- Damage Protection -->
+                                        <div style="margin-top: 2rem;">
+                                            <label class="fee-section-label">Damage Protection</label>
+                                            <div style="max-width: 300px;">
+                                                <input type="number" name="damageProtection" class="form-control"
+                                                    placeholder="Damage protection">
+                                            </div>
+                                        </div>
+
+                                        <!-- Payment Terms -->
+                                        <div class="payment-terms-wrapper">
+                                            <label class="fee-section-label">Payment Terms</label>
+                                            <div id="payment-editor"></div>
+                                            <input type="hidden" name="paymentTerms" id="paymentTermsInput">
+                                        </div>
+
+                                        <div class="form-footer" style="gap: 1.5rem; margin-top: 3rem;">
+                                            <button type="button" class="btn-back" onclick="prevTab(4)">
+                                                <i data-lucide="chevron-left" size="16"></i> Back
+                                            </button>
+                                            <button type="button" class="btn-continue" onclick="nextTab(6)">
+                                                Continue <i data-lucide="chevron-right" size="16"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tab 6: Calendar & Availability -->
+                                    <!-- Tab 6: Calendar & Availability -->
+                                    <div class="tab-content" id="tab-6">
+                                        <!-- Calendar Banner -->
+                                        <div class="calendar-banner">
+                                            <div class="calendar-icon-box">
+                                                <span style="font-size: 0.7rem; font-weight: 700;">APR</span>
+                                                <span
+                                                    style="font-size: 1.5rem; font-weight: 800; line-height: 1;">7</span>
+                                            </div>
+                                            <div class="calendar-title">Availability Calendar</div>
+                                        </div>
+
+                                        <!-- Toggle Tabs -->
+                                        <div class="calendar-toggle-tabs">
+                                            <button type="button" class="calendar-toggle-btn">Booking Items</button>
+                                            <button type="button" class="calendar-toggle-btn active">Bookings</button>
+                                        </div>
+
+                                        <div
+                                            style="font-size: 0.9rem; color: #444; margin-bottom: 1.5rem; font-weight: 600;">
+                                            >> Bookings</div>
+
+                                        <!-- Controls -->
+                                        <div class="calendar-controls">
+                                            <div
+                                                style="display: flex; align-items: center; gap: 0.5rem; background: #1e293b; color: white; padding: 0.4rem 1rem; border-radius: 4px; font-size: 0.85rem;">
+                                                Click Method:
+                                            </div>
+                                            <select class="click-method-select">
+                                                <option value="cycle">click-through (cycle through all states)</option>
+                                                <option value="booked">Directly set to Booked</option>
+                                                <option value="available">Directly set to Available</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Instruction Bar -->
+                                        <div class="calendar-instruction-bar">
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div style="display: flex; gap: 0.5rem;">
+                                                    <button type="button" class="rates-action-btn"
+                                                        onclick="prevYear()"><i data-lucide="chevrons-left"
+                                                            size="14"></i></button>
+                                                    <button type="button" class="rates-action-btn"
+                                                        onclick="prevMonth()"><i data-lucide="chevron-left"
+                                                            size="14"></i></button>
+                                                    <button type="button" class="rates-action-btn"
+                                                        onclick="nextMonth()"><i data-lucide="chevron-right"
+                                                            size="14"></i></button>
+                                                    <button type="button" class="rates-action-btn"
+                                                        onclick="nextYear()"><i data-lucide="chevrons-right"
+                                                            size="14"></i></button>
+                                                </div>
+                                                <div>click on the dates to change the state</div>
+                                                <div style="width: 80px;"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Months Container -->
+                                        <div class="months-container" id="calendar-render-area">
+                                            <!-- JS will inject months here -->
+                                        </div>
+
+                                        <!-- Key / Legend -->
+                                        <div class="calendar-key">
+                                            <div class="key-header">Key</div>
+                                            <div class="key-items">
+                                                <div class="key-item">
+                                                    <div class="key-color" style="background: white;"></div>
+                                                    <span>Available</span>
+                                                </div>
+                                                <div class="key-item">
+                                                    <div class="key-color status-booked"></div>
+                                                    <span>Booked</span>
+                                                </div>
+                                                <div class="key-item">
+                                                    <div class="key-color status-booked-am"></div>
+                                                    <span>Booked am</span>
+                                                </div>
+                                                <div class="key-item">
+                                                    <div class="key-color status-booked-pm"></div>
+                                                    <span>Booked pm</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Hidden Field for Calendar States -->
+                                        <input type="hidden" name="calendarBlockedDates" id="calendarBlockedDatesInput">
+
+                                        <div class="form-footer" style="gap: 1.5rem; margin-top: 3rem;">
+                                            <button type="button" class="btn-back" onclick="prevTab(5)">
+                                                <i data-lucide="chevron-left" size="16"></i> Back
+                                            </button>
+                                            <button type="submit" class="btn-rate-save"
+                                                style="background: #1abc9c; padding: 0.75rem 2.5rem; font-size: 1rem;">
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                            </div>
+                </main>
+        </div>
+
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+        <script>
+            // Initialize Quill
+            const quill = new Quill('#editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Sync Quill content to hidden input
+            quill.on('text-change', () => {
+                document.getElementById('propertyDescription').value = quill.root.innerHTML;
+            });
+
+            // Initialize second Quill for Amenities
+            const amenityQuill = new Quill('#amenity-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        ['clean']
+                    ]
+                }
+            });
+
+            amenityQuill.on('text-change', () => {
+                document.getElementById('additionalInfo').value = amenityQuill.root.innerHTML;
+            });
+
+            // Tab Navigation
+            function nextTab(tabNumber) {
+                // In a real scenario, you'd validate current tab first
+                if (tabNumber === 6) renderPropertiesCalendar(); // Initialize calendar when entering tab 6
+                switchTab(tabNumber);
+            }
+
+            // Availability Calendar Logic
+            let calendarYear = new Date().getFullYear();
+            let calendarMonth = new Date().getMonth();
+            let blockedDates = {}; // Format: { "YYYY-MM-DD": "booked|am|pm" }
+
+            function renderPropertiesCalendar() {
+                const container = document.getElementById('calendar-render-area');
+                container.innerHTML = '';
+
+                // Render 4 months starting from current calendar state to match screenshot look
+                for (let i = 0; i < 4; i++) {
+                    let m = calendarMonth + i;
+                    let y = calendarYear;
+                    if (m > 11) {
+                        m -= 12;
+                        y++;
+                    }
+                    container.appendChild(generateMonthElement(y, m));
+                }
+                lucide.createIcons();
+            }
+
+            function generateMonthElement(year, month) {
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const div = document.createElement('div');
+                div.className = 'calendar-month';
+
+                let html = `
+                <div class="month-header">${monthNames[month]} ${year}</div>
+                <div class="weekdays-grid">
+                    <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+                </div>
+                <div class="days-grid">
+            `;
+
+                const firstDay = new Date(year, month, 1).getDay(); // 0 is Sunday
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                // Adjust for Monday start (0=Sun, 1=Mon...6=Sat)
+                let startingPadding = firstDay === 0 ? 6 : firstDay - 1;
+
+                // Padding from prev month
+                const prevMonthDays = new Date(year, month, 0).getDate();
+                for (let i = startingPadding - 1; i >= 0; i--) {
+                    html += `<div class="day-cell other-month">${prevMonthDays - i}</div>`;
+                }
+
+                // Actual days
+                const today = new Date();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const status = blockedDates[dateStr] || '';
+                    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+
+                    let statusClass = '';
+                    if (status === 'booked') statusClass = 'status-booked';
+                    else if (status === 'am') statusClass = 'status-booked-am';
+                    else if (status === 'pm') statusClass = 'status-booked-pm';
+
+                    html += `
+                    <div class="day-cell ${isToday ? 'today' : ''} ${statusClass}" 
+                         data-date="${dateStr}" 
+                         onclick="handleDateClick(this)">
+                        ${d}
+                    </div>
+                `;
+                }
+
+                html += `</div>`;
+                div.innerHTML = html;
+                return div;
+            }
+
+            function handleDateClick(el) {
+                const dateStr = el.dataset.date;
+                if (!dateStr) return;
+
+                const method = document.querySelector('.click-method-select').value;
+                let currentStatus = blockedDates[dateStr] || 'available';
+
+                if (method === 'cycle') {
+                    if (currentStatus === 'available') currentStatus = 'booked';
+                    else if (currentStatus === 'booked') currentStatus = 'am';
+                    else if (currentStatus === 'am') currentStatus = 'pm';
+                    else currentStatus = 'available';
+                } else {
+                    currentStatus = method === 'available' ? 'available' : method;
+                }
+
+                // Update state
+                if (currentStatus === 'available') {
+                    delete blockedDates[dateStr];
+                } else {
+                    blockedDates[dateStr] = currentStatus;
+                }
+
+                // Update UI
+                el.classList.remove('status-booked', 'status-booked-am', 'status-booked-pm');
+                if (currentStatus === 'booked') el.classList.add('status-booked');
+                else if (currentStatus === 'am') el.classList.add('status-booked-am');
+                else if (currentStatus === 'pm') el.classList.add('status-booked-pm');
+
+                // Sync hidden input
+                document.getElementById('calendarBlockedDatesInput').value = JSON.stringify(blockedDates);
+            }
+
+            function nextMonth() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } renderPropertiesCalendar(); }
+            function prevMonth() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } renderPropertiesCalendar(); }
+            function nextYear() { calendarYear++; renderPropertiesCalendar(); }
+            function prevYear() { calendarYear--; renderPropertiesCalendar(); }
+
+            function prevTab(tabNumber) {
+                switchTab(tabNumber);
+            }
+
+            function switchTab(n) {
+                document.querySelectorAll('.tab-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.tab == n) item.classList.add('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`tab-${n}`).classList.add('active');
+
+                // Update progress bar
+                const percent = (n / 6) * 100;
+                document.getElementById('form-progress').style.width = `${percent}%`;
+
+                window.scrollTo(0, 0);
+            }
+
+            // Seasonal Rates Logic Refined
+            let seasonalRates = [];
+            let editingRateIndex = null;
+
+            function saveSeasonalRate() {
+                const seasonName = document.getElementById('rate_season_name').value;
+                const startDate = document.getElementById('rate_start_date').value;
+                const endDate = document.getElementById('rate_end_date').value;
+                const minStay = document.getElementById('rate_min_stay').value;
+                const weekendNight = document.getElementById('rate_weekend_night').value;
+                const nightly = document.getElementById('rate_nightly').value;
+                const weekly = document.getElementById('rate_weekly').value;
+                const monthly = document.getElementById('rate_monthly').value;
+
+                if (!seasonName || !startDate || !endDate) {
+                    alert('Please fill in at least the Season Name, Start Date, and End Date.');
+                    return;
+                }
+
+                const rateData = {
+                    seasonName,
+                    startDate,
+                    endDate,
+                    minStay,
+                    weekendNight,
+                    nightly,
+                    weekly,
+                    monthly
+                };
+
+                if (editingRateIndex !== null) {
+                    seasonalRates[editingRateIndex] = rateData;
+                    editingRateIndex = null;
+                    document.querySelector('.btn-rate-save').textContent = 'Save';
+                } else {
+                    seasonalRates.push(rateData);
+                }
+
+                renderRatesTable();
+                clearRateForm();
+            }
+
+            function editSeasonalRate(index) {
+                const rate = seasonalRates[index];
+                document.getElementById('rate_season_name').value = rate.seasonName;
+                document.getElementById('rate_start_date').value = rate.startDate;
+                document.getElementById('rate_end_date').value = rate.endDate;
+                document.getElementById('rate_min_stay').value = rate.minStay;
+                document.getElementById('rate_weekend_night').value = rate.weekendNight;
+                document.getElementById('rate_nightly').value = rate.nightly;
+                document.getElementById('rate_weekly').value = rate.weekly;
+                document.getElementById('rate_monthly').value = rate.monthly;
+
+                editingRateIndex = index;
+                document.querySelector('.btn-rate-save').textContent = 'Update';
+
+                // Scroll to form
+                document.querySelector('.rates-form-container').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function deleteSeasonalRate(index) {
+                if (confirm('Are you sure you want to delete this rate?')) {
+                    seasonalRates.splice(index, 1);
+                    renderRatesTable();
+                    if (editingRateIndex === index) clearRateForm();
+                }
+            }
+
+            function renderRatesTable() {
+                const tbody = document.getElementById('rates-table-body');
+                tbody.innerHTML = '';
+
+                seasonalRates.forEach((rate, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td>${rate.seasonName}</td>
+                    <td>${rate.startDate}</td>
+                    <td>${rate.endDate}</td>
+                    <td>${rate.minStay || '-'}</td>
+                    <td>${rate.nightly || '-'}</td>
+                    <td>${rate.weekly || '-'}</td>
+                    <td>${rate.weekendNight || '-'}</td>
+                    <td>${rate.monthly || '-'}</td>
+                    <td>
+                        <button type="button" class="rates-action-btn btn-edit-rate" onclick="editSeasonalRate(${index})">Edit</button>
+                        <button type="button" class="rates-action-btn btn-delete-rate" onclick="deleteSeasonalRate(${index})">Delete</button>
+                    </td>
+                `;
+                    tbody.appendChild(row);
+                });
+
+                // Sync with hidden input
+                document.getElementById('seasonalRatesInput').value = JSON.stringify(seasonalRates);
+            }
+
+            function clearRateForm() {
+                document.getElementById('rate_season_name').value = '';
+                document.getElementById('rate_start_date').value = '';
+                document.getElementById('rate_end_date').value = '';
+                document.getElementById('rate_min_stay').value = '';
+                document.getElementById('rate_weekend_night').value = '';
+                document.getElementById('rate_nightly').value = '';
+                document.getElementById('rate_weekly').value = '';
+                document.getElementById('rate_monthly').value = '';
+
+                editingRateIndex = null;
+                document.querySelector('.btn-rate-save').textContent = 'Save';
+            }
+
+            // Initialize Payment Terms Quill
+            const paymentQuill = new Quill('#payment-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        ['clean']
+                    ]
+                }
+            });
+
+            paymentQuill.on('text-change', () => {
+                document.getElementById('paymentTermsInput').value = paymentQuill.root.innerHTML;
+            });
+
+            // Add click listeners to tabs
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    switchTab(item.dataset.tab);
+                });
+            });
+
+            // Dynamic Locations (Tab 1)
+            async function handleCountryChange() {
+                const countryId = document.getElementById('country-select').value;
+                const stateSelect = document.getElementById('state-select');
+                const citySelect = document.getElementById('city-select');
+
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                if (countryId) {
+                    const response = await fetch(`/api/admin/settings/data/states?countryId=${countryId}`);
+                    const states = await response.json();
+                    states.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.id;
+                        option.dataset.name = s.name;
+                        option.textContent = s.name;
+                        stateSelect.appendChild(option);
+                    });
+                }
+            }
+
+            async function handleStateChange() {
+                const stateId = document.getElementById('state-select').value;
+                const citySelect = document.getElementById('city-select');
+
+                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                if (stateId) {
+                    const response = await fetch(`/api/admin/settings/data/cities?stateId=${stateId}`);
+                    const cities = await response.json();
+                    cities.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.dataset.name = c.name;
+                        option.textContent = c.name;
+                        citySelect.appendChild(option);
+                    });
+                }
+            }
+
+            // Dynamic Locations (Tab 2: Contact)
+            async function handleContactCountryChange() {
+                const countryId = document.getElementById('contact-country-select').value;
+                const stateSelect = document.getElementById('contact-state-select');
+                const citySelect = document.getElementById('contact-city-select');
+
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                if (countryId) {
+                    const response = await fetch(`/api/admin/settings/data/states?countryId=${countryId}`);
+                    const states = await response.json();
+                    states.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.id;
+                        option.dataset.name = s.name;
+                        option.textContent = s.name;
+                        stateSelect.appendChild(option);
+                    });
+                }
+            }
+
+            async function handleContactStateChange() {
+                const stateId = document.getElementById('contact-state-select').value;
+                const citySelect = document.getElementById('contact-city-select');
+
+                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                if (stateId) {
+                    const response = await fetch(`/api/admin/settings/data/cities?stateId=${stateId}`);
+                    const cities = await response.json();
+                    cities.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.dataset.name = c.name;
+                        option.textContent = c.name;
+                        citySelect.appendChild(option);
+                    });
+                }
+            }
+
+            // Multiple Photos Management
+            let propertyPhotos = []; // Stores { file, isMain, id }
+
+            const photoInput = document.getElementById('photo-input');
+            const photoUploadZone = document.getElementById('photo-upload-zone');
+            const photoPreviewGrid = document.getElementById('photo-preview-grid');
+
+            photoInput.addEventListener('change', (e) => {
+                handlePhotoUpload(e.target.files);
+                photoInput.value = ''; // Reset for same file re-selection
+            });
+
+            photoUploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                photoUploadZone.classList.add('drag-over');
+            });
+
+            photoUploadZone.addEventListener('dragleave', () => {
+                photoUploadZone.classList.remove('drag-over');
+            });
+
+            photoUploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                photoUploadZone.classList.remove('drag-over');
+                handlePhotoUpload(e.dataTransfer.files);
+            });
+
+            function handlePhotoUpload(files) {
+                Array.from(files).forEach(file => {
+                    if (!file.type.startsWith('image/')) return;
+
+                    const photoObj = {
+                        file: file,
+                        isMain: propertyPhotos.length === 0, // First photo is main by default
+                        id: Math.random().toString(36).substr(2, 9)
+                    };
+                    propertyPhotos.push(photoObj);
+                });
+                renderPhotoPreviews();
+            }
+
+            function renderPhotoPreviews() {
+                photoPreviewGrid.innerHTML = '';
+
+                propertyPhotos.forEach((photo, index) => {
+                    const url = URL.createObjectURL(photo.file);
+                    const card = document.createElement('div');
+                    card.className = 'photo-card';
+                    card.innerHTML = `
+                    <img src="${url}" alt="Preview">
+                    <div class="photo-actions">
+                        <button type="button" class="action-icon btn-main-photo ${photo.isMain ? 'active' : ''}" onclick="setMainImage('${photo.id}')" title="Set as Main">
+                            <i data-lucide="star" style="width:14px;height:14px;"></i>
+                        </button>
+                        <button type="button" class="action-icon btn-remove-photo" onclick="removePhoto('${photo.id}')" title="Remove">
+                            <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                        </button>
+                    </div>
+                    ${photo.isMain ? `
+                        <div class="main-badge">
+                            <i data-lucide="check-circle" style="width:12px;height:12px;"></i> Main Image
+                        </div>
+                    ` : ''}
+                `;
+                    photoPreviewGrid.appendChild(card);
+                });
+
+                if (window.lucide) lucide.createIcons();
+            }
+
+            window.setMainImage = function (id) {
+                propertyPhotos.forEach(p => p.isMain = (p.id === id));
+                renderPhotoPreviews();
+            }
+
+            window.removePhoto = function (id) {
+                const index = propertyPhotos.findIndex(p => p.id === id);
+                const wasMain = propertyPhotos[index].isMain;
+                propertyPhotos.splice(index, 1);
+
+                // If we removed the main image and have others, make the first one the new main
+                if (wasMain && propertyPhotos.length > 0) {
+                    propertyPhotos[0].isMain = true;
+                }
+
+                renderPhotoPreviews();
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if (window.lucide) lucide.createIcons();
+            });
+
+            // AJAX Form Submission
+            const propertyForm = document.getElementById('property-form');
+            propertyForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Final sync for Quill editors if needed
+                document.getElementById('propertyDescription').value = quill.root.innerHTML;
+                document.getElementById('additionalInfo').value = amenityQuill.root.innerHTML;
+                document.getElementById('paymentTermsInput').value = paymentQuill.root.innerHTML;
+
+                const formData = new FormData(propertyForm);
+
+                // Add photos from our custom JS array
+                propertyPhotos.forEach((photo, index) => {
+                    formData.append('photos', photo.file);
+                    if (photo.isMain) {
+                        formData.set('mainPhotoIndex', index);
+                    }
+                });
+
+                // Show loading state
+                const submitBtn = propertyForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+
+                try {
+                    const response = await fetch('/api/admin/properties/add', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        
+                        const alertBox = document.getElementById('alert');
+                        alertBox.textContent = 'Property saved successfully!';
+                        alertBox.className = 'alert alert-success';
+                        alertBox.style.display = 'block';
+                        setTimeout(() => { window.location.href = '/api/admin/properties'; }, 1500);
+                    } else {
+                        
+                        const alertBox = document.getElementById('alert');
+                        alertBox.textContent = 'Error saving property: ' + (result.message || 'Unknown error');
+                        alertBox.className = 'alert alert-error';
+                        alertBox.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    
+                        const alertBox = document.getElementById('alert');
+                        alertBox.textContent = 'An unexpected error occurred. Please check the console.';
+                        alertBox.className = 'alert alert-error';
+                        alertBox.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
+            });
+        </script>
+    </body>
+
+</html>

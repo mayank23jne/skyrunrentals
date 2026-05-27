@@ -1,0 +1,1535 @@
+import React, { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { useCurrency } from '../context/CurrencyContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import api, { API_BASE_URL } from '../services/api';
+import {
+  Star,
+  Users,
+  Bath,
+  BedDouble,
+  Compass,
+  Layers,
+  ArrowUpDown,
+  Check,
+  Calendar,
+  DollarSign,
+  Coffee,
+  Shield,
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight,
+  Plane,
+  Waves,
+  Train,
+  Utensils,
+  Map,
+  Sparkles,
+  Info
+} from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import Navbar from '../components/Navbar';
+import SearchBar from '../components/SearchBar';
+import Footer from '../components/Footer';
+
+const PropertyDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
+
+  // Booking Calculator States
+  const [checkIn, setCheckIn] = useState<string>('');
+  const [checkOut, setCheckOut] = useState<string>('');
+  const [guestsCount, setGuestsCount] = useState<number>(1);
+  const [bookingSuccess, setBookingSuccess] = useState<boolean>(false);
+  const [bookingLoading, setBookingLoading] = useState<boolean>(false);
+
+  // Message Enquiry States
+  const [enquiryFirstName, setEnquiryFirstName] = useState<string>('');
+  const [enquiryLastName, setEnquiryLastName] = useState<string>('');
+  const [enquiryEmail, setEnquiryEmail] = useState<string>('');
+  const [enquiryPhone, setEnquiryPhone] = useState<string>('');
+  const [enquiryArrival, setEnquiryArrival] = useState<string>('');
+  const [enquiryDeparture, setEnquiryDeparture] = useState<string>('');
+  const [enquiryFlexible, setEnquiryFlexible] = useState<boolean>(false);
+  const [enquiryAdults, setEnquiryAdults] = useState<number>(1);
+  const [enquiryChildren, setEnquiryChildren] = useState<number>(0);
+  const [enquiryMessage, setEnquiryMessage] = useState<string>('');
+  const [enquirySent, setEnquirySent] = useState<boolean>(false);
+
+  // Calendar navigation state
+  const [calendarBaseYear, setCalendarBaseYear] = useState<number>(new Date().getFullYear());
+  const [calendarBaseMonth, setCalendarBaseMonth] = useState<number>(new Date().getMonth());
+
+  // Sticky Navigation State
+  const [activeSection, setActiveSection] = useState<string>('overview');
+  const { formatPrice } = useCurrency();
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['overview', 'photos', 'availability', 'rates', 'amenities'];
+      const scrollPosition = window.scrollY + 120; // Offset for 
+      // sticky menu
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
+        const element = document.getElementById(section);
+        if (element) {
+          const { top } = element.getBoundingClientRect();
+          const elementTop = top + window.scrollY;
+          if (scrollPosition >= elementTop) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const topPos = element.getBoundingClientRect().top + window.scrollY - 150;
+      window.scrollTo({
+        top: topPos,
+        behavior: 'smooth'
+      });
+      setActiveSection(sectionId);
+    }
+  };
+
+  const navMonth = (delta: number) => {
+    let m = calendarBaseMonth + delta;
+    let y = calendarBaseYear;
+    while (m > 11) { m -= 12; y++; }
+    while (m < 0) { m += 12; y--; }
+    setCalendarBaseMonth(m);
+    setCalendarBaseYear(y);
+  };
+  const navYear = (delta: number) => navMonth(delta * 12);
+
+  // Fetch single property details
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['property-detail', id],
+    queryFn: async () => {
+      const response = await api.get(`/properties/${id}/details`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center py-32">
+          <div className="flex flex-col items-center gap-4">
+            <div className="loading-spinner"></div>
+            <p className="text-slate-500 font-medium animate-pulse">Loading luxury property details...</p>
+          </div>
+        </main>
+        <Footer />
+        <style>{`
+          .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (error || !data || !data.property) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center py-32">
+          <div className="glass-card max-w-md w-full p-8 text-center rounded-[2rem] border border-slate-200 shadow-xl mx-4">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Info size={32} />
+            </div>
+            <h1 className="text-2xl font-black text-slate-800 mb-2">Property Not Found</h1>
+            <p className="text-slate-500 mb-6">
+              The property you are looking for does not exist or has been removed from our listings.
+            </p>
+            <Link to="/listing" className="btn-primary inline-block w-full py-3 rounded-xl font-bold text-center">
+              Back to Search
+            </Link>
+          </div>
+        </main>
+        <Footer />
+        <style>{`
+          .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+          }
+          .btn-primary {
+            background: linear-gradient(135deg, var(--secondary) 0%, #1e40af 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+            transition: all 0.3s ease;
+          }
+          .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.4);
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  const {
+    property,
+    default_image,
+    image: otherImages,
+    bookings = [],
+    amenities = {},
+    rates = [],
+    property_extras: extras = {},
+    nearby_places: nearby = {},
+    bedding_info: bedding = [],
+    user_detail: host = {},
+    country,
+    state,
+    city
+  } = data;
+
+  // Compile image list safely
+  const allPhotos: any[] = [];
+  if (default_image) {
+    allPhotos.push(default_image);
+  }
+  if (Array.isArray(otherImages)) {
+    allPhotos.push(...otherImages);
+  }
+
+  const fallbackImages = [
+    "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800"
+  ];
+  const hash = (property.propertyHeadline || "").split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+
+  const getPhotoUrl = (photoObj: any, idx: number) => {
+    if (photoObj && photoObj.imageName) {
+      return photoObj.imageName;
+    }
+    return fallbackImages[(hash + idx) % fallbackImages.length];
+  };
+
+  // Resilient parsing for list amenities
+  const parseList = (val: any): string[] => {
+    if (!val) return [];
+    if (typeof val === 'string') {
+      if (val.startsWith('[') && val.endsWith(']')) {
+        try {
+          return JSON.parse(val);
+        } catch (e) {
+          // ignore
+        }
+      }
+      return val.split(',').map((i: string) => i.trim()).filter(Boolean);
+    }
+    if (Array.isArray(val)) return val;
+    return [];
+  };
+
+  const parsedPopularAmenities = parseList(amenities?.popularAmenities);
+  const parsedOutdoorAmenities = parseList(amenities?.outdoorFeatures);
+  const parsedKitchenAmenities = parseList(amenities?.kitchenDining);
+  const parsedSafetyAmenities = parseList(amenities?.safetyFeatures);
+  const parsedEntertainment = parseList(amenities?.entertainment);
+  const parsedPoolSpa = parseList(amenities?.poolSpa);
+  const parsedThemes = parseList(amenities?.themes);
+  const parsedOtherServices = parseList(amenities?.otherServices);
+
+  // Additional Info lists
+  const parsedAttractions = parseList(amenities?.attractions);
+  const parsedLeisure = parseList(amenities?.leisure);
+  const parsedSports = parseList(amenities?.sports);
+  const parsedLocalServices = parseList((amenities as any)?.localServices);
+
+  // Filter bedding records
+  const beddingRecords = bedding[0] || {};
+  const beddingItems = [];
+  if (beddingRecords.king) beddingItems.push({ name: 'King Bed', count: beddingRecords.king });
+  if (beddingRecords.queen) beddingItems.push({ name: 'Queen Bed', count: beddingRecords.queen });
+  if (beddingRecords.doubleBed) beddingItems.push({ name: 'Double Bed', count: beddingRecords.doubleBed });
+  if (beddingRecords.twinSingle) beddingItems.push({ name: 'Twin/Single Bed', count: beddingRecords.twinSingle });
+  if (beddingRecords.childBed) beddingItems.push({ name: 'Child Bed', count: beddingRecords.childBed });
+  if (beddingRecords.babyCrib) beddingItems.push({ name: 'Baby Crib', count: beddingRecords.babyCrib });
+  if (beddingRecords.sleepSofaFuton) beddingItems.push({ name: 'Sofa / Futon', count: beddingRecords.sleepSofaFuton });
+
+  // Map Nearby Attractions
+  const attractionIcons: Record<string, any> = {
+    airport: Plane,
+    beach: Waves,
+    ferry: Waves,
+    train: Train,
+    highway: Map,
+    bar: Coffee,
+    ski: Sparkles,
+    golf: Sparkles,
+    restaurant: Utensils,
+    motor: Map,
+  };
+
+  const nearbyItems = [];
+  if (nearby.nearestAirport) nearbyItems.push({ type: 'airport', label: 'Nearest Airport', name: nearby.nearestAirport, distance: nearby.airportDistance });
+  if (nearby.nearestBeach) nearbyItems.push({ type: 'beach', label: 'Nearest Beach', name: nearby.nearestBeach, distance: nearby.beachDistance });
+  if (nearby.nearestTrain) nearbyItems.push({ type: 'train', label: 'Nearest Train Station', name: nearby.nearestTrain, distance: nearby.trainDistance });
+  if (nearby.nearestRestaurant) nearbyItems.push({ type: 'restaurant', label: 'Restaurant & Fine Dining', name: nearby.nearestRestaurant, distance: nearby.restaurantDistance });
+  if (nearby.nearestFerry) nearbyItems.push({ type: 'ferry', label: 'Ferry Terminal', name: nearby.nearestFerry, distance: nearby.ferryDistance });
+
+  // Calculate reservation details
+  const nightlyBaseRate = parseFloat(property.rates?.[0]?.nightly || '0') || 250;
+  const petFee = parseFloat(extras?.petFee || '0') || 0;
+  const cleaningFee = parseFloat(extras?.cleaningFee || '0') || 75;
+  const taxesRate = parseFloat(extras?.taxes || '0') || 10; // percentage
+
+  let stayNights = 0;
+  if (checkIn && checkOut) {
+    const d1 = new Date(checkIn);
+    const d2 = new Date(checkOut);
+    stayNights = Math.max(0, Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)));
+  }
+
+  const baseRentTotal = stayNights * nightlyBaseRate;
+  const taxesTotal = Math.round((baseRentTotal * taxesRate) / 100);
+  const totalRent = baseRentTotal + petFee + cleaningFee + taxesTotal;
+
+  // Comparison comparison values
+  const competitorFeeMarkup = Math.round(totalRent * 0.15); // typical 15% markup
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!checkIn || !checkOut) return;
+    setBookingLoading(true);
+    setTimeout(() => {
+      setBookingLoading(false);
+      setBookingSuccess(true);
+    }, 1500);
+  };
+
+  const handleEnquirySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!enquiryFirstName || !enquiryLastName || !enquiryEmail || !enquiryMessage) return;
+    setEnquirySent(true);
+    setTimeout(() => {
+      setEnquiryFirstName('');
+      setEnquiryLastName('');
+      setEnquiryEmail('');
+      setEnquiryPhone('');
+      setEnquiryArrival('');
+      setEnquiryDeparture('');
+      setEnquiryMessage('');
+    }, 2000);
+  };
+
+  // Admin-matching calendar: Monday-based week, ghost days, navigable
+  const generateMonthDays = (baseYear: number, baseMonth: number, offsetMonths: number) => {
+    let month = baseMonth + offsetMonths;
+    let year = baseYear;
+    while (month > 11) { month -= 12; year++; }
+    while (month < 0) { month += 12; year--; }
+
+    const monthName = new Date(year, month, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+    // Monday-based: Sun => 6 blank slots, Mon => 0, Tue => 1, ...
+    const startingPadding = firstDay === 0 ? 6 : firstDay - 1;
+    const ghostDays = Array.from({ length: startingPadding }, (_, i) =>
+      prevMonthTotalDays - startingPadding + 1 + i
+    );
+    const days = Array.from({ length: totalDays }, (_, i) => i + 1);
+
+    // Add trailing ghost days to complete the last row
+    const totalCellsSoFar = startingPadding + totalDays;
+    const trailingPadding = totalCellsSoFar % 7 === 0 ? 0 : 7 - (totalCellsSoFar % 7);
+    const trailingGhostDays = Array.from({ length: trailingPadding }, (_, i) => i + 1);
+
+    return { monthName, ghostDays, days, trailingGhostDays, year, month };
+  };
+
+  const calendarMonths = [0, 1, 2, 3].map(offset =>
+    generateMonthDays(calendarBaseYear, calendarBaseMonth, offset)
+  );
+
+  // Parse blocked dates from the JSON string stored in property.calendarBlockedDates
+  let blockedDatesMap: Record<string, string> = {};
+  try {
+    if (property.calendarBlockedDates) {
+      if (typeof property.calendarBlockedDates === 'string') {
+        blockedDatesMap = JSON.parse(property.calendarBlockedDates);
+      } else if (typeof property.calendarBlockedDates === 'object') {
+        blockedDatesMap = property.calendarBlockedDates;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to parse calendar blocked dates", e);
+  }
+
+  const isDateBookedStatus = (year: number, month: number, day: number) => {
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+    // First check the explicit calendarBlockedDates map from the admin
+    if (blockedDatesMap[formattedDate]) {
+      return blockedDatesMap[formattedDate];
+    }
+
+    // Fallback to checking active bookings array
+    const hasBooking = bookings.some((b: any) => {
+      const bDate = new Date(b.theDate);
+      return bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === day;
+    });
+
+    return hasBooking ? 'booked' : null;
+  };
+
+  // const calendarMonths = [generateMonthDays(0), generateMonthDays(1), generateMonthDays(2), generateMonthDays(3)];
+
+  return (
+    <div className="property-detail-page bg-slate-50 min-h-screen text-slate-800" style={{ overflowX: 'clip', width: '100%' }}>
+      <style>{`
+/* Basic layout utilities */
+.flex{display:flex;}
+.flex-col{flex-direction:column;}
+.flex-row{flex-direction:row;}
+.md\:flex-row{display:flex;flex-direction:row;}
+.gap-8{gap:2rem;}
+.gap-4{gap:1rem;}
+.gap-2{gap:0.5rem;}
+.w-full{width:100%;}
+.max-w-7xl{max-width:80rem;}
+.mx-auto{margin-left:auto;margin-right:auto;}
+.p-8{padding:2rem;}
+.p-6{padding:1.5rem;}
+.p-4{padding:1rem;}
+.pb-6{padding-bottom:1.5rem;}
+.pt-6{padding-top:1.5rem;}
+.text-6xl{font-size:4rem;}
+.text-4xl{font-size:2.25rem;}
+.text-5xl{font-size:3rem;}
+.text-2xl{font-size:1.5rem;}
+.text-xl{font-size:1.25rem;}
+.text-base{font-size:1rem;}
+.text-sm{font-size:0.875rem;}
+.font-black{font-weight:900;}
+.font-bold{font-weight:700;}
+.tracking-tight{letter-spacing:-0.025em;}
+.leading-tight{line-height:1.25;}
+.text-slate-900{color:#0f172a;}
+.text-slate-800{color:#1e293b;}
+.text-slate-600{color:#475569;}
+.text-slate-500{color:#64748b;}
+.text-slate-400{color:#94a3b8;}
+.bg-white{background-color:#ffffff;}
+.bg-slate-50{background-color:#f8fafc;}
+.bg-slate-900{background-color:#0f172a;}
+.border{border-width:1px;}
+.border-slate-200{border-color:#e2e8f0;}
+.border-slate-300{border-color:#cbd5e1;}
+.border-slate-100{border-color:#f1f5f9;}
+.rounded{border-radius:0.25rem;}
+.rounded-lg{border-radius:0.5rem;}
+.rounded-xl{border-radius:0.75rem;}
+.rounded-2xl{border-radius:1rem;}
+.rounded-[2rem]{border-radius:2rem;}
+.shadow-sm{box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);}
+.shadow-md{box-shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.1);}
+.shadow-lg{box-shadow:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -4px rgba(0,0,0,0.1);}
+.border-t{border-top-width:1px;}
+.border-b{border-bottom-width:1px;}
+.border-l{border-left-width:1px;}
+.border-r{border-right-width:1px;}
+.text-center{text-align:center;}
+.text-left{text-align:left;}
+.overflow-x-auto{overflow-x:auto;}
+.overflow-hidden{overflow:hidden;}
+.object-cover{object-fit:cover;}
+.object-contain{object-fit:contain;}
+.aspect-square{aspect-ratio:1/1;}
+.cursor-pointer{cursor:pointer;}
+.cursor-not-allowed{cursor:not-allowed;}
+.hover\:bg-slate-50:hover{background-color:#f8fafc;}
+.hover\:bg-white:hover{background-color:#ffffff;}
+.hover\:text-secondary:hover{color:var(--secondary);}
+.transition-all{transition:all 0.3s ease;}
+.transition-colors{transition:color 0.3s ease;}
+.bg-[#fe9d3d]{background-color:#fe9d3d;}
+.text-white{color:#ffffff;}
+.text-[#fe9d3d]{color:#fe9d3d;}
+.bg-[#1e293b]{background-color:#1e293b;}
+.text-[#1e293b]{color:#1e293b;}
+.bg-gradient-to-br{background-image:linear-gradient(to bottom right,var(--tw-gradient-stops));}
+.from-[#fe9d3d]{--tw-gradient-from:#fe9d3d;--tw-gradient-stops:#fe9d3d, var(--tw-gradient-to,rgba(255,255,255,0));}
+.to-slate-50{--tw-gradient-to:#f8fafc;}
+.from-slate-50{--tw-gradient-from:#f8fafc;--tw-gradient-stops:#f8fafc, var(--tw-gradient-to,rgba(0,0,0,0));}
+.to-[#fe9d3d]{--tw-gradient-to:#fe9d3d;}
+.font-medium{font-weight:500;}
+.font-normal{font-weight:400;}
+.text-xs{font-size:0.75rem;}
+.text-sm{font-size:0.875rem;}
+.text-base{font-size:1rem;}
+.text-lg{font-size:1.125rem;}
+.text-xl{font-size:1.25rem;}
+.text-2xl{font-size:1.5rem;}
+.text-3xl{font-size:1.875rem;}
+.text-4xl{font-size:2.25rem;}
+.text-5xl{font-size:3rem;}
+.text-6xl{font-size:4rem;}
+.grid{display:grid;}
+.grid-cols-7{grid-template-columns:repeat(7, minmax(0, 1fr));}
+.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr));}
+.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr));}
+.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr));}
+.grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr));}
+.grid-cols-5{grid-template-columns:repeat(5, minmax(0, 1fr));}
+.grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr));}
+.border-r-white{border-right-color:#ffffff;}
+.border-[#1e293b]{border-color:#1e293b;}
+.border-[#fe9d3d]{border-color:#fe9d3d;}
+.text-white{color:#ffffff;}
+.bg-white/10{background-color:rgba(255,255,255,0.1);}
+.bg-white/50{background-color:rgba(255,255,255,0.5);}
+.bg-black/50{background-color:rgba(0,0,0,0.5);}
+.bg-black/0{background-color:rgba(0,0,0,0);}
+.bg-black/95{background-color:rgba(0,0,0,0.95);}
+.bg-white/80{background-color:rgba(255,255,255,0.8);}
+.bg-white/95{background-color:rgba(255,255,255,0.95);}
+.z-10{z-index:10;}
+.z-[100]{z-index:100;}
+.absolute{position:absolute;}
+.relative{position:relative;}
+.sticky{position:sticky;}
+.top-0{top:0;}
+.top-6{top:1.5rem;}
+.left-4{left:1rem;}
+.right-4{right:1rem;}
+.inset-0{top:0;right:0;bottom:0;left:0;}
+.translate-y-1\/2{transform:translateY(50%);}
+.-translate-y-1\/2{transform:translateY(-50%);}
+.-ml-1{margin-left:-0.25rem;}
+.-ml-1{margin-left:-0.25rem;}
+.-ml-1{margin-left:-0.25rem;}
+.opacity-0{opacity:0;}
+.opacity-100{opacity:1;}
+.group:hover .group-hover\:opacity-100{opacity:1;}
+.group:hover .group-hover\:bg-black\/10{background-color:rgba(0,0,0,0.1);}
+.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);}
+        @media (max-width: 768px) {
+          .property-detail-page .container { padding: 0 15px !important; }
+          .property-detail-page .container[style] { margin-top: 100px !important; padding: 0 15px !important; }
+          .property-detail-page .main-layout { flex-direction: column !important; }
+          .property-detail-page .left-column { width: 100% !important; padding-right: 0 !important; }
+          .property-detail-page .right-column { width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-top: 20px !important; }
+          .property-detail-page .hero-image-container { height: 300px !important; }
+          .property-detail-page .sticky-nav { overflow-x: auto !important; white-space: nowrap !important; padding-bottom: 10px !important; justify-content: flex-start !important; top: 17px !important;}
+          .property-detail-page .sticky-nav::-webkit-scrollbar { height: 4px; }
+          .property-detail-page .sticky-nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+          .property-detail-page .photo-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .property-detail-page .calendar-grid { grid-template-columns: 1fr !important; }
+          .property-detail-page .amenities-grid { grid-
+          template-columns: 1fr !important; gap: 8px !important; }
+          .property-detail-page .mobile-rates-overflow { overflow-x: auto; }
+        }
+`}</style>
+      <Navbar />
+
+      <div className="container max-w-7xl mx-auto px-8 md:px-8" style={{ marginTop: '180px', padding: '0 80px' }}>
+        <SearchBar />
+      </div>
+
+      {/* 70/30 Split Layout */}
+      <div className="container max-w-7xl mx-auto px-8 md:px-8 py-4" style={{ marginTop: '60px', padding: '0 80px' }}>
+        <div className="flex flex-row gap-8 main-layout">
+
+          {/* Left Column (70%) */}
+          <div className="flex flex-col gap-0 left-column" style={{ width: '65%', paddingRight: '1.5rem' }}>
+            {/* Hero Title Bar */}
+            <div style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem', background: '#fff' }}>
+              <div style={{ width: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <h3 style={{ fontSize: '22px', fontWeight: 600, color: '#1e293b', lineHeight: '1.2', margin: 0 }}>
+                    {property.propertyHeadline || 'Luxury Retreat'}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Full-width Hero Image */}
+            <div className="w-full bg-slate-900">
+              <div className="w-full">
+                {allPhotos.length > 0 && (
+                  <div className="relative w-full h-[500px] md:h-[700px] overflow-hidden shadow-2xl hero-image-container">
+                    <img
+                      src={getPhotoUrl(allPhotos[0], 0)}
+                      alt="Main Property View"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[0]; }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Sticky Navigation Menu */}
+            <div className="sticky-nav" style={{ position: 'sticky', top: '70px', zIndex: 40, background: '#fff', padding: '12px 0', marginTop: '10px', marginBottom: '10px', display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0' }}>
+              {['OVERVIEW', 'PHOTOS', 'AVAILABILITY', 'RATES', 'AMENITIES'].map((item) => {
+                const id = item.toLowerCase();
+                const isActive = activeSection === id;
+                return (
+                  <button
+                    key={item}
+                    onClick={() => scrollToSection(id)}
+                    style={{
+                      background: isActive ? 'transparent' : '#e2e8f0',
+                      color: isActive ? '#0284c7' : '#64748b',
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Property Narrative / Description */}
+            <section id="overview" className="py-12 bg-white" style={{ marginTop: '20px' }}>
+              <div className="w-full">
+                <h3 className="fontSize: '22px', fontWeight: 600, font-black text-slate-900 mb-6 font-outfit" style={{ fontSize: '22px', fontWeight: 600 }}>
+                  {property.propertyHeadline}
+                </h3>
+                <div
+                  className="prose prose-slate max-w-none text-slate-600 leading-relaxed prose-p:mb-4 prose-a:text-secondary hover:prose-a:text-blue-600"
+                  style={{ fontSize: '0.875rem' }}
+                  dangerouslySetInnerHTML={{ __html: property.propertyDescription || 'No detailed narrative loaded.' }}
+                />
+              </div>
+            </section>
+            {/* Suitability & Photos (From Screenshot) */}
+            <section id="photos" className="py-8 bg-white w-full">
+              <div className="w-full">
+
+                {/* Suitability */}
+                <div className="mb-8">
+                  <div style={{ height: '1px', background: '#e2e8f0', marginBottom: '1rem' }} />
+                  <h2 style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', marginBottom: '0.5rem' }}>
+                    Suitability
+                  </h2>
+                  <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
+                    {[
+                      amenities?.childrenSuitability,
+                      amenities?.smokingSuitability,
+                      amenities?.wheelchairSuitability,
+                      amenities?.petsSuitability,
+                      amenities?.otherSuitability
+                    ].filter(Boolean).join(', ') || 'Not specified'}
+                  </p>
+                </div>
+
+                {/* Photo Gallery Collage (Pure Grid) */}
+                {allPhotos.length > 0 && (
+                  <div id="photos" style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gridTemplateRows: 'repeat(2, 220px)',
+                    gap: '16px',
+                    width: '100%',
+                    marginTop: '20px'
+                  }}>
+                    {/* Main large photo */}
+                    <div
+                      className="relative cursor-pointer group shadow-md"
+                      style={{ gridColumn: 'span 2', gridRow: 'span 2', borderRadius: '20px', overflow: 'hidden' }}
+                      onClick={() => { setActiveImageIndex(0); setLightboxOpen(true); }}
+                    >
+                      <img src={getPhotoUrl(allPhotos[0], 0)} alt="Main Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} className="transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[0]; }} />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                    </div>
+
+                    {/* Right side 4 small photos */}
+                    {allPhotos.slice(1, 5).map((photo, idx) => {
+                      const actualIdx = idx + 1;
+                      return (
+                        <div
+                          key={actualIdx}
+                          className="relative cursor-pointer group shadow-sm"
+                          style={{ gridColumn: 'span 1', gridRow: 'span 1', borderRadius: '16px', overflow: 'hidden' }}
+                          onClick={() => { setActiveImageIndex(actualIdx); setLightboxOpen(true); }}
+                        >
+                          <img src={getPhotoUrl(photo, actualIdx)} alt={`Gallery ${actualIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} className="transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[actualIdx % fallbackImages.length]; }} />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" style={{ zIndex: 5 }}></div>
+
+                          {/* Overlay for the 5th photo if there are more */}
+                          {idx === 3 && allPhotos.length > 5 && (
+                            <div className="absolute inset-0 flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 10 }}>
+                              <span className="text-white font-bold text-2xl tracking-wide">+{allPhotos.length - 5} Photos</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+              </div>
+            </section>
+
+            {/* Interactive Calendar widget */}
+            <section id="availability" style={{ padding: '2rem 0', background: '#fff', width: '100%' }}>
+              <div style={{ width: '100%' }}>
+                {/* Navigation */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem' }}>
+                  <button onClick={() => navYear(-1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Prev Year">
+                    <ChevronLeft size={12} /><ChevronLeft size={12} style={{ marginLeft: '-4px' }} />
+                  </button>
+                  <button onClick={() => navMonth(-1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Prev Month">
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button onClick={() => navMonth(1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Next Month">
+                    <ChevronRight size={14} />
+                  </button>
+                  <button onClick={() => navYear(1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Next Year">
+                    <ChevronRight size={12} /><ChevronRight size={12} style={{ marginLeft: '-4px' }} />
+                  </button>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '8px' }}>Click on dates to check availability</span>
+                </div>
+
+                <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                  {calendarMonths.map((m, mIdx) => {
+                    const weekendRate = rates && rates.length > 0
+                      ? (parseFloat(rates[0].weekendNight || rates[0].weekend || '0') || nightlyBaseRate)
+                      : nightlyBaseRate;
+
+                    return (
+                      <div key={mIdx} style={{ border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: '#fff' }}>
+
+                        {/* Month Header */}
+                        <div style={{ background: '#1e293b', color: '#fff', textAlign: 'center', fontWeight: 700, fontSize: '0.95rem', padding: '10px 4px', letterSpacing: '0.03em' }}>
+                          {m.monthName}
+                        </div>
+
+                        {/* Day-of-week header row - also dark navy like the screenshot */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: '#1e293b' }}>
+                          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, di) => (
+                            <div key={di} style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.72rem', fontWeight: 700, padding: '6px 2px', borderRight: di < 6 ? '1px solid rgba(255,255,255,0.08)' : 'none', borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                              {d}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Calendar grid */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+
+                          {/* Ghost days from previous month */}
+                          {m.ghostDays.map((gDay, i) => {
+                            const colIdx = i % 7;
+                            const isLastCol = colIdx === 6;
+                            return (
+                              <div key={`ghost-${i}`} style={{ textAlign: 'center', padding: '6px 2px', background: '#fafafa', borderRight: !isLastCol ? '1px solid #e2e8f0' : 'none', borderBottom: '1px solid #e2e8f0', minHeight: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                <span style={{ color: '#c0cfe0', fontSize: '0.82rem', fontWeight: 500 }}>{gDay}</span>
+                              </div>
+                            );
+                          })}
+
+                          {/* Current month days */}
+                          {m.days.map((day, i) => {
+                            const status = isDateBookedStatus(m.year, m.month, day);
+                            const totalIdx = m.ghostDays.length + i;
+                            const colIdx = totalIdx % 7; // 0=Mon … 5=Sat, 6=Sun
+                            const isWeekend = colIdx === 5 || colIdx === 6;
+                            const isLastCol = colIdx === 6;
+                            const isBooked = status === 'booked';
+                            const isAM = status === 'am';
+                            const isPM = status === 'pm';
+
+                            const displayRate = isWeekend && weekendRate !== nightlyBaseRate ? weekendRate : nightlyBaseRate;
+                            const priceLabel = displayRate > 0 ? formatPrice(displayRate) : null;
+                            const priceColor = isWeekend && weekendRate !== nightlyBaseRate ? '#e07b1a' : '#fe9d3d';
+
+                            let bgColor = '#fff';
+                            let numColor = '#1e293b';
+                            let gradientBg: string | undefined;
+
+                            if (isBooked) { bgColor = '#1e293b'; numColor = '#fff'; }
+                            else if (isAM) { gradientBg = 'linear-gradient(to bottom right, #1e293b 50%, #fff 50%)'; }
+                            else if (isPM) { gradientBg = 'linear-gradient(to bottom right, #fff 50%, #1e293b 50%)'; }
+
+                            return (
+                              <div
+                                key={day}
+                                style={{ textAlign: 'center', padding: '6px 2px', background: gradientBg || bgColor, borderRight: !isLastCol ? '1px solid #e2e8f0' : 'none', borderBottom: '1px solid #e2e8f0', minHeight: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isBooked || isAM || isPM ? 'not-allowed' : 'pointer' }}
+                                onMouseEnter={e => { if (!isBooked && !isAM && !isPM) (e.currentTarget as HTMLDivElement).style.background = '#f1f5f9'; }}
+                                onMouseLeave={e => { if (!isBooked && !isAM && !isPM) (e.currentTarget as HTMLDivElement).style.background = '#fff'; }}
+                              >
+                                <span style={{ color: numColor, fontSize: '0.85rem', fontWeight: 600, lineHeight: '1' }}>{day}</span>
+                                {!isBooked && !isAM && !isPM && priceLabel && (
+                                  <span style={{ color: priceColor, fontSize: '0.68rem', fontWeight: 500, marginTop: '3px', lineHeight: '1' }}>{priceLabel}</span>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Trailing ghost days */}
+                          {m.trailingGhostDays?.map((gDay, i) => {
+                            const totalIdx = m.ghostDays.length + m.days.length + i;
+                            const colIdx = totalIdx % 7;
+                            const isLastCol = colIdx === 6;
+                            return (
+                              <div key={`trailing-${i}`} style={{ textAlign: 'center', padding: '6px 2px', background: '#fafafa', borderRight: !isLastCol ? '1px solid #e2e8f0' : 'none', borderBottom: '1px solid #e2e8f0', minHeight: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                <span style={{ color: '#c0cfe0', fontSize: '0.82rem', fontWeight: 500 }}>{gDay}</span>
+                              </div>
+                            );
+                          })}
+
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Legend (Key) */}
+                <div style={{ marginTop: '2rem', width: '100%' }}>
+                  <div style={{ background: '#1e293b', padding: '0.75rem', textAlign: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
+                    Key
+                  </div>
+                  <div style={{ background: '#f3f4f6', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', fontSize: '0.875rem', color: '#1e293b' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '36px', height: '36px', background: '#fff', display: 'inline-block' }}></span>
+                      <span>Available</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '36px', height: '36px', background: '#1e293b', display: 'inline-block' }}></span>
+                      <span>Booked</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, #1e293b 50%, white 50%)' }}></span>
+                      <span>Booked am</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, white 50%, #1e293b 50%)' }}></span>
+                      <span>Booked pm</span>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                    Last updated: {new Date(property.updatedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Rates Section */}
+            <section id="rates" className="py-8 bg-white w-full">
+              <div className="w-full">
+                {rates && rates.length > 0 ? (
+                  <div className="overflow-x-auto rounded-xl shadow-sm border border-slate-200" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                    <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: '700px' }}>
+                      <thead style={{ backgroundColor: '#1e293b', color: '#fff' }}>
+                        <tr>
+                          <th style={{ padding: '16px 20px', fontWeight: 600, fontSize: '0.9rem', width: '35%', whiteSpace: 'nowrap' }}>Rate Period</th>
+                          <th style={{ padding: '16px 12px', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', whiteSpace: 'nowrap' }}>Nightly</th>
+                          <th style={{ padding: '16px 12px', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', whiteSpace: 'nowrap' }}>Weekend</th>
+                          <th style={{ padding: '16px 12px', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', whiteSpace: 'nowrap' }}>Weekly</th>
+                          <th style={{ padding: '16px 12px', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', whiteSpace: 'nowrap' }}>Monthly</th>
+                          <th style={{ padding: '16px 24px 16px 12px', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', whiteSpace: 'nowrap' }}>Event</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rates.map((rate: any, idx: number) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', background: '#fff', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                            <td style={{ padding: '20px' }}>
+                              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '15px', marginBottom: '8px', lineHeight: '1.4' }}>{rate.seasonName || `Standard Rates`}</div>
+                              <div style={{ color: '#64748b', fontSize: '12px', fontWeight: 600, display: 'inline-block', background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                                Min Stay: {rate.minimumStay || '3 Nights'}
+                              </div>
+                            </td>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                              {rate.nightly ? formatPrice(rate.nightly) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                            </td>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                              {rate.weekendNight || rate.weekend ? formatPrice(rate.weekendNight || rate.weekend) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                            </td>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                              {rate.weekly ? formatPrice(rate.weekly) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                            </td>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                              {rate.monthly ? formatPrice(rate.monthly) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                            </td>
+                            <td style={{ padding: '20px 24px 20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                              {rate.event ? formatPrice(rate.event) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center text-slate-500 font-medium">
+                    No rates available for this property yet.
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Additional Rate Information */}
+            <section style={{ padding: '0 0 2rem 0', background: '#fff', width: '100%' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>
+                Additional Information About Rental Rates
+              </h2>
+              <div className="overflow-x-auto w-full">
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <tbody>
+                    {extras?.refundableDamageDeposit && (
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', width: '40%', borderBottom: '1px solid #e2e8f0' }}>Refundable Damage Deposit</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(extras.refundableDamageDeposit)}</td>
+                      </tr>
+                    )}
+                    {extras?.petFee && (
+                      <tr style={{ background: '#fff' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0' }}>Pet Fee</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(extras.petFee)}</td>
+                      </tr>
+                    )}
+                    {extras?.cleaningFee && (
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0' }}>Cleaning Fee</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(extras.cleaningFee)}</td>
+                      </tr>
+                    )}
+                    {extras?.taxes && (
+                      <tr style={{ background: '#fff' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0' }}>Taxes</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{extras.taxes}%</td>
+                      </tr>
+                    )}
+                    {extras?.paymentTerms && (
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0', verticalAlign: 'top' }}>Payment Terms</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0', lineHeight: '1.7' }}
+                          dangerouslySetInnerHTML={{ __html: extras.paymentTerms }}
+                        />
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Cancellation Policy */}
+              {extras?.cancellationPolicy && (
+                <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
+                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Cancellation Policy:</div>
+                  <div style={{ color: '#3b82f6', fontSize: '0.875rem', lineHeight: '1.7' }}
+                    dangerouslySetInnerHTML={{ __html: extras.cancellationPolicy }}
+                  />
+                </div>
+              )}
+            </section>
+            {/* Property Type (Start of Amenities group) */}
+            <div id="amenities" style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Property Type</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '0.875rem' }}>
+                {property.propertyType || <span style={{ fontStyle: 'italic' }}>Not specified</span>}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Meals */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Meals</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '0.875rem' }}>
+                {extras?.meals || amenities?.meals || amenities?.accommodationType || <span style={{ fontStyle: 'italic' }}>Guests provide their own meals</span>}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* General Amenities */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>General</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {parsedPopularAmenities.length > 0 ? (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {parsedPopularAmenities.map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {['Internet', 'Heating', 'Washing Machine', 'Garage', 'Hair Dryer', 'Fireplace', 'Linens', 'Clothes Dryer', 'Living Room', 'Iron & Board', 'Air Conditioning', 'Towels', 'Parking', 'Fitness Room / Equipment'].map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Kitchen */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Kitchen</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {parsedKitchenAmenities.length > 0 ? (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {parsedKitchenAmenities.map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {['Kitchen', 'Oven', 'Dishes And Utensils', 'Toaster', 'Refrigerator', 'Microwave', 'Pantry Items', 'Child Highchair', 'Stove', 'Dishwasher', 'Coffee Maker'].map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Dining */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Dining</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '0.875rem' }}>
+                {amenities?.diningArea ? (
+                  <>{amenities.diningArea}{amenities.diningSeats ? ` With ${amenities.diningSeats} Seats` : ''}</>
+                ) : (
+                  <span style={{ color: '#64748b' }}>Dining Area With 20 Seats</span>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Bedrooms / Bedding */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Bedrooms</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {beddingItems.length > 0 ? (
+                  <>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '0.75rem' }}>
+                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Bedrooms - {beddingItems.reduce((acc, b) => acc + (b.count ? parseInt(b.count as any) || 0 : 0), 0) || property.bedrooms || 'Not specified'}</div>
+                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Sleeps - {property.sleeps || 'Not specified'}</div>
+                    </div>
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {beddingItems.map((b, i) => (
+                        <div key={i} style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                          {b.name} - {b.count || 0}
+                        </div>
+                      ))}
+                    </div>
+                    {beddingRecords?.note && (
+                      <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#1e293b' }}>
+                        <span style={{ fontWeight: 700 }}>Note:</span> <span style={{ color: '#64748b' }}>{beddingRecords.note}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '0.75rem' }}>
+                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Bedrooms - 8</div>
+                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Sleeps - 20</div>
+                    </div>
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['King Size Beds - 9', 'Queen Size Beds - 5', 'Twin Beds - 2', 'Sleeping Sofa/Futon - 0'].map((b, i) => (
+                        <div key={i} style={{ fontSize: '0.875rem', color: '#64748b' }}>{b}</div>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#1e293b' }}>
+                      <span style={{ fontWeight: 700 }}>Note:</span> <span style={{ color: '#64748b' }}>5 bedrooms in the main mansion (no stairs) 1 bedroom upstairs in mansion 2 bedrooms in the casitas</span>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Entertainment */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Entertainment</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {parsedEntertainment.length > 0 ? (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {parsedEntertainment.map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {['Television Available', 'Stereo Available', 'Pool Table Available', 'Satellite / Cable Available', 'Games Available', 'Ping Pong Table Available', 'Video Games Available', 'Game Room Available', 'Foosball Available'].map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Outdoor Features */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>OutDoor Features</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {parsedOutdoorAmenities.length > 0 ? (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {parsedOutdoorAmenities.map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {['Outdoor Grill Available', 'Deck / Patio Available', 'Lawn / Garden Available'].map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Pool & Spa */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Pool &amp; Spa Facilities</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {parsedPoolSpa.length > 0 ? (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {parsedPoolSpa.map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {['Private Pool Available', 'Hot Tub Available'].map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Themes */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Themes</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {parsedThemes.length > 0 ? (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {parsedThemes.map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {['Away From It All', 'Family', 'Tourist Attractions'].map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Other Services */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Other Services</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0' }}>
+                {parsedOtherServices.length > 0 ? (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {parsedOtherServices.map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                    {['Concierge Available', 'Private Chef Available'].map((item: string, i: number) => (
+                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            
+              {/* Dynamic Amenities */}
+              {property.propertyAmenities && property.propertyAmenities.length > 0 && (
+                <div style={{ width: '100%' }}>
+                  {Object.entries(
+                    property.propertyAmenities.reduce((acc: any, pa: any) => {
+                      if (pa.amenityItem && pa.amenityItem.category) {
+                        const catName = pa.amenityItem.category.name;
+                        if (!acc[catName]) acc[catName] = [];
+                        acc[catName].push({ name: pa.amenityItem.name, icon: pa.amenityItem.icon });
+                      }
+                      return acc;
+                    }, {})
+                  ).map(([catName, items]: any, idx) => (
+                    <div key={idx}>
+                      <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>{catName}</div>
+                      <div style={{ height: '1px', background: '#e2e8f0' }} />
+                      <div style={{ padding: '0.75rem 0' }}>
+                        <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                          {items.map((item: any, i: number) => (
+                            <div key={i} style={{ color: '#64748b', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {item.icon && (() => {
+                                const IconName = item.icon.split('-').map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+                                const IconComp = (LucideIcons as any)[IconName];
+                                return IconComp ? <IconComp size={14} /> : <Check size={14} />;
+                              })()}
+                              <span>{item.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Additional Info Section (Attractions, Leisure, Sports, Local Services) */}
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Additional Info</div>
+              <div style={{ height: '1px', background: '#e2e8f0' }} />
+              <div style={{ padding: '0.75rem 0', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                <div>
+                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Attractions:</div>
+                  {parsedAttractions.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {parsedAttractions.map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {['churches', 'cinemas', 'restaurants'].map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Leisure Activities:</div>
+                  {parsedLeisure.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {parsedLeisure.map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {['bird watching', 'gambling casinos', 'outlet shopping', 'photography', 'sight seeing', 'walking'].map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Local Services &amp; Businesses:</div>
+                  {parsedLocalServices.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {parsedLocalServices.map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {['fitness center'].map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Sports &amp; Adventure Activities:</div>
+                  {parsedSports.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {parsedSports.map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {['basketball court', 'golf', 'hiking', 'hunting', 'mountain climbing', 'mountaineering', 'swimming'].map((item, i) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+              <div style={{ height: '1px', background: '#e2e8f0', marginBottom: '2rem' }} />
+            </div>
+          </div>
+
+          {/* Right Column (30%) - Booking & Enquiry Widget */}
+          <div className="flex flex-col gap-6 right-column" style={{ width: '35%', paddingLeft: '1rem', paddingRight: '0.5rem', paddingBottom: '2rem', marginTop: '30px' }}>
+            {/* Inner wrapper */}
+            <div>
+
+              {/* Breadcrumbs */}
+              <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
+                <Link to="/" style={{ color: '#64748b', textDecoration: 'none' }}>HOME</Link> /{' '}
+                {country?.id ? (
+                  <Link to={`/listing/countries/${country.id}`} style={{ color: '#64748b', textDecoration: 'none' }}>{country.name}</Link>
+                ) : (
+                  <span>{property.country || 'UNITED STATES'}</span>
+                )} /{' '}
+                {state?.id ? (
+                  <Link to={`/listing/states/${state.id}`} style={{ color: '#64748b', textDecoration: 'none' }}>{state.name}</Link>
+                ) : (
+                  <span>{property.state || 'HAWAII'}</span>
+                )} /{' '}
+                {city?.id ? (
+                  <Link to={`/listing/cities/${city.id}`} style={{ color: '#64748b', textDecoration: 'none' }}>{city.name}</Link>
+                ) : (
+                  <span>{property.city || 'KOHALA COAST'}</span>
+                )} /{' '}
+                <span style={{ color: '#1e293b' }}>RENTAL {property.propertyId || property.id || '42242'}</span>
+              </div>
+
+              {/* Property Details Grid */}
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '4px', backgroundColor: '#fff', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
+                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.875rem' }}>Sleeps</div>
+                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '0.875rem' }}>{property.sleeps || 8}</div>
+                </div>
+                <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
+                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.875rem' }}>Bedrooms</div>
+                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '0.875rem' }}>{property.bedrooms || 4}</div>
+                </div>
+                <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
+                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.875rem' }}>Bathrooms</div>
+                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '0.875rem' }}>{property.bathrooms || 5}</div>
+                </div>
+                <div style={{ display: 'flex' }}>
+                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.875rem' }}>Property type</div>
+                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '0.875rem' }}>{property.propertyType || 'Farmhouse Rentals'}</div>
+                </div>
+              </div>
+
+              {/* Book Now Section */}
+              <div style={{ marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ flex: 1 }}>
+                    <input type="text" placeholder="Check In" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <input type="text" placeholder="Check Out" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <select value={guestsCount} onChange={(e) => setGuestsCount(parseInt(e.target.value))} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
+                      <option value="">Select Adults</option>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <select style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
+                      <option value="">Select Children</option>
+                      {[0, 1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                </div>
+                {bookingSuccess ? (
+                  <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '4px', textAlign: 'center', fontWeight: 600 }}>
+                    Booking request sent successfully!
+                  </div>
+                ) : (
+                  <button style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '12px', borderRadius: '24px', fontSize: '1rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s', opacity: bookingLoading ? 0.7 : 1 }} disabled={bookingLoading} onMouseEnter={(e) => !bookingLoading && (e.currentTarget.style.background = '#436b8a')} onMouseLeave={(e) => !bookingLoading && (e.currentTarget.style.background = '#557f9f')} onClick={handleBookingSubmit}>
+                    {bookingLoading ? 'Processing...' : 'Book Now'}
+                  </button>
+                )}
+              </div>
+
+              {/* Contact the Owner Section */}
+              <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem' }}>Contact the owner</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1.5rem' }}>Name : {host?.firstName} {host?.lastName || 'Greg Gilliom'}</div>
+
+              <form onSubmit={handleEnquirySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <input type="text" placeholder="First Name" value={enquiryFirstName} onChange={(e) => setEnquiryFirstName(e.target.value)} required style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                <input type="text" placeholder="Last Name" value={enquiryLastName} onChange={(e) => setEnquiryLastName(e.target.value)} required style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                <input type="email" placeholder="Email" value={enquiryEmail} onChange={(e) => setEnquiryEmail(e.target.value)} required style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                <select style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
+                  <option value="United States">United States</option>
+                  <option value="Canada">Canada</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                </select>
+                <input type="tel" placeholder="Phone No" value={enquiryPhone} onChange={(e) => setEnquiryPhone(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <div style={{ flex: 1 }}>
+                    <input type="text" placeholder="Arrival" value={enquiryArrival} onChange={(e) => setEnquiryArrival(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <input type="text" placeholder="Departure" value={enquiryDeparture} onChange={(e) => setEnquiryDeparture(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                  </div>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: '#334155', cursor: 'pointer', margin: '4px 0' }}>
+                  <input type="checkbox" checked={enquiryFlexible} onChange={(e) => setEnquiryFlexible(e.target.checked)} style={{ cursor: 'pointer' }} /> My travel dates are flexible.
+                </label>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>Adults</div>
+                    <select value={enquiryAdults} onChange={(e) => setEnquiryAdults(parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
+                      <option value="">Select one</option>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>Children</div>
+                    <select value={enquiryChildren} onChange={(e) => setEnquiryChildren(parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
+                      <option value="">Select one</option>
+                      {[0, 1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <textarea rows={4} value={enquiryMessage} onChange={(e) => setEnquiryMessage(e.target.value)} required placeholder="Message to owner/manager" style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', resize: 'vertical', color: '#334155', marginTop: '4px' }} />
+
+                <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', lineHeight: 1.5, marginTop: '4px' }}>
+                  BY CLICKING 'SEND EMAIL' YOU ARE<br />AGREEING TO OUR <a href="#" style={{ color: '#557f9f', textDecoration: 'none' }}>TERMS AND<br />CONDITIONS</a>
+                </div>
+
+                {enquirySent ? (
+                  <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '4px', textAlign: 'center', fontWeight: 600, marginTop: '4px' }}>
+                    Message sent successfully!
+                  </div>
+                ) : (
+                  <button type="submit" style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '10px', borderRadius: '24px', fontSize: '0.95rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s', marginTop: '4px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#436b8a'} onMouseLeave={(e) => e.currentTarget.style.background = '#557f9f'}>
+                    Send message
+                  </button>
+                )}
+              </form>
+
+              {/* Travel Guard Promo */}
+              <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>Get Vacation Protection for Your Booking!</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
+                  <div style={{ border: '2px solid #0284c7', padding: '0px 4px', borderRadius: '2px' }}>
+                    <span style={{ color: '#0284c7', fontWeight: 900, fontSize: '0.75rem', letterSpacing: '0.5px' }}>AIG</span>
+                  </div>
+                  <div style={{ color: '#0284c7', fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.5px' }}>Travel Guard&reg;</div>
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#1e293b', fontWeight: 600 }}>
+                  <a href="#" style={{ color: '#0284c7', textDecoration: 'none' }}>Get Protected Now</a> Travel with peace of mind
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {lightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
+          >
+            <button
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', color: 'rgba(255,255,255,0.7)', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'color 0.2s', zIndex: 110 }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+              onClick={() => setLightboxOpen(false)}
+            >
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+
+            <div style={{ width: '100%', maxWidth: '1200px', padding: '0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <button
+                style={{ color: 'rgba(255,255,255,0.7)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '1rem', transition: 'all 0.2s transform' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImageIndex(prev => (prev === 0 ? allPhotos.length - 1 : prev - 1));
+                }}
+              >
+                <ChevronLeft size={56} />
+              </button>
+
+              <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={activeImageIndex}
+                    src={getPhotoUrl(allPhotos[activeImageIndex], activeImageIndex)}
+                    alt={`Property Photo Full ${activeImageIndex + 1}`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    style={{ maxHeight: '85vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[activeImageIndex % fallbackImages.length]; }}
+                  />
+                </AnimatePresence>
+              </div>
+
+              <button
+                style={{ color: 'rgba(255,255,255,0.7)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '1rem', transition: 'all 0.2s transform' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImageIndex(prev => (prev === allPhotos.length - 1 ? 0 : prev + 1));
+                }}
+              >
+                <ChevronRight size={56} />
+              </button>
+            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{ color: 'rgba(255,255,255,0.8)', marginTop: '1.5rem', fontWeight: 600, letterSpacing: '0.1em', fontSize: '1rem' }}
+            >
+              {activeImageIndex + 1} / {allPhotos.length}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default PropertyDetail;

@@ -1,0 +1,250 @@
+<aside>
+    <div class="logo" style="justify-content: center;">
+        <img src="/logo.png" alt="Logo" style="max-width: 100%; height: auto; max-height: 180px;" />
+    </div>
+
+    <nav>
+        <a href="<%= process.env.APP_URL %>" class="nav-item">
+            <i data-lucide="home"></i> Home
+        </a>
+        <a href="/admin/dashboard" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>">
+            <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="/admin/properties" class="nav-item <%= activePage === 'properties' ? 'active' : '' %>">
+            <i data-lucide="map-pin"></i> Property Listing
+        </a>
+        <% if (admin && admin.usertype=='0' ) { %>
+            <a href="/admin/users" class="nav-item <%= activePage === 'users' ? 'active' : '' %>">
+                <i data-lucide="users"></i> Users Listing
+            </a>
+            <% } %>
+                <a href="/admin/bookings" class="nav-item <%= activePage === 'bookings' ? 'active' : '' %>">
+                    <i data-lucide="calendar"></i> Property Bookings
+                </a>
+                <a href="/admin/enquiries" class="nav-item <%= activePage === 'enquiries' ? 'active' : '' %>">
+                    <i data-lucide="message-square"></i> Booking Enquiries
+                </a>
+                <% if (admin && (admin.usertype=='0' || admin.usertype=='2' )) { %>
+                    <a href="/admin/contacts" class="nav-item <%= activePage === 'contacts' ? 'active' : '' %>">
+                        <i data-lucide="contact"></i> Contacts
+                    </a>
+                    <% } %>
+                        <% if (admin && (admin.usertype=='0' || admin.usertype=='1' )) { %>
+                            <a href="/admin/transactions"
+                                class="nav-item <%= activePage === 'transactions' ? 'active' : '' %>">
+                                <i data-lucide="credit-card"></i> Payment History
+                            </a>
+                            <% } %>
+
+                                <% if (admin && admin.usertype=='0' ) { %>
+                                    <!-- Settings Dropdown -->
+                                    <div class="nav-dropdown <%= activePage.startsWith('settings') ? 'active' : '' %>">
+                                        <button class="nav-item dropdown-toggle">
+                                            <span><i data-lucide="settings"></i> Settings</span>
+                                            <i data-lucide="chevron-down" class="chevron"></i>
+                                        </button>
+                                        <div class="dropdown-content">
+                                            <!-- <div class="dropdown-search">
+                    <input type="text" id="settings-search" placeholder="Search settings..." autocomplete="off">
+                    <i data-lucide="search"></i>
+                </div> -->
+                                            <div class="settings-items">
+                                                <a href="/admin/settings/cities"
+                                                    class="dropdown-item <%= activePage === 'settings-cities' ? 'active' : '' %>">City
+                                                    Listings</a>
+                                                <a href="/admin/settings/states"
+                                                    class="dropdown-item <%= activePage === 'settings-states' ? 'active' : '' %>">State
+                                                    Listing</a>
+                                                <a href="/admin/settings/feedback"
+                                                    class="dropdown-item <%= activePage === 'settings-feedback' ? 'active' : '' %>">Feedback
+                                                    Listing</a>
+                                                <a href="/admin/settings/amenities"
+                                                    class="dropdown-item <%= activePage === 'settings-amenities' ? 'active' : '' %>">Amenities</a>
+                                                <a href="/admin/settings/plans"
+                                                    class="dropdown-item <%= activePage === 'settings-plans' ? 'active' : '' %>">Subscription
+                                                    plans</a>
+                                                <a href="/admin/settings/currency"
+                                                    class="dropdown-item <%= activePage === 'settings-currency' ? 'active' : '' %>">Currency</a>
+                                                <a href="/admin/settings/donation"
+                                                    class="dropdown-item <%= activePage === 'settings-donation' ? 'active' : '' %>">Donation</a>
+                                                <a href="/admin/settings/promo"
+                                                    class="dropdown-item <%= activePage === 'settings-promo' ? 'active' : '' %>">Promotional
+                                                    codes</a>
+                                                <a href="/admin/settings/terms"
+                                                    class="dropdown-item <%= activePage === 'settings-terms' ? 'active' : '' %>">Term
+                                                    &
+                                                    Conditions</a>
+                                                <a href="/admin/settings/employees"
+                                                    class="dropdown-item <%= activePage === 'settings-employees' ? 'active' : '' %>">Employee
+                                                    Management</a>
+                                                <div id="no-results" class="dropdown-item"
+                                                    style="display: none; opacity: 0.5; pointer-events: none;">No
+                                                    results found</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                        <a href="/admin/profile"
+                                            class="nav-item <%= activePage === 'profile' ? 'active' : '' %>">
+                                            <i data-lucide="user"></i> My Profile
+                                        </a>
+    </nav>
+
+    <button class="logout-btn" onclick="window.location.href='<%= process.env.APP_URL %>/login'">
+        <i data-lucide="log-out"></i> Sign Out
+    </button>
+</aside>
+
+<style>
+    .nav-dropdown {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dropdown-toggle {
+        width: 100%;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .dropdown-toggle span {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .chevron {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.3s ease;
+        opacity: 0.5;
+    }
+
+    .nav-dropdown.active .chevron {
+        transform: rotate(180deg);
+    }
+
+    .dropdown-content {
+        display: none;
+        flex-direction: column;
+        padding-left: 2rem;
+        gap: 0.15rem;
+        margin-top: 0.25rem;
+    }
+
+    .nav-dropdown.active .dropdown-content {
+        display: flex;
+    }
+
+    .dropdown-search {
+        position: relative;
+        margin: 0.5rem 1rem 0.75rem 0.5rem;
+    }
+
+    .dropdown-search input {
+        width: 100%;
+        padding: 0.6rem 2.2rem 0.6rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        color: white;
+        font-size: 0.8125rem;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .dropdown-search input:focus {
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.07);
+    }
+
+    .dropdown-search i {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        color: rgba(255, 255, 255, 0.4);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: block;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item.active {
+        color: var(--accent);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .settings-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropdowns = document.querySelectorAll('.nav-dropdown');
+
+        // Handle dropdown toggling with auto-close logic
+        document.querySelectorAll('.dropdown-toggle').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const currentDropdown = btn.parentElement;
+                const wasActive = currentDropdown.classList.contains('active');
+
+                // Close all dropdowns
+                dropdowns.forEach(d => d.classList.remove('active'));
+
+                // Toggle current if it wasn't active
+                if (!wasActive) {
+                    currentDropdown.classList.add('active');
+                    // Focus search if it's the settings dropdown
+                    const searchInput = currentDropdown.querySelector('#settings-search');
+                    if (searchInput) setTimeout(() => searchInput.focus(), 100);
+                }
+            });
+        });
+
+        // Handle settings search filtering
+        const searchInput = document.getElementById('settings-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const items = document.querySelectorAll('.settings-items .dropdown-item:not(#no-results)');
+                const noResults = document.getElementById('no-results');
+                let visibleCount = 0;
+
+                items.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        item.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                if (noResults) {
+                    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+                }
+            });
+
+            // Prevent closing dropdown when clicking search input
+            searchInput.addEventListener('click', (e) => e.stopPropagation());
+        }
+    });
+</script>

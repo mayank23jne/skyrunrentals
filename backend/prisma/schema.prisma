@@ -1,0 +1,665 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int             @id @default(autoincrement())
+  firstname         String          @db.VarChar(255)
+  lastname          String          @db.VarChar(255)
+  email             String          @unique @db.VarChar(255)
+  password          String          @db.VarChar(255)
+  original_password String?         @db.VarChar(255)
+  contact_number    String          @db.VarChar(20)
+  country           String          @db.VarChar(255)
+  state             String          @db.VarChar(255)
+  city              String          @db.VarChar(255)
+  address           String          @db.VarChar(255)
+  zipcode           Int
+  token             String          @db.VarChar(255)
+  usertype          String          @default("1") @db.VarChar(255)
+  status            Int             @default(0)
+  subscription_type Int             @default(0)
+  create_date       DateTime        @default(now()) @updatedAt @db.Timestamp(0)
+  deleted           Int             @default(0)
+  bookingItems      BookingItem[]
+  payments          PaymentDetail[]
+
+  @@map("users")
+}
+
+model Amenity {
+  id                    Int      @id @default(autoincrement())
+  propertyId            Int      @map("property_id")
+  childrenSuitability   String?  @map("children_suitability") @db.VarChar(255)
+  smokingSuitability    String?  @map("smoking_suitability") @db.VarChar(255)
+  wheelchairSuitability String?  @map("wheelchair_suitability") @db.VarChar(255)
+  petsSuitability       String?  @map("pets_suitability") @db.VarChar(255)
+  otherSuitability      String?  @map("other_suitability") @db.Text
+  kitchenDining         String?  @map("kitchen_dining") @db.Text
+  diningArea            String?  @map("dining_area") @db.Text
+  diningSeats           String?  @map("dining_seats") @db.VarChar(255)
+  popularAmenities      String?  @map("popular_amenities") @db.Text
+  entertainment         String?  @db.Text
+  safetyFeatures        String?  @map("safety_features") @db.Text
+  settingView           String?  @map("setting_view") @db.Text
+  attractions           String?  @db.Text
+  leisure               String?  @db.Text
+  sports                String?  @db.Text
+  poolSpa               String?  @map("pool_spa") @db.Text
+  outdoorFeatures       String?  @map("outdoor_features") @db.Text
+  accommodationType     String?  @map("accomodation_type") @db.Text
+  meals                 String?  @db.VarChar(255)
+  breakfast             String?  @db.VarChar(255)
+  lunch                 String?  @db.VarChar(255)
+  dinner                String?  @db.VarChar(255)
+  houseKeeping          String?  @map("house_keeping") @db.Text
+  otherServices         String?  @map("other_services") @db.Text
+  themes                String?  @db.Text
+  additionalInfo        String?  @map("additional_info") @db.Text
+  bicycleQty            Int?     @map("bicycle_qty")
+  property              Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "amenities_property_id_fkey")
+  @@map("amenities")
+}
+
+model BeddingInfo {
+  id             Int      @id @default(autoincrement())
+  propertyId     Int      @map("property_id")
+  king           String?  @db.VarChar(255)
+  queen          String?  @db.VarChar(255)
+  doubleBed      String?  @map("double_bed") @db.VarChar(255)
+  twinSingle     String?  @map("twin_single") @db.VarChar(255)
+  childBed       String?  @map("child_bed") @db.VarChar(255)
+  babyCrib       String?  @map("baby_crib") @db.VarChar(255)
+  sleepSofaFuton String?  @map("sleep_sofa_futon") @db.VarChar(255)
+  note           String?  @db.VarChar(1024)
+  property       Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "bedding_info_property_id_fkey")
+  @@map("bedding_info")
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  idItem    Int      @default(0) @map("id_item")
+  theDate   DateTime @default(now()) @map("the_date") @db.Date
+  idState   Int      @default(0) @map("id_state")
+  idBooking Int      @default(0) @map("id_booking")
+
+  @@index([idItem], map: "id_item")
+  @@index([idState], map: "id_state")
+  @@map("bookings")
+}
+
+model BookingAdminUser {
+  id        Int      @id @default(autoincrement())
+  level     Int      @default(2) @db.TinyInt
+  username  String   @default("") @db.VarChar(20)
+  password  String   @default("") @db.VarChar(32)
+  state     Int      @default(1) @db.TinyInt
+  dateVisit DateTime @default(now()) @map("date_visit") @db.DateTime(0)
+  visits    Int      @default(0)
+
+  @@map("bookings_admin_users")
+}
+
+model BookingConfig {
+  id             Int            @id @default(autoincrement())
+  title          String         @default("") @db.VarChar(255)
+  numMonths      Int            @default(3) @map("num_months") @db.TinyInt
+  defaultLang    String         @default("en") @map("default_lang") @db.VarChar(6)
+  theme          String         @default("default") @db.VarChar(50)
+  startDay       StartDay       @default(sun) @map("start_day")
+  dateFormat     DateFormat     @default(eu) @map("date_format")
+  clickPastDates ClickPastDates @default(off) @map("click_past_dates")
+  calUrl         String         @default("") @map("cal_url") @db.VarChar(255)
+  localPath      String         @default("/calendar") @map("local_path") @db.VarChar(255)
+  version        String         @db.VarChar(10)
+
+  @@map("bookings_config")
+}
+
+model BookingItem {
+  id            Int    @id @default(autoincrement())
+  idUser        Int    @default(1) @map("id_user")
+  idRefExternal Int    @map("id_ref_external")
+  descEn        String @default("") @map("desc_en") @db.VarChar(100)
+  descEs        String @default("") @map("desc_es") @db.VarChar(100)
+  listOrder     Int    @default(0) @map("list_order")
+  state         Int    @default(1) @db.TinyInt
+  user          User   @relation(fields: [idUser], references: [id])
+
+  @@index([idUser], map: "id_user")
+  @@index([idRefExternal], map: "id_ref_external")
+  @@map("bookings_items")
+}
+
+model BookingLastUpdate {
+  id      Int      @id @default(autoincrement())
+  idItem  Int      @default(0) @map("id_item")
+  dateMod DateTime @default(now()) @map("date_mod") @db.DateTime(0)
+
+  @@index([idItem], map: "id_item")
+  @@map("bookings_last_update")
+}
+
+model BookingState {
+  id        Int    @id @default(autoincrement())
+  descEn    String @default("") @map("desc_en") @db.VarChar(100)
+  descEs    String @default("") @map("desc_es") @db.VarChar(100)
+  code      String @default("") @db.VarChar(10)
+  state     Int    @default(1) @db.TinyInt
+  listOrder Int    @default(0) @map("list_order")
+  class     String @default("") @db.VarChar(30)
+  showInKey Int    @default(1) @map("show_in_key") @db.TinyInt
+
+  @@map("bookings_states")
+}
+
+model City {
+  id       Int    @id @default(autoincrement())
+  name     String @db.VarChar(30)
+  stunning Int?   @default(0)
+  image    String @db.VarChar(100)
+  stateId  Int    @map("state_id")
+  state    State  @relation(fields: [stateId], references: [id])
+
+  @@index([stateId], map: "cities_state_id_fkey")
+  @@map("cities")
+}
+
+model ClaimWix {
+  id                      Int       @id @default(autoincrement()) @db.UnsignedInt
+  firstName               String?   @map("first_name") @db.VarChar(100)
+  lastName                String?   @map("last_name") @db.VarChar(100)
+  companyName             String?   @map("company_name") @db.VarChar(100)
+  email                   String?   @db.VarChar(100)
+  mobilePhone             String?   @map("mobile_phone") @db.VarChar(20)
+  workPhone               String?   @map("work_phone") @db.VarChar(20)
+  preferredContact        String?   @map("preferred_contact") @db.VarChar(50)
+  billingAddress          String?   @map("billing_address") @db.Text
+  billingAddressInfo      String?   @map("billing_address_info") @db.Text
+  city                    String?   @db.VarChar(100)
+  state                   String?   @db.VarChar(100)
+  zipCode                 String?   @map("zip_code") @db.VarChar(20)
+  claimId                 String?   @map("claim_id") @db.VarChar(100)
+  aleLimit                String?   @map("ale_limit") @db.VarChar(100)
+  claimantFullName        String?   @map("claimant_full_name") @db.VarChar(150)
+  claimantLossAddress     String?   @map("claimant_loss_address") @db.VarChar(100)
+  claimantLossAddressInfo String?   @map("claimant_loss_address_info") @db.VarChar(100)
+  claimantCity            String?   @map("claimant_city") @db.VarChar(100)
+  claimantState           String?   @map("claimant_state") @db.VarChar(100)
+  claimantZipCode         String?   @map("claimant_zip_code") @db.VarChar(20)
+  claimantPhone           String?   @map("claimant_phone") @db.VarChar(100)
+  insuredEmail            String?   @map("insured_email") @db.VarChar(150)
+  estimatedMoveIn         DateTime? @map("estimated_move_in") @db.Date
+  estimatedStay           String?   @map("estimated_stay") @db.VarChar(50)
+  typeOfHousing           String?   @map("type_of_housing") @db.VarChar(50)
+  otherHousingType        String?   @map("other_housing_type") @db.VarChar(100)
+  numberOfOccupants       Int?      @map("number_of_occupants")
+  adultsInHousing         Int?      @map("adults_in_housing")
+  childrenInHousing       Int?      @map("children_in_housing")
+  bedrooms                Int?
+  bathrooms               Int?
+  havePets                String?   @map("have_pets") @db.VarChar(10)
+  referredBy              String?   @map("referred_by") @db.VarChar(100)
+  additionalNeeds         String?   @map("additional_needs") @db.Text
+  submittedAt             DateTime  @default(now()) @updatedAt @map("submitted_at") @db.Timestamp(6)
+
+  @@map("claims_wix")
+}
+
+model Contact {
+  id            Int      @id @default(autoincrement())
+  propertyId    Int      @map("property_id")
+  name          String?  @db.VarChar(255)
+  country       String?  @db.VarChar(255)
+  state         String?  @db.VarChar(255)
+  city          String?  @db.VarChar(255)
+  streetAddress String?  @map("street_address") @db.Text
+  zip           String?  @db.VarChar(255)
+  email         String?  @db.VarChar(255)
+  regEmail      String?  @map("reg_email") @db.VarChar(255)
+  phonecode     String?  @db.VarChar(255)
+  phoneNote     String?  @map("phone_note") @db.Text
+  mobileNumber  String?  @map("mobile_number") @db.VarChar(255)
+  contactPhone  String?  @map("contact_phone") @db.VarChar(255)
+  callingHours  String?  @map("calling_hours") @db.VarChar(255)
+  faxNumber     String?  @map("fax_number") @db.VarChar(255)
+  faxInfo       String?  @map("fax_info") @db.VarChar(255)
+  altEmail      String?  @map("alt_email") @db.VarChar(255)
+  smsNumber     String   @map("sms_number") @db.VarChar(255)
+  othLanguage   String   @map("oth_language") @db.Text
+  enquiryLang   String?  @map("enquiry_lang") @db.Text
+  property      Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "contact_property_id_fkey")
+  @@map("contact")
+}
+
+model ContactUs {
+  id        Int    @id @default(autoincrement())
+  firstname String @db.VarChar(255)
+  lastname  String @db.VarChar(255)
+  email     String @db.VarChar(255)
+  website   String @db.VarChar(255)
+  message   String @db.VarChar(255)
+
+  @@map("contact_us")
+}
+
+model Country {
+  id         Int     @id @default(autoincrement())
+  code       String  @db.VarChar(20)
+  name       String  @db.VarChar(255)
+  latitude   String  @db.VarChar(255)
+  longitude  String  @db.VarChar(255)
+  phonecode1 Int
+  states     State[]
+
+  @@map("countries")
+}
+
+model Country1 {
+  id        Int    @id @default(autoincrement())
+  code      String @db.VarChar(20)
+  name      String @db.VarChar(255)
+  latitude  String @db.VarChar(255)
+  longitude String @db.VarChar(255)
+
+  @@map("countries1")
+}
+
+model Covid19Donation {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(255)
+  middleName    String   @map("middle_name") @db.VarChar(255)
+  lastName      String   @map("last_name") @db.VarChar(255)
+  streetAddress String   @map("street_address") @db.VarChar(255)
+  addressLine2  String   @map("address_line_2") @db.VarChar(255)
+  country       String   @db.VarChar(255)
+  state         String   @db.VarChar(255)
+  city          String   @db.VarChar(255)
+  postalCode    String   @map("postal_code") @db.VarChar(255)
+  email         String   @db.VarChar(255)
+  phone         String   @db.VarChar(255)
+  amount        String   @db.VarChar(255)
+  response      String   @db.Text
+  status        String   @db.VarChar(255)
+  createdDate   DateTime @map("created_date") @db.DateTime(0)
+
+  @@map("covid19_donations")
+}
+
+model Currency {
+  id              Int    @id @default(autoincrement())
+  name            String @db.VarChar(255)
+  code            String @db.VarChar(100)
+  conversionRate  Float  @map("converion_rate")
+  currency        String @db.VarChar(50)
+  poundConversion String @map("pound_conversion") @db.VarChar(255)
+  currencyCode    Int    @default(2) @map("currency_code")
+
+  @@map("currency")
+}
+
+model Feedback {
+  id              Int    @id @default(autoincrement())
+  name            String @db.VarChar(255)
+  feedbackMessage String @map("feedback_message") @db.MediumText
+  userImage       String @map("user_image") @db.VarChar(255)
+  rating          String @db.VarChar(255)
+
+  @@map("feedback")
+}
+
+model NearbyPlace {
+  id                 Int      @id @default(autoincrement())
+  propertyId         Int      @map("property_id")
+  nearestAirport     String?  @map("nearest_airport") @db.VarChar(255)
+  airportDistance    String?  @map("airport_distance") @db.VarChar(255)
+  nearestBeach       String?  @map("nearest_beach") @db.VarChar(255)
+  beachDistance      String?  @map("beach_distance") @db.VarChar(255)
+  nearestFerry       String?  @map("nearest_ferry") @db.VarChar(255)
+  ferryDistance      String?  @map("ferry_distance") @db.VarChar(255)
+  nearestTrain       String?  @map("nearest_train") @db.VarChar(255)
+  trainDistance      String?  @map("train_distance") @db.VarChar(255)
+  nearestHighway     String?  @map("nearest_highway") @db.VarChar(255)
+  highwayDistance    String?  @map("highway_distance") @db.VarChar(255)
+  nearestBar         String?  @map("nearest_bar") @db.VarChar(255)
+  barDistance        String?  @map("bar_distance") @db.VarChar(255)
+  nearestSki         String?  @map("nearest_ski") @db.VarChar(255)
+  skiDistance        String?  @map("ski_distance") @db.VarChar(255)
+  nearestGolf        String?  @map("nearest_golf") @db.VarChar(255)
+  golfDistance       String?  @map("golf_distance") @db.VarChar(255)
+  nearestRestaurant  String?  @map("nearest_restaurant") @db.VarChar(255)
+  restaurantDistance String?  @map("restaurant_distance") @db.VarChar(255)
+  nearMotor          String?  @map("near_motor") @db.VarChar(255)
+  motorDist          String?  @map("motor_dist") @db.VarChar(255)
+  property           Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "nearby_places_property_id_fkey")
+  @@map("nearby_places")
+}
+
+model OwnerMessage {
+  id            Int      @id @default(autoincrement())
+  propertyId    Int      @map("propertyID")
+  propertyOwner Int      @map("property_owner")
+  firstname     String   @db.VarChar(255)
+  lastname      String   @db.VarChar(255)
+  phone         String   @db.VarChar(255)
+  email         String   @db.VarChar(255)
+  countryId     Int      @map("country")
+  arrival       String   @db.VarChar(255)
+  departure     String   @db.VarChar(255)
+  adults        Int
+  childs        Int
+  travel        Int?
+  message       String   @db.LongText
+  createdAt     DateTime @default(now()) @updatedAt @map("created_at") @db.Timestamp(0)
+  property      Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "owners_messages_propertyID_fkey")
+  @@map("owners_messages")
+}
+
+model PaymentDetail {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  transactionBy Int      @map("transaction_by")
+  response      String   @db.Text
+  status        String   @db.VarChar(255)
+  amount        String   @db.VarChar(255)
+  planType      Int      @map("plan_type")
+  noOfProperty  Int      @map("no_of_property")
+  description   String   @db.Text
+  createdDate   DateTime @map("created_date") @db.DateTime(0)
+  data          String?  @db.VarChar(50)
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "payment_detail_user_id_fkey")
+  @@map("payment_detail")
+}
+
+model Photo {
+  id           Int      @id @default(autoincrement())
+  propertyId   Int      @map("property_id")
+  imageName    String?  @map("image_name") @db.VarChar(255)
+  defaultImage Int?     @default(0) @map("default_image")
+  imageOrder   Int      @default(0) @map("image_order")
+  property     Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "photos_property_id_fkey")
+  @@map("photos")
+}
+
+model Plan {
+  id            Int    @id @default(autoincrement())
+  planName      String @map("plan_name") @db.VarChar(255)
+  price         String @db.VarChar(255)
+  description1  String @db.Text
+  description2  String @db.VarChar(255)
+  description3  String @db.VarChar(255)
+  description4  String @db.VarChar(255)
+  description5  String @db.VarChar(255)
+  description6  String @db.VarChar(255)
+  description7  String @db.VarChar(255)
+  description8  String @db.VarChar(255)
+  description9  String @db.VarChar(255)
+  description10 String @db.VarChar(255)
+  description11 String @db.VarChar(255)
+  description12 String @db.VarChar(255)
+  description13 String @db.VarChar(255)
+
+  @@map("plan")
+}
+
+model PromotionalCode {
+  id      Int       @id @default(autoincrement())
+  title   String?   @db.VarChar(255)
+  code    String?   @db.VarChar(255)
+  updated DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+
+  @@map("promotional_code")
+}
+
+model Property {
+  id                   Int                   @id @default(autoincrement())
+  propertyHeadline     String?               @map("property_headline") @db.Text
+  summary              String?               @db.Text
+  country              String?               @db.VarChar(255)
+  state                String?               @db.VarChar(255)
+  city                 String?               @db.VarChar(255)
+  streetAddress        String?               @map("street_address") @db.Text
+  zip                  String?               @db.VarChar(255)
+  recommended          Int?
+  propertyDescription  String?               @map("property_description") @db.Text
+  bedroom              String?               @db.VarChar(255)
+  bathroom             String?               @db.VarChar(255)
+  propertyType         String?               @map("property_type") @db.VarChar(255)
+  situatedIn           Int?                  @map("situated_in")
+  propertyViewId       Int?                  @map("property_view_id")
+  onWhichFloor         String?               @map("on_which_floor") @db.VarChar(255)
+  elevator             String?               @db.VarChar(255)
+  sleeps               String?               @default("0") @db.VarChar(255)
+  assignTo             Int?                  @map("assign_to")
+  priority             Int?
+  priorityDate         DateTime?             @map("priority_date") @db.DateTime(0)
+  createdBy            Int?                  @map("created_by")
+  yearPurchased        String?               @map("year_purchased") @db.VarChar(11)
+  amenities            Amenity[]
+  beddingInfo          BeddingInfo[]
+  contacts             Contact[]
+  nearbyPlaces         NearbyPlace[]
+  ownerMessages        OwnerMessage[]
+  photos               Photo[]
+  propertyBookings     PropertyBooking[]
+  propertyDescriptions PropertyDescription[]
+  
+  propertyExtras       PropertyExtra[]
+  rates                Rate[]
+  propertyAmenities    PropertyAmenity[]
+
+  @@map("property")
+}
+
+model PropertyBooking {
+  id            Int      @id @default(autoincrement())
+  propertyId    Int      @map("property_id")
+  propertyOwner Int?     @map("property_owner")
+  firstName     String   @map("first_name") @db.VarChar(255)
+  lastName      String   @map("last_name") @db.VarChar(255)
+  email         String   @db.VarChar(255)
+  mobile        String   @db.VarChar(255)
+  message       String   @db.LongText
+  adults        Int?     @default(0)
+  childs        Int?     @default(0)
+  street        String   @db.VarChar(255)
+  country       String   @db.VarChar(255)
+  city          String   @db.VarChar(255)
+  zip           String   @db.VarChar(255)
+  transactionId String?  @map("transaction_id") @db.VarChar(50)
+  terms         Int
+  response      String   @db.VarChar(255)
+  status        String   @db.VarChar(255)
+  amount        String   @db.VarChar(255)
+  bookingDates  String   @map("booking_dates") @db.VarChar(255)
+  createdAt     DateTime @map("created_at") @db.DateTime(0)
+  property      Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "property_bookings_property_id_fkey")
+  @@map("property_bookings")
+}
+
+model PropertyDescription {
+  id                 Int      @id @default(autoincrement())
+  propertyId         Int      @map("property_id")
+  toasterDesc        String?  @map("toaster_desc") @db.Text
+  kitchenDesc        String?  @map("kitchen_desc") @db.Text
+  dishwasherDesc     String?  @map("dishwasher_desc") @db.Text
+  microwaveDesc      String?  @map("microwave_desc") @db.Text
+  coffeeMakeDesc     String?  @map("coffee_make_desc") @db.Text
+  pantryItemDesc     String?  @map("pantry_item_desc") @db.Text
+  ovenDesc           String?  @map("oven_desc") @db.Text
+  stoveDesc          String?  @map("stove_desc") @db.Text
+  refrigeratorDesc   String?  @map("refrigerator_desc") @db.Text
+  dishUtenDesc       String?  @map("dish_uten_desc") @db.Text
+  heatingDesc        String?  @map("heating_desc") @db.Text
+  fireplaceDesc      String?  @map("fireplace_desc") @db.Text
+  internetDesc       String?  @map("internet_desc") @db.Text
+  livingRoomDesc     String?  @map("living_room_desc") @db.Text
+  towelsProvidedDesc String?  @map("towels_provided_desc") @db.Text
+  wInternetDesc      String?  @map("w_internet_desc") @db.Text
+  washingMDesc       String?  @map("washing_m_desc") @db.Text
+  parkingDesc        String?  @map("parking_desc") @db.Text
+  linensPDesc        String?  @map("linens_p_desc") @db.Text
+  telephoneDesc      String?  @map("telephone_desc") @db.Text
+  fitnessREDesc      String?  @map("fitness_r_e_desc") @db.Text
+  acDesc             String?  @map("ac_desc") @db.Text
+  clothDryerDesc     String?  @map("cloth_dryer_desc") @db.Text
+  tvDesc             String?  @map("tv_desc") @db.Text
+  poolTDesc          String?  @map("pool_t_desc") @db.Text
+  gameRDecs          String?  @map("game_r_decs") @db.Text
+  videoLDesc         String?  @map("video_l_desc") @db.Text
+  satelliteCDesc     String?  @map("satellite_c_desc") @db.Text
+  piPoDesc           String?  @map("pi_po_desc") @db.Text
+  spaWDesc           String?  @map("spa_w_desc") @db.Text
+  hottubDesc         String?  @map("hottub_desc") @db.Text
+  saunaDesc          String?  @map("sauna_desc") @db.Text
+  commuPoolDesc      String?  @map("commu_pool_desc") @db.Text
+  balconyDesc        String?  @map("balcony_desc") @db.Text
+  dectPaDesc         String?  @map("dect_pa_desc") @db.Text
+  lawGDesc           String?  @map("law_g_desc") @db.Text
+  smokeDDesc         String?  @map("smoke_d_desc") @db.Text
+  cmdLoca            String?  @map("cmd_loca") @db.Text
+  feLocation         String?  @map("fe_location") @db.Text
+  fakLocation        String?  @map("fak_location") @db.Text
+  eerInst            String?  @map("eer_inst") @db.Text
+  hcontactDesc       String?  @map("hcontact_desc") @db.Text
+  pcontactDesc       String?  @map("pcontact_desc") @db.Text
+  fstationDesc       String?  @map("fstation_desc") @db.Text
+  additionalLocaInfo String?  @map("additional_loca_info") @db.Text
+  aboutCreater       String?  @map("about_creater") @db.Text
+  yThisPro           String?  @map("y_this_pro") @db.Text
+  uniqueBene         String?  @map("unique_bene") @db.Text
+  bedDesc            String?  @map("bed_desc") @db.Text
+  bathDesc           String?  @map("bath_desc") @db.Text
+  addInfo            String?  @map("add_info") @db.Text
+  youtubeUrl         String?  @map("youtube_url") @db.Text
+  property           Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "property_descriptions_property_id_fkey")
+  @@map("property_descriptions")
+}
+
+model PropertyExtra {
+  id               Int      @id @default(autoincrement())
+  propertyId       Int      @map("property_id")
+  petFee           String?  @map("pet_fee") @db.VarChar(255)
+  cleaningFee      String?  @map("cleaning_fee") @db.VarChar(255)
+  taxes            String?  @map("taxes") @db.VarChar(255)
+  damageProtection String?  @map("damage_protection") @db.VarChar(255)
+  paymentTerms     String?  @map("payment_terms") @db.Text
+  property         Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "property_extras_property_id_fkey")
+  @@map("property_extras")
+}
+
+model PropertyType {
+  id           Int    @id @default(autoincrement())
+  propertyName String @map("property_name") @db.VarChar(255)
+
+  @@map("property_type")
+}
+
+model PropertyView {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+
+  @@map("property_view")
+}
+
+model Rate {
+  id           Int       @id @default(autoincrement())
+  propertyId   Int       @map("property_id")
+  seasonName   String?   @map("season_name") @db.VarChar(255)
+  startDate    DateTime? @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  minimumStay  String?   @map("minimum_stay") @db.VarChar(255)
+  weekendNight String?   @map("weekend_night") @db.VarChar(255)
+  nightly      Float?
+  weekly       String?   @db.VarChar(255)
+  monthly      String?   @db.VarChar(255)
+  property     Property  @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId], map: "rates_property_id_fkey")
+  @@map("rates")
+}
+
+model State {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(30)
+  image     String  @db.VarChar(100)
+  stunning  Int?    @default(0)
+  countryId Int     @default(1) @map("country_id")
+  cities    City[]
+  country   Country @relation(fields: [countryId], references: [id])
+
+  @@index([countryId], map: "states_country_id_fkey")
+  @@map("states")
+}
+
+model TermCondition {
+  id     Int    @id @default(autoincrement())
+  title  String @db.VarChar(255)
+  detail String @db.LongText
+
+  @@map("term_condition")
+}
+
+enum StartDay {
+  mon
+  sun
+}
+
+enum DateFormat {
+  us
+  eu
+}
+
+enum ClickPastDates {
+  on
+  off
+}
+
+model AmenityCategory {
+  id        Int          @id @default(autoincrement())
+  name      String       @db.VarChar(255)
+  items     AmenityItem[]
+}
+
+model AmenityItem {
+  id               Int               @id @default(autoincrement())
+  categoryId       Int
+  name             String            @db.VarChar(255)
+  icon             String?           @db.VarChar(255)
+  category         AmenityCategory   @relation(fields: [categoryId], references: [id])
+  propertyAmenities PropertyAmenity[]
+}
+
+model PropertyAmenity {
+  id            Int         @id @default(autoincrement())
+  propertyId    Int
+  amenityItemId Int
+  property      Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenityItem   AmenityItem @relation(fields: [amenityItemId], references: [id], onDelete: Cascade)
+}

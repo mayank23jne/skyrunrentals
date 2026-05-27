@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../partials/head') %>
+<body>
+    <div class="layout">
+        <%- include('../partials/sidebar', { activePage: 'settings-plans' }) %>
+        <main>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+                <a href="/api/admin/settings/plans" class="action-btn" style="width: 40px; height: 40px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none;">
+                    <i data-lucide="arrow-left"></i>
+                </a>
+                <%- include('../partials/header', { pageTitle: 'Edit Plan' }) %>
+            </div>
+
+            <div class="card" style="max-width: 900px; margin: 0 auto;">
+                <form id="edit-plan-form">
+                    <style>
+                        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+                        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+                        .form-group.full-width { grid-column: span 2; }
+                        label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
+                        input { padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--border); background-color: var(--bg-main); transition: all 0.2s ease; font-size: 1rem; }
+                        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+                        .descriptions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; padding: 1.5rem; background: #fafbfc; border-radius: 1rem; border: 1px dashed var(--border); }
+                    </style>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Plan Name</label>
+                            <input type="text" name="planName" value="<%= plan.planName %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Price ($)</label>
+                            <input type="text" name="price" value="<%= plan.price %>" required>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Plan Features (Descriptions)</label>
+                            <div class="descriptions-grid">
+                                <% for(let i = 1; i <= 13; i++) { %>
+                                    <% const fieldName = 'description' + i; %>
+                                    <div class="form-group">
+                                        <label style="font-size: 0.75rem;">Feature <%= i %></label>
+                                        <input type="text" name="<%= fieldName %>" value="<%= plan[fieldName] %>">
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                                <a href="/api/admin/settings/plans" class="btn-primary" style="background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; display: flex; align-items: center;">Cancel</a>
+                                <button type="submit" class="btn-primary">Update Plan</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.getElementById('edit-plan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            const response = await fetch('/api/admin/settings/plans/<%= plan.id %>/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                window.location.href = '/api/admin/settings/plans';
+            }
+        });
+        lucide.createIcons();
+    </script>
+</body>
+</html>

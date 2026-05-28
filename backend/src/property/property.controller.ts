@@ -102,7 +102,7 @@ export class PropertyController {
       this.prisma.propertyView.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.user.findMany({ where: { usertype: '1' }, orderBy: { firstname: 'asc' } }),
       this.prisma.currency.findMany({ orderBy: { name: 'asc' } }),
-      this.prisma.amenityCategory.findMany({ include: { items: true }, orderBy: { name: 'asc' } })
+      this.prisma.amenityCategory.findMany({ include: { items: true }, orderBy: { name: 'asc' } }).catch(() => [])
     ]);
 
     return res.render('admin/properties/add', {
@@ -161,7 +161,7 @@ export class PropertyController {
       this.prisma.propertyView.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.user.findMany({ where: { usertype: '1' }, orderBy: { firstname: 'asc' } }),
       this.prisma.currency.findMany({ orderBy: { name: 'asc' } }),
-      this.prisma.amenityCategory.findMany({ include: { items: true }, orderBy: { name: 'asc' } })
+      this.prisma.amenityCategory.findMany({ include: { items: true }, orderBy: { name: 'asc' } }).catch(() => [])
     ]);
 
     if (!property) {

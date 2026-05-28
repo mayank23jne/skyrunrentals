@@ -54,14 +54,11 @@ export class PropertyService {
 
     // Geographic filters
     if (cityId) {
-      const city = await this.prisma.city.findUnique({ where: { id: cityId } });
-      if (city) where.city = String(city.id);
+      where.city = String(cityId);
     } else if (stateId) {
-      const state = await this.prisma.state.findUnique({ where: { id: stateId } });
-      if (state) where.state = String(state.id);
+      where.state = String(stateId);
     } else if (countryId) {
-      const country = await this.prisma.country.findUnique({ where: { id: countryId } });
-      if (country) where.country = String(country.id);
+      where.country = String(countryId);
     }
 
     if (search) {
@@ -107,14 +104,11 @@ export class PropertyService {
     const where: any = {};
 
     if (cityId) {
-      const city = await this.prisma.city.findUnique({ where: { id: cityId } });
-      if (city) where.city = String(city.id);
+      where.city = String(cityId);
     } else if (stateId) {
-      const state = await this.prisma.state.findUnique({ where: { id: stateId } });
-      if (state) where.state = String(state.id);
+      where.state = String(stateId);
     } else if (countryId) {
-      const country = await this.prisma.country.findUnique({ where: { id: countryId } });
-      if (country) where.country = String(country.id);
+      where.country = String(countryId);
     }
 
     if (search) {
@@ -140,13 +134,17 @@ export class PropertyService {
 
   async create(body: any, files: Express.Multer.File[], adminId: number) {
     return this.prisma.$transaction(async (tx) => {
+      let propCountryName = body.country ? String(body.country) : undefined;
+      let propStateName = body.state ? String(body.state) : undefined;
+      let propCityName = body.city ? String(body.city) : undefined;
+
       // 1. Create Property
       const property = await tx.property.create({
         data: {
           propertyHeadline: body.propertyHeadline,
-          country: body.country, // Note: UI sends ID but model expects string? 
-          state: body.state, // Need to handle ID to Name if schema expects string
-          city: body.city,
+          country: propCountryName,
+          state: propStateName,
+          city: propCityName,
           streetAddress: body.streetAddress,
           zip: body.zip,
           propertyDescription: body.propertyDescription,
@@ -161,14 +159,18 @@ export class PropertyService {
         }
       });
 
+      let contactCountryName = body.contactCountry ? String(body.contactCountry) : undefined;
+      let contactStateName = body.contactState ? String(body.contactState) : undefined;
+      let contactCityName = body.contactCity ? String(body.contactCity) : undefined;
+
       // 2. Create Contact
       await tx.contact.create({
         data: {
           propertyId: property.id,
           name: body.contactName,
-          country: body.contactCountry,
-          state: body.contactState,
-          city: body.contactCity,
+          country: contactCountryName,
+          state: contactStateName,
+          city: contactCityName,
           streetAddress: body.contactStreetAddress,
           zip: body.contactZip,
           email: body.contactEmail,
@@ -347,25 +349,48 @@ export class PropertyService {
       }
 
       return property;
-    });
+    }, { maxWait: 5000, timeout: 30000 });
   }
 
   async findOne(id: number) {
-    const property = await this.prisma.property.findUnique({
-      where: { id },
-      include: {
-          contacts: true,
-          amenities: true,
-          propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
-        beddingInfo: true,
-        nearbyPlaces: true,
-        rates: true,
-        propertyExtras: true,
-        photos: {
-          orderBy: { imageOrder: 'asc' }
+    let property;
+    try {
+      property = await this.prisma.property.findUnique({
+        where: { id },
+        include: {
+            contacts: true,
+            amenities: true,
+            propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
+          beddingInfo: true,
+          nearbyPlaces: true,
+          rates: true,
+          propertyExtras: true,
+          photos: {
+            orderBy: { imageOrder: 'asc' }
+          }
         }
+      });
+    } catch (e) {
+      console.error('Error fetching property (possibly missing propertyAmenities table):', e);
+      // Fallback for unmigrated server database
+      property = await this.prisma.property.findUnique({
+        where: { id },
+        include: {
+            contacts: true,
+            amenities: true,
+          beddingInfo: true,
+          nearbyPlaces: true,
+          rates: true,
+          propertyExtras: true,
+          photos: {
+            orderBy: { imageOrder: 'asc' }
+          }
+        }
+      });
+      if (property) {
+        (property as any).propertyAmenities = [];
       }
-    });
+    }
 
     if (property) {
       // Fetch calendar data
@@ -388,9 +413,11 @@ export class PropertyService {
 
         const calendarBlockedDates: Record<string, string> = {};
         bookings.forEach(b => {
-          const dateStr = b.theDate.toISOString().split('T')[0];
-          const status = stateIdToCode[b.idState];
-          if (status) calendarBlockedDates[dateStr] = status;
+          if (b.theDate && !isNaN(b.theDate.getTime())) {
+            const dateStr = b.theDate.toISOString().split('T')[0];
+            const status = stateIdToCode[b.idState];
+            if (status) calendarBlockedDates[dateStr] = status;
+          }
         });
         (property as any).calendarBlockedDates = calendarBlockedDates;
       }
@@ -406,14 +433,18 @@ export class PropertyService {
 
   async update(id: number, body: any, files: Express.Multer.File[], adminId: number) {
     return this.prisma.$transaction(async (tx) => {
+      let propCountryName = body.country ? String(body.country) : undefined;
+      let propStateName = body.state ? String(body.state) : undefined;
+      let propCityName = body.city ? String(body.city) : undefined;
+
       // 1. Update Property
       const property = await tx.property.update({
         where: { id },
         data: {
           propertyHeadline: body.propertyHeadline,
-          country: body.country,
-          state: body.state,
-          city: body.city,
+          country: propCountryName,
+          state: propStateName,
+          city: propCityName,
           streetAddress: body.streetAddress,
           zip: body.zip,
           propertyDescription: body.propertyDescription,
@@ -427,15 +458,19 @@ export class PropertyService {
         }
       });
 
+      let contactCountryName = body.contactCountry ? String(body.contactCountry) : undefined;
+      let contactStateName = body.contactState ? String(body.contactState) : undefined;
+      let contactCityName = body.contactCity ? String(body.contactCity) : undefined;
+
       // 2. Update Contact (Delete and Recreate for simplicity)
       await tx.contact.deleteMany({ where: { propertyId: id } });
       await tx.contact.create({
         data: {
           propertyId: id,
           name: body.contactName,
-          country: body.contactCountry,
-          state: body.contactState,
-          city: body.contactCity,
+          country: contactCountryName,
+          state: contactStateName,
+          city: contactCityName,
           streetAddress: body.contactStreetAddress,
           zip: body.contactZip,
           email: body.contactEmail,
@@ -585,7 +620,12 @@ export class PropertyService {
       }
 
       // Add new photos (S3 Integration)
-      let nextOrder = (existingPhotos.length > 0) ? Math.max(...existingPhotos.map(p => p.imageOrder)) + 1 : 0;
+      let maxOrder = existingPhotos.length > 0 
+        ? Math.max(...existingPhotos.map(p => typeof p.imageOrder === 'number' && !isNaN(p.imageOrder) ? p.imageOrder : 0))
+        : -1;
+      if (isNaN(maxOrder) || !isFinite(maxOrder)) maxOrder = -1;
+      let nextOrder = maxOrder + 1;
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
@@ -594,10 +634,10 @@ export class PropertyService {
 
         await tx.photo.create({
           data: {
-            propertyId: id,
+            propertyId: Number(id),
             imageName: s3Url,
             defaultImage: (existingPhotos.length === 0 && i === 0) || (mainPhotoId === null && i === 0) ? 1 : 0,
-            imageOrder: nextOrder++,
+            imageOrder: isNaN(nextOrder) || !isFinite(nextOrder) ? 0 : nextOrder++,
           }
         });
       }
@@ -645,7 +685,7 @@ export class PropertyService {
       }
 
       return property;
-    });
+    }, { maxWait: 5000, timeout: 30000 });
   }
 
   async delete(id: number) {
@@ -663,6 +703,39 @@ export class PropertyService {
       await tx.rate.deleteMany({ where: { propertyId: id } });
 
       return tx.property.delete({ where: { id } });
+    });
+  }
+
+  async createOwnerMessage(id: number, data: any) {
+    const property = await this.prisma.property.findUnique({
+      where: { id },
+      select: { createdBy: true }
+    });
+    
+    // Find country ID if passed as name
+    let countryId = 1; // Default
+    if (data.country) {
+      const country = await this.prisma.country.findFirst({
+        where: { name: data.country }
+      });
+      if (country) countryId = country.id;
+    }
+
+    return this.prisma.ownerMessage.create({
+      data: {
+        propertyId: id,
+        propertyOwner: property?.createdBy || 0,
+        firstname: data.firstName || '',
+        lastname: data.lastName || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        countryId: countryId,
+        arrival: data.arrival || '',
+        departure: data.departure || '',
+        adults: typeof data.adults === 'number' ? data.adults : parseInt(data.adults || '0'),
+        childs: typeof data.children === 'number' ? data.children : parseInt(data.children || '0'),
+        message: data.message || '',
+      }
     });
   }
 
@@ -712,26 +785,48 @@ export class PropertyService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const property = await this.prisma.property.findUnique({
-      where: { id },
-      include: {
-          contacts: true,
-          amenities: true,
-          propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
-        beddingInfo: true,
-        nearbyPlaces: true,
-        rates: true,
-        propertyExtras: true,
-        photos: true,
-      },
-    });
+    let property;
+    try {
+      property = await this.prisma.property.findUnique({
+        where: { id },
+        include: {
+            contacts: true,
+            amenities: true,
+            propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
+          beddingInfo: true,
+          nearbyPlaces: true,
+          rates: true,
+          propertyExtras: true,
+          photos: true,
+        },
+      });
+    } catch (e) {
+      console.error('Error fetching property details (possibly missing propertyAmenities table):', e);
+      // Fallback for unmigrated server database
+      property = await this.prisma.property.findUnique({
+        where: { id },
+        include: {
+            contacts: true,
+            amenities: true,
+          beddingInfo: true,
+          nearbyPlaces: true,
+          rates: true,
+          propertyExtras: true,
+          photos: true,
+        },
+      });
+      if (property) {
+        (property as any).propertyAmenities = [];
+      }
+    }
 
     if (!property) return null;
 
-    const [countries, allCurrencies, userDetail] = await Promise.all([
+    const [countries, allCurrencies, userDetail, creatorDetail] = await Promise.all([
       this.prisma.country.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.currency.findMany({ orderBy: { name: 'asc' } }),
       property.assignTo ? this.prisma.user.findUnique({ where: { id: property.assignTo } }) : null,
+      property.createdBy ? this.prisma.user.findUnique({ where: { id: property.createdBy } }) : null,
     ]);
 
     // Fetch location objects
@@ -787,6 +882,7 @@ export class PropertyService {
       currency: allCurrencies,
       contact_detail: property.contacts[0] || null,
       user_detail: userDetail,
+      creator_detail: creatorDetail,
     };
   }
 

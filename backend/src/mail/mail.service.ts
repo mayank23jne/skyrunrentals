@@ -23,17 +23,17 @@ export class MailService {
     firstname: string,
     password: string,
   ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Holiday Haven Homes';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@holidayhavenhomes.com';
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       to: toEmail,
-      subject: 'Your Employee Account Credentials - Holiday Haven Homes',
+      subject: 'Your Employee Account Credentials - Skyrunrentals',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
           <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 2.5rem; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 1.5rem; font-weight: 700;">Holiday Haven Homes</h1>
+            <h1 style="color: #ffffff; margin: 0; font-size: 1.5rem; font-weight: 700;">Skyrunrentals</h1>
             <p style="color: rgba(255,255,255,0.85); margin: 0.5rem 0 0; font-size: 0.9rem;">Employee Portal</p>
           </div>
           
@@ -84,14 +84,14 @@ export class MailService {
     toEmail: string,
     resetLink: string,
   ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Holiday Haven Homes';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@holidayhavenhomes.com';
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const logoURL = 'https://holidayhavenhomes.com/assets/img/logo.png'; // Placeholder or actual URL
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       to: toEmail,
-      subject: 'Holiday Haven Homes | Reset password link.',
+      subject: 'Skyrunrentals | Reset password link.',
       html: `
         <div style="width: 500px; margin: auto; border: solid 5px #579981; padding: 20px; border-radius: 10px; text-align: center; font-family: sans-serif;">
           <table style="width: 100%; padding: 25px;">
@@ -102,7 +102,7 @@ export class MailService {
             </tr>
             <tr>
               <td style="padding-top: 20px;">
-                <h3 style="color: #1f2937;">Hello<br> Welcome to Holiday Haven Homes</h3>
+                <h3 style="color: #1f2937;">Hello<br> Welcome to Skyrunrentals</h3>
               </td>
             </tr>
             <tr>
@@ -136,8 +136,8 @@ export class MailService {
     data: any,
     pdfPath?: string,
   ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Holiday Haven Homes';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@holidayhavenhomes.com';
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
     const logoURL = `${imgPath}assets/img/logo.png`;
 
@@ -176,7 +176,7 @@ export class MailService {
             Best Regards,
           </td> </tr>
           <tr> <td style='padding: 7px 0;'>
-            <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Holiday Haven Homes</b></font></i></span></span>
+            <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
           </td> </tr>
         </table>
       </div>
@@ -185,7 +185,7 @@ export class MailService {
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       to: toEmail,
-      subject: 'Holiday Haven Homes | Register Info',
+      subject: 'Skyrunrentals | Register Info',
       html: messagetable,
       attachments: pdfPath ? [{
         filename: `privacyPolicy_${data.id}.pdf`,
@@ -207,14 +207,14 @@ export class MailService {
     toEmails: string | string[],
     data: any,
   ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Holiday Haven Homes';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@holidayhavenhomes.com';
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
     const logoURL = `${imgPath}assets/img/logo.png`;
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
     const flexible = data.travel === '1' ? 'Dates are flexible.' : '';
-    
+
     let dateArrivals = '';
     const arrivalFormat = data.arrival && data.arrival !== '01 Jan 1970' ? data.arrival : null;
     const departureFormat = data.departure && data.departure !== '01 Jan 1970' ? data.departure : null;
@@ -290,7 +290,7 @@ export class MailService {
                                  <tr><td height='50'></td></tr>
                                  <tr>
                                     <td style='color:#132742;font-family:Century gothic,Arial,sans-serif;font-size:20px;font-weight:bold;line-height:36px' >
-                                       Thank you for using holidayhavenhomes.com
+                                       Thank you for using skyrunrentals.com
                                     </td>
                                  </tr>
                                  <tr><td height='10'></td></tr>
@@ -421,7 +421,7 @@ export class MailService {
                                                             </tr>
                                                             <tr><td height='5'></td></tr>
                                                             <tr>
-                                                               <td style='font-family:Open sans,Arial,sans-serif;color:#132742;font-size:13px;line-height:28px' align='left'>Visit our help center and website to see what holidayhavenhomes.com is all about. We are working hard to&nbsp;help you save&nbsp;money on your travel accommodations.
+                                                               <td style='font-family:Open sans,Arial,sans-serif;color:#132742;font-size:13px;line-height:28px' align='left'>Visit our help center and website to see what skyrunrentals.com is all about. We are working hard to&nbsp;help you save&nbsp;money on your travel accommodations.
                                                                </td>
                                                             </tr>
                                                             <tr><td height='40'></td></tr>
@@ -458,7 +458,7 @@ export class MailService {
                                              <tbody>
                                                 <tr>
                                                    <td style='font-family:Open Sans,Arial,sans-serif;font-size:13px;color:#ffffff;line-height:28px' align='center'>
-                                                      holidayhavenhomes.com © 2024 All Rights Reserved
+                                                      skyrunrentals.com © 2024 All Rights Reserved
                                                    </td>
                                                 </tr>
                                                 <tr><td height='10'></td></tr>
@@ -496,7 +496,7 @@ export class MailService {
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Holiday Haven Homes | Booking in Property.',
+      subject: 'Skyrunrentals | Booking in Property.',
       html: messagetable,
     };
 
@@ -514,8 +514,8 @@ export class MailService {
     toEmails: string | string[],
     data: any,
   ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Holiday Haven Homes';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@holidayhavenhomes.com';
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
     const logoURL = `${imgPath}assets/img/logo.png`;
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
@@ -583,7 +583,7 @@ export class MailService {
     </tr>
     <tr> 
       <td style='padding: 7px 0;'>
-        <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Team Holiday Haven Homes</b></font></i></span></span>
+        <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Team Skyrunrentals</b></font></i></span></span>
       </td> 
     </tr>
     <tr> 
@@ -597,7 +597,7 @@ export class MailService {
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Holiday Haven Homes | Payment Info',
+      subject: 'Skyrunrentals | Payment Info',
       html: messagetable,
     };
 
@@ -615,8 +615,8 @@ export class MailService {
     toEmails: string | string[],
     data: any,
   ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Holiday Haven Homes';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@holidayhavenhomes.com';
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
     const logoURL = `${imgPath}assets/img/logo.png`;
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
@@ -674,7 +674,7 @@ export class MailService {
     </tr>
     <tr> 
       <td style='padding: 7px 0;'>
-        <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Team Holiday Haven Homes</b></font></i></span></span>
+        <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Team Skyrunrentals</b></font></i></span></span>
       </td> 
     </tr>
     <tr> 
@@ -688,7 +688,7 @@ export class MailService {
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Holiday Haven Homes | Payment Info',
+      subject: 'Skyrunrentals | Payment Info',
       html: messagetable,
     };
 

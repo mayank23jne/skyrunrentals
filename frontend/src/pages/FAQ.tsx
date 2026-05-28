@@ -8,17 +8,17 @@ import { ChevronDown } from 'lucide-react';
 const faqs = [
   {
     id: 1,
-    question: 'WHAT IS HOLIDAYHAVENHOMES.COM ?',
-    answer: 'www.holidayhavenhomes.com is a Web portal diffusing and promoting on - line offers of vacation rentals.Our role is to bring together vacationers and property owners wishing to rent directly a vacation home.'
+    question: 'WHAT IS SKYRUNRENTALS.COM ?',
+    answer: 'www.skyrunrentals.com is a Web portal diffusing and promoting on - line offers of vacation rentals.Our role is to bring together vacationers and property owners wishing to rent directly a vacation home.'
   },
   {
     id: 2,
-    question: 'HOLIDAYHAVENHOMES.COM - IS A FREE SERVICE TO VACATIONERS.',
+    question: 'SKYRUNRENTALS.COM - IS A FREE SERVICE TO VACATIONERS.',
     answer: 'The contact made by the vacationer with the owner is FREE.To contact a property owner by e - mail, simply use the form provided for this use in his advert or else you can e - mail us directly to acquire other contact information.'
   },
   {
     id: 3,
-    question: 'HOLIDAYHAVENHOMES.COM IS A SECURE USER SERVICE',
+    question: 'SKYRUNRENTALS.COM IS A SECURE USER SERVICE',
     answer: 'The rentals listed on the site have detailed descriptions and are accompanied by numerous photos.All this combined is meant to help you with your search and assist you in making the right choice.We maintain that by simply creating a trustworthy environment between our members relationships will be established!'
   },
   {
@@ -39,7 +39,7 @@ const faqs = [
   {
     id: 7,
     question: 'DO YOU OFFER ANY DISCOUNT FOR MULTIPLE VACATION RENTAL PROPERTIES ?',
-    answer: 'Yes, we do provide discounts to home owner with multiple properties contact directly at info @holidayhavenhomes.com to get a customized price according to your needs and conditions.'
+    answer: 'Yes, we do provide discounts to home owner with multiple properties contact directly at info@skyrunrentals.com to get a customized price according to your needs and conditions.'
   },
   {
     id: 8,
@@ -59,12 +59,12 @@ const faqs = [
   {
     id: 11,
     question: 'RESETTING YOUR PASSWORD',
-    answer: '1.Go to the homepage.\n2.Click Owner Login at the top right\n3.Click Forgot Password.\n4.Enter the email address that you used to sign up for your Holiday Haven Homes account.\n5.Check the email account for a customer support email with the password, If you do not receive the password in your email shortly, please check your junk mail / spam folder.'
+    answer: '1.Go to the homepage.\n2.Click Owner Login at the top right\n3.Click Forgot Password.\n4.Enter the email address that you used to sign up for your Skyrunrentals account.\n5.Check the email account for a customer support email with the password, If you do not receive the password in your email shortly, please check your junk mail / spam folder.'
   },
   {
     id: 12,
     question: 'CAN I MAKE CHANGES TO MY ADVERT LISTING AFTER SUBMISSION ?',
-    answer: 'You can update / edit your entire Advert including photos 24 hours a day.As soon as you update or edit any information through Owner’s Login, Your changes are updated to your holiday home rental listing immediately.'
+    answer: 'You can update / edit your entire Advert including photos 24 hours a day.As soon as you update or edit any information through Owner’s Login, Your changes are updated to your skyrunrentals listing immediately.'
   },
   {
     id: 13,
@@ -79,7 +79,7 @@ const faqs = [
   {
     id: 15,
     question: 'UNSUBSCRIBING FROM EMAILS ?',
-    answer: 'You can Anytime unsubscribe from e - mails or define the amount of E - mails you wish to receive / weekly / daily by simply emailing at info @holidayhavenhomes.com and subject “Newsletter” Owners and property managers will still receive transactional emails such as order receipts and inquiries.'
+    answer: 'You can Anytime unsubscribe from e - mails or define the amount of E - mails you wish to receive / weekly / daily by simply emailing at info@skyrunrentals.com and subject “Newsletter” Owners and property managers will still receive transactional emails such as order receipts and inquiries.'
   }
 ];
 
@@ -96,12 +96,12 @@ const FAQ: React.FC = () => {
 
       <main className="faq-main">
         <div className="container centered-layout">
-          
+
           {/* Elegant Centered Minimal Header */}
           <div className="faq-simple-header">
             <h1 className="faq-title-centered">Frequently Asked Questions</h1>
             <p className="faq-subtitle-centered">
-              Have questions? We're here to help. Find quick, clean answers about booking vacation rentals or hosting your property with Holiday Haven Homes.
+              Have questions? We're here to help. Find quick, clean answers about booking vacation rentals or hosting your property with Skyrunrentals.
             </p>
           </div>
 

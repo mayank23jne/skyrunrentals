@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Newsletter from '../components/Newsletter';
@@ -8,6 +8,27 @@ import BackToTop from '../components/BackToTop';
 import bannerImg from '../assets/banner_bg.jpg';
 
 const Contact: React.FC = () => {
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '', message: '' });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.message.trim()) newErrors.message = 'Message is required';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // Usually you would submit this to an API
+    alert('Message sent successfully!');
+    setFormData({ name: '', email: '', phone: '', address: '', message: '' });
+    setErrors({});
+  };
+
   return (
     <div className="contact-page">
       <Navbar />
@@ -39,7 +60,7 @@ const Contact: React.FC = () => {
                 <Mail size={28} />
               </div>
               <h3>Email Us</h3>
-              <p>info@holidayhavenhomes.com</p>
+              <p>info@skyrunrentals.com</p>
             </div>
 
             <div className="info-card">
@@ -78,27 +99,30 @@ const Contact: React.FC = () => {
                 <h2 className="section-title">Send us a Message</h2>
               </div>
 
-              <form className="contact-form">
+              <form className="contact-form" onSubmit={handleSubmit}>
                 <div className="form-row">
                   <div className="form-group">
-                    <input type="text" placeholder="Name" required />
+                    <input type="text" placeholder="Name" value={formData.name} onChange={e => { setFormData({ ...formData, name: e.target.value }); setErrors(prev => ({ ...prev, name: '' })); }} className={errors.name ? 'input-error' : ''} />
+                    {errors.name && <span className="field-error">{errors.name}</span>}
                   </div>
                   <div className="form-group">
-                    <input type="email" placeholder="Email" required />
+                    <input type="email" placeholder="Email" value={formData.email} onChange={e => { setFormData({ ...formData, email: e.target.value }); setErrors(prev => ({ ...prev, email: '' })); }} className={errors.email ? 'input-error' : ''} />
+                    {errors.email && <span className="field-error">{errors.email}</span>}
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <input type="tel" placeholder="Phone" />
+                    <input type="tel" placeholder="Phone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                   </div>
                   <div className="form-group">
-                    <input type="text" placeholder="Address" />
+                    <input type="text" placeholder="Address" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="form-group full">
-                  <textarea placeholder="Message" rows={5} required></textarea>
+                  <textarea placeholder="Message" rows={5} value={formData.message} onChange={e => { setFormData({ ...formData, message: e.target.value }); setErrors(prev => ({ ...prev, message: '' })); }} className={errors.message ? 'input-error' : ''}></textarea>
+                  {errors.message && <span className="field-error">{errors.message}</span>}
                 </div>
 
                 <div className="form-submit">
@@ -304,6 +328,18 @@ const Contact: React.FC = () => {
           border-color: #2e80ec;
           background: #ffffff;
           box-shadow: 0 0 0 4px rgba(46, 128, 236, 0.1);
+        }
+
+        .input-error {
+          border-color: #dc2626 !important;
+        }
+
+        .field-error {
+          color: #dc2626;
+          font-size: 13px;
+          font-weight: 600;
+          margin-top: 5px;
+          display: block;
         }
 
         .submit-btn {

@@ -20,8 +20,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
-    .setTitle('Holiday Haven Homes API')
-    .setDescription('The administrative and client-facing API for Holiday Haven Homes')
+    .setTitle('SkyRunRentals API')
+    .setDescription('The administrative and client-facing API for SkyRunRentals')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

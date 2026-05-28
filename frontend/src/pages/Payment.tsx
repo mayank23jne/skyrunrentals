@@ -133,7 +133,7 @@ const Payment: React.FC = () => {
             <span className="premium-badge">Partner With Us</span>
             <h1 className="payment-title">Why Advertise With us</h1>
             <p className="payment-subtitle">
-              Advertise your stayz property, bed and breakfast, villa, apartment, cottage, cabin with Holiday Haven Homes Network. Sign up in 2 minutes, and we will make your accommodation online in 24 hours.
+              Advertise your stayz property, bed and breakfast, villa, apartment, cottage, cabin with Skyrunrentals Network. Sign up in 2 minutes, and we will make your accommodation online in 24 hours.
             </p>
 
             <motion.div
@@ -174,8 +174,8 @@ const Payment: React.FC = () => {
 
               <div className="payment-form-card">
                 <div className="form-card-header">
-                  <h3>Pay For Holiday Haven Homes</h3>
-                  <p>You are paying : <span>www.holidayhavenhomes.com</span></p>
+                  <h3>Pay For Skyrunrentals</h3>
+                  <p>You are paying : <span>www.skyrunrentals.com</span></p>
                 </div>
 
                 <div className="form-selectors-grid">

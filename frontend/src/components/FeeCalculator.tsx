@@ -108,7 +108,7 @@ const FeeCalculator: React.FC = () => {
                   {/* Custom HHH SVG Logo */}
                   <svg viewBox="0 0 160 40" width="140" height="35" className="logo-svg">
                     <path d="M12 25 L20 18 L28 25 M14 24 L14 32 L26 32 L26 24" stroke="#3b82f6" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
-                    <text x="35" y="24" fontFamily="'Inter', sans-serif" fontWeight="900" fontSize="15" fill="#1e3a8a">Holiday Haven</text>
+                    <text x="35" y="24" fontFamily="'Inter', sans-serif" fontWeight="900" fontSize="15" fill="#1e3a8a">Skyrun Rentals</text>
                     <text x="35" y="34" fontFamily="'Inter', sans-serif" fontWeight="700" fontSize="9" fill="#fe9d3d" letterSpacing="1">HOMES</text>
                   </svg>
                 </div>
@@ -186,7 +186,7 @@ const FeeCalculator: React.FC = () => {
               <h3>How our fees compare</h3>
               <button className="fee-modal-close" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
-            
+
             <p className="fee-modal-description">
               We've estimated how much you receive if a renter pays <strong>{formatPrice(sliderValue)}</strong>. The fees are the owner and renter combined as this impacts the cost of the booking and therefore how much you can earn.
             </p>
@@ -204,7 +204,7 @@ const FeeCalculator: React.FC = () => {
                 <div className="fee-col">
                   <svg viewBox="0 0 160 40" width="140" height="35" className="logo-svg">
                     <path d="M12 25 L20 18 L28 25 M14 24 L14 32 L26 32 L26 24" stroke="#3b82f6" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
-                    <text x="35" y="24" fontFamily="'Inter', sans-serif" fontWeight="900" fontSize="15" fill="#1e3a8a">Holiday Haven</text>
+                    <text x="35" y="24" fontFamily="'Inter', sans-serif" fontWeight="900" fontSize="15" fill="#1e3a8a">Skyrun Rentals</text>
                     <text x="35" y="34" fontFamily="'Inter', sans-serif" fontWeight="700" fontSize="9" fill="#fe9d3d" letterSpacing="1">HOMES</text>
                   </svg>
                 </div>

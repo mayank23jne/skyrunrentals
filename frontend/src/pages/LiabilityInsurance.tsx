@@ -49,7 +49,7 @@ const LiabilityInsurance: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Automatic primary liability coverage for vacation rentals processed online through Holiday Haven Homes.
+              Automatic primary liability coverage for vacation rentals processed online through Skyrunrentals.
             </motion.p>
             {/* <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -99,7 +99,7 @@ const LiabilityInsurance: React.FC = () => {
                 <div className="accent-bar" />
 
                 <p className="unexpected-lead-text">
-                  <strong>$1M Liability Insurance</strong> provides owners and property managers with liability protection for all stays processed online through the <em>HolidayHavenHomes.com</em> checkout, giving you <strong>$1,000,000</strong> in primary liability coverage — at no additional cost to you.
+                  <strong>$1M Liability Insurance</strong> provides owners and property managers with liability protection for all stays processed online through the <em>skyrunrentals.com</em> checkout, giving you <strong>$1,000,000</strong> in primary liability coverage — at no additional cost to you.
                 </p>
 
                 <p className="unexpected-body-text">
@@ -169,7 +169,7 @@ const LiabilityInsurance: React.FC = () => {
                 </div>
                 <h3 className="card-heading">Looking ahead</h3>
                 <p className="card-description">
-                  HolidayHavenHomes will continue to look at options to further protect owners against the unexpected challenges with managing a vacation rental.
+                  Skyrunrentals will continue to look at options to further protect owners against the unexpected challenges with managing a vacation rental.
                   <span className="exclusion-note"><strong>Please note:</strong> $1M Liability Insurance does not cover damage caused by a traveler to your own property.</span>
                 </p>
               </motion.div>
@@ -202,7 +202,7 @@ const LiabilityInsurance: React.FC = () => {
                 </div>
                 <h3 className="works-title">Primary coverage for eligible claims</h3>
                 <p className="works-text">
-                  If you don't have liability insurance for your rental, this program provides that protection. If you do have liability insurance for your rental, this program works with your current provider and gives you $1,000,000 in added protection for all reservations processed online through HolidayHavenHomes checkout. If you haven't already, enable online booking to get Liability Insurance at no extra cost.
+                  If you don't have liability insurance for your rental, this program provides that protection. If you do have liability insurance for your rental, this program works with your current provider and gives you $1,000,000 in added protection for all reservations processed online through Skyrunrentals checkout. If you haven't already, enable online booking to get Liability Insurance at no extra cost.
                 </p>
               </motion.div>
 
@@ -236,7 +236,7 @@ const LiabilityInsurance: React.FC = () => {
                 </div>
                 <h3 className="works-title">Global reach</h3>
                 <p className="works-text">
-                  This program provides protection for every reservation processed through HolidayHavenHomes checkout, no matter where in the world your property is located. Reservations processed through HolidayHavenHomes checkout are automatically protected, there's nothing more you need to do!
+                  This program provides protection for every reservation processed through Skyrunrentals checkout, no matter where in the world your property is located. Reservations processed through Skyrunrentals checkout are automatically protected, there's nothing more you need to do!
                 </p>
               </motion.div>
 

@@ -288,7 +288,7 @@
                                         align-items: center;
                                         gap: 0.5rem;
                                         font-size: 0.8125rem;
-                                        color: #6366f1;
+                                        color: #1c3a63;
                                         background: #eef2ff;
                                         padding: 0.5rem 0.75rem;
                                         border-radius: 0.5rem;
@@ -510,7 +510,7 @@
                 transition: background 0.2s ease;
                 flex-shrink: 0;
             }
-            .stunning-toggle input:checked ~ .toggle-track { background: var(--primary, #4f46e5); }
+            .stunning-toggle input:checked ~ .toggle-track { background: var(--primary, #132742); }
             .toggle-thumb {
                 position: absolute;
                 top: 3px;
@@ -529,7 +529,7 @@
                 font-weight: 500;
             }
             .stunning-toggle input:checked ~ .toggle-label,
-            .stunning-toggle input:checked + .toggle-track + .toggle-label { color: var(--primary, #4f46e5); font-weight: 600; }
+            .stunning-toggle input:checked + .toggle-track + .toggle-label { color: var(--primary, #132742); font-weight: 600; }
         </style>
 
         <script>
@@ -741,7 +741,8 @@
 
                 const deleteBtn = e.target.closest('.btn-delete-state');
                 if (deleteBtn) {
-                    if (confirm('Are you sure you want to delete this state?')) {
+                    const confirmed = await openDeleteModal('Delete State', 'Are you sure you want to delete this state?');
+                    if (confirmed) {
                         const id = deleteBtn.dataset.id;
                         const response = await fetch(`/api/admin/settings/states/${id}/delete`, { method: 'POST' });
                         if (response.ok) {

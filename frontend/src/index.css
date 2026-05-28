@@ -142,3 +142,11 @@ ul {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.field-error-msg {
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 5px;
+  display: block;
+}

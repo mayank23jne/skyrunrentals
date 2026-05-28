@@ -266,7 +266,8 @@
         });
 
         async function deleteEnquiry(id) {
-            if (!confirm('Are you sure you want to delete this enquiry?')) return;
+            const confirmed = await openDeleteModal('Delete Enquiry', 'Are you sure you want to delete this enquiry?');
+            if (!confirmed) return;
             try {
                 const response = await fetch(`/api/admin/enquiries/${id}/delete`, { method: 'POST' });
                 const result = await response.json();
@@ -282,7 +283,7 @@
         }
 
         function viewEnquiry(message) {
-            alert('Message Details:\n\n' + message);
+            openViewModal('Enquiry Message', message);
         }
     </script>
 </body>

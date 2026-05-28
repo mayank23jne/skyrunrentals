@@ -8,7 +8,7 @@ export class ContactService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
-  ) {}
+  ) { }
 
   async findContacts(options: { skip?: number; take?: number; search?: string }) {
     const { skip, take, search } = options;
@@ -92,12 +92,12 @@ export class ContactService {
       if (!dateStr || dateStr === '01 Jan 1970') return '01 Jan 1970';
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return '01 Jan 1970';
-      
+
       const day = date.getDate().toString().padStart(2, '0');
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const month = months[date.getMonth()];
       const year = date.getFullYear();
-      
+
       return `${day} ${month} ${year}`;
     };
 
@@ -119,9 +119,9 @@ export class ContactService {
       message,
     };
 
-    const fromMail = process.env.SMTP_FROM_EMAIL || 'noreply@holidayhavenhomes.com';
+    const fromMail = process.env.SMTP_FROM_EMAIL || 'noreply@skyrunrentals.com';
     const otherMail = process.env.OTHER_MAIL_USER || '';
-    
+
     const adminList = [email, fromMail];
     if (otherMail) adminList.push(otherMail);
 

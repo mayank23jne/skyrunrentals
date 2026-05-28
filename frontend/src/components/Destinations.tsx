@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 const features = [
   {
     title: 'Dream Stay = Vacation Rentals',
-    description: 'If there is a definition of a dream yet budget stay, it is "Vacation Rentals." Be it a day or a month; your vacation stay is incredible when you book at Holiday Haven Homes.',
+    description: 'If there is a definition of a dream yet budget stay, it is "Vacation Rentals." Be it a day or a month; your vacation stay is incredible when you book at SkyRun Rentals.',
     image: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80&w=800'
   },
   {
     title: 'No Extra Charges',
-    description: 'Booking vacation rentals at Holiday Haven Homes means to stay at a nominal price as we charge no extra fee in the fake names of commission such as booking fees, service fees, etc.',
+    description: 'Booking vacation rentals at SkyRun Rentals means to stay at a nominal price as we charge no extra fee in the fake names of commission such as booking fees, service fees, etc.',
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800'
   },
   {

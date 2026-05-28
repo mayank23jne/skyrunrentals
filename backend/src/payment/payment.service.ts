@@ -211,11 +211,11 @@ export class PaymentService {
       });
 
       // 4. Send Emails
-      const countryData = await this.prisma.country.findFirst({ 
-        where: { id: parseInt(country, 10) || undefined, name: country } 
+      const countryData = await this.prisma.country.findFirst({
+        where: { id: parseInt(country, 10) || undefined, name: country }
       });
-      const owner = await this.prisma.user.findUnique({ 
-        where: { id: parseInt(property_owner, 10) } 
+      const owner = await this.prisma.user.findUnique({
+        where: { id: parseInt(property_owner, 10) }
       });
 
       const emailData = {
@@ -237,7 +237,7 @@ export class PaymentService {
 
       const recipients = [Email];
       if (owner?.email) recipients.push(owner.email);
-      recipients.push(process.env.SMTP_USER || 'noreply@holidayhavenhomes.com');
+      recipients.push(process.env.SMTP_USER || 'noreply@skyrunrentals.com');
       if (process.env.OTHER_MAIL_USER) recipients.push(process.env.OTHER_MAIL_USER);
 
       await this.mailService.sendBookingPaymentEmail(recipients, emailData);
@@ -433,7 +433,7 @@ export class PaymentService {
 
       await this.prisma.$transaction(async (tx) => {
         const datesToProcess = [...bookingDatesArr];
-        
+
         if (datesToProcess.length > 1) {
           const finalDate = datesToProcess.pop() as string;
           const finalDateObj = new Date(finalDate);
@@ -495,11 +495,11 @@ export class PaymentService {
         });
       });
 
-      const countryData = await this.prisma.country.findFirst({ 
-        where: { id: parseInt(propertyBooking.country, 10) || undefined, name: propertyBooking.country } 
+      const countryData = await this.prisma.country.findFirst({
+        where: { id: parseInt(propertyBooking.country, 10) || undefined, name: propertyBooking.country }
       });
-      const owner = await this.prisma.user.findUnique({ 
-        where: { id: propertyBooking.propertyOwner || -1 } 
+      const owner = await this.prisma.user.findUnique({
+        where: { id: propertyBooking.propertyOwner || -1 }
       });
 
       const emailData = {
@@ -521,7 +521,7 @@ export class PaymentService {
 
       const recipients = [propertyBooking.email];
       if (owner?.email) recipients.push(owner.email);
-      recipients.push(process.env.SMTP_USER || 'noreply@holidayhavenhomes.com');
+      recipients.push(process.env.SMTP_USER || 'noreply@skyrunrentals.com');
       if (process.env.OTHER_MAIL_USER) recipients.push(process.env.OTHER_MAIL_USER);
 
       await this.mailService.sendBookingPaymentEmail(recipients, emailData);
@@ -534,7 +534,7 @@ export class PaymentService {
 
   async paypalBookingCancel(body: any) {
     const paymentId = parseInt(body.payment_id, 10);
-    
+
     if (isNaN(paymentId)) {
       return { success: false, message: 'Invalid payment ID' };
     }
@@ -621,7 +621,7 @@ export class PaymentService {
           1: 'Gold',
           2: 'Silver',
           3: 'Bronze',
-          4: 'Holiday Rental Special Plan',
+          4: 'Skyrunrental Special Plan',
         };
         const mailPlan = planNames[planType] || ' ';
 
@@ -807,7 +807,7 @@ export class PaymentService {
 
         const recipients = [propertyBooking.email];
         if (owner?.email) recipients.push(owner.email);
-        recipients.push(process.env.SMTP_USER || 'noreply@holidayhavenhomes.com');
+        recipients.push(process.env.SMTP_USER || 'noreply@skyrunrentals.com');
         if (process.env.OTHER_MAIL_USER) recipients.push(process.env.OTHER_MAIL_USER);
 
         await this.mailService.sendBookingPaymentEmail(recipients, emailData);
@@ -824,7 +824,7 @@ export class PaymentService {
       return { status: 'success' };
     } catch (error) {
       console.error('Square payment booking error:', error);
-      
+
       const responseData = typeof error === 'object' ? JSON.stringify(error, (key, value) =>
         typeof value === 'bigint' ? value.toString() : value
       ) : String(error);
@@ -894,7 +894,7 @@ export class PaymentService {
           const paid_amount = payment_intent.amount / 100;
           const payment_status = payment_intent.status;
           const descriptionRaw = payment_intent.description || '';
-          
+
           const str_des = descriptionRaw.split('+');
           const description = str_des[0] || '';
           const plantype = str_des[1] || '';
@@ -943,7 +943,7 @@ export class PaymentService {
 
               const planTypeInt = parseInt(plantype, 10);
               const planNames: Record<number, string> = {
-                1: 'Gold', 2: 'Silver', 3: 'Bronze', 4: 'Holiday Rental Special Plan'
+                1: 'Gold', 2: 'Silver', 3: 'Bronze', 4: 'Skyrunrental Special Plan'
               };
               const mailplan = planNames[planTypeInt] || ' ';
 
@@ -958,7 +958,7 @@ export class PaymentService {
                 transactionBy: 'Stripe',
               };
 
-              const recipients = [user.email, process.env.SMTP_USER || 'noreply@holidayhavenhomes.com'];
+              const recipients = [user.email, process.env.SMTP_USER || 'noreply@skyrunrentals.com'];
               await this.mailService.sendSquarePaymentEmail(recipients, emailData);
             }
           }
@@ -1025,7 +1025,7 @@ export class PaymentService {
           const paid_amount = payment_intent.amount / 100;
           const payment_status = payment_intent.status;
           const descriptionRaw = payment_intent.description || '';
-          
+
           const str_des = descriptionRaw.split('>');
           const first_name = str_des[0] || '';
           const last_name = str_des[1] || '';
@@ -1164,7 +1164,7 @@ export class PaymentService {
 
               const recipients = [email];
               if (owner?.email) recipients.push(owner.email);
-              recipients.push(process.env.SMTP_USER || 'noreply@holidayhavenhomes.com');
+              recipients.push(process.env.SMTP_USER || 'noreply@skyrunrentals.com');
               if (process.env.OTHER_MAIL_USER) recipients.push(process.env.OTHER_MAIL_USER);
 
               await this.mailService.sendBookingPaymentEmail(recipients, emailData);

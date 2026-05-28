@@ -9,6 +9,7 @@ import logo from '../assets/logo.jpg';
 import { useAuthModal } from '../context/AuthModalContext';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { API_BASE_URL } from '../services/api';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -75,10 +76,13 @@ const Navbar: React.FC = () => {
             {isLoggedIn ? (
               /* ── Logged-in state ── */
               <div className="auth-logged-in">
-                <div className="user-greeting">
-                  <User size={14} />
-                  <span className="user-name">{displayName}</span>
-                </div>
+                <a href={`${API_BASE_URL}/api/admin/dashboard`} className="user-greeting" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <User size={18} />
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600 }}>My Account</span>
+                    <span className="user-name" style={{ fontSize: '11px', fontWeight: 400, opacity: 0.8 }}>{displayName}</span>
+                  </div>
+                </a>
               </div>
             ) : (
               /* ── Guest state ── */
@@ -201,9 +205,13 @@ const Navbar: React.FC = () => {
                 >
                   {isLoggedIn ? (
                     <div className="mobile-user-section">
-                      <div className="mobile-greeting">
-                        <User size={18} /> {displayName}
-                      </div>
+                      <a href={`${API_BASE_URL}/api/admin/dashboard`} className="mobile-greeting" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <User size={20} />
+                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
+                          <span style={{ fontSize: '15px', fontWeight: 700 }}>My Account</span>
+                          <span style={{ fontSize: '12px', fontWeight: 500, color: '#64748b' }}>{displayName}</span>
+                        </div>
+                      </a>
                       <button className="mobile-action-btn outline" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}>
                         <LogOut size={18} /> Logout
                       </button>

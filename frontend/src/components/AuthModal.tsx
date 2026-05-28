@@ -19,6 +19,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -32,6 +33,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
   useEffect(() => {
     setError(null);
     setSuccess(null);
+    setFieldErrors({});
     setIsLoading(false);
   }, [activeTab, isOpen]);
 
@@ -65,6 +67,32 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setFieldErrors({});
+
+    const errors: Record<string, string> = {};
+    if (!registerForm.firstName) errors.firstName = 'First name is required';
+    if (!registerForm.lastName) errors.lastName = 'Last name is required';
+    if (!registerForm.email) errors.email = 'Email is required';
+    if (!registerForm.phone) errors.phone = 'Phone is required';
+    if (!registerForm.password) errors.password = 'Password is required';
+    if (!registerForm.confirmPassword) errors.confirmPassword = 'Confirm password is required';
+    if (!registerForm.country) errors.country = 'Country is required';
+    if (!registerForm.state) errors.state = 'State is required';
+    if (!registerForm.city) errors.city = 'City is required';
+    if (!registerForm.address) errors.address = 'Address is required';
+    if (!registerForm.zipCode) errors.zipCode = 'Zip code is required';
+    
+    if (!registerForm.acceptTerms) {
+      errors.acceptTerms = 'You must accept the terms';
+    } else if (!registerForm.verifyCode) {
+      errors.verifyCode = 'Verification code is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
     if (registerForm.password !== registerForm.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -107,6 +135,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setFieldErrors({});
+
+    const errors: Record<string, string> = {};
+    if (!signInEmail) errors.signInEmail = 'Email is required';
+    if (!signInPassword) errors.signInPassword = 'Password is required';
+    
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
 
     loginMutation.mutate({ username: signInEmail, password: signInPassword });
   };
@@ -162,11 +200,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                 <input
                   type="email"
                   value={signInEmail}
-                  onChange={(e) => setSignInEmail(e.target.value)}
+                  onChange={(e) => { setSignInEmail(e.target.value); setFieldErrors(prev => ({ ...prev, signInEmail: '' })); }}
                   placeholder="you@example.com"
-                  className="am-input"
-                  required
+                  className={`am-input ${fieldErrors.signInEmail ? 'am-input-error' : ''}`}
                 />
+                {fieldErrors.signInEmail && <span className="am-field-error">{fieldErrors.signInEmail}</span>}
               </div>
 
               <div className="am-field">
@@ -175,15 +213,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={signInPassword}
-                    onChange={(e) => setSignInPassword(e.target.value)}
+                    onChange={(e) => { setSignInPassword(e.target.value); setFieldErrors(prev => ({ ...prev, signInPassword: '' })); }}
                     placeholder="••••••••••"
-                    className="am-input"
-                    required
+                    className={`am-input ${fieldErrors.signInPassword ? 'am-input-error' : ''}`}
                   />
                   <button type="button" className="am-eye" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                 </div>
+                {fieldErrors.signInPassword && <span className="am-field-error">{fieldErrors.signInPassword}</span>}
               </div>
 
               <div className="am-row-between">
@@ -230,26 +268,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                 <div className="am-field">
                   <label className="am-label">First Name</label>
                   <input type="text" value={registerForm.firstName}
-                    onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
-                    placeholder="First name" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, firstName: e.target.value }); setFieldErrors(prev => ({ ...prev, firstName: '' })); }}
+                    placeholder="First name" className={`am-input ${fieldErrors.firstName ? 'am-input-error' : ''}`} />
+                  {fieldErrors.firstName && <span className="am-field-error">{fieldErrors.firstName}</span>}
                 </div>
                 <div className="am-field">
                   <label className="am-label">Last Name</label>
                   <input type="text" value={registerForm.lastName}
-                    onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
-                    placeholder="Last name" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, lastName: e.target.value }); setFieldErrors(prev => ({ ...prev, lastName: '' })); }}
+                    placeholder="Last name" className={`am-input ${fieldErrors.lastName ? 'am-input-error' : ''}`} />
+                  {fieldErrors.lastName && <span className="am-field-error">{fieldErrors.lastName}</span>}
                 </div>
                 <div className="am-field">
                   <label className="am-label">Email</label>
                   <input type="email" value={registerForm.email}
-                    onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
-                    placeholder="you@example.com" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, email: e.target.value }); setFieldErrors(prev => ({ ...prev, email: '' })); }}
+                    placeholder="you@example.com" className={`am-input ${fieldErrors.email ? 'am-input-error' : ''}`} />
+                  {fieldErrors.email && <span className="am-field-error">{fieldErrors.email}</span>}
                 </div>
                 <div className="am-field">
                   <label className="am-label">Phone</label>
                   <input type="tel" value={registerForm.phone}
-                    onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
-                    placeholder="+1 555 000 0000" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, phone: e.target.value }); setFieldErrors(prev => ({ ...prev, phone: '' })); }}
+                    placeholder="+1 555 000 0000" className={`am-input ${fieldErrors.phone ? 'am-input-error' : ''}`} />
+                  {fieldErrors.phone && <span className="am-field-error">{fieldErrors.phone}</span>}
                 </div>
               </div>
 
@@ -260,23 +302,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                   <label className="am-label">Password</label>
                   <div className="am-pwd-wrap">
                     <input type={showPassword ? 'text' : 'password'} value={registerForm.password}
-                      onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-                      placeholder="Create password" className="am-input" required />
+                      onChange={(e) => { setRegisterForm({ ...registerForm, password: e.target.value }); setFieldErrors(prev => ({ ...prev, password: '' })); }}
+                      placeholder="Create password" className={`am-input ${fieldErrors.password ? 'am-input-error' : ''}`} />
                     <button type="button" className="am-eye" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                   </div>
+                  {fieldErrors.password && <span className="am-field-error">{fieldErrors.password}</span>}
                 </div>
                 <div className="am-field">
                   <label className="am-label">Confirm Password</label>
                   <div className="am-pwd-wrap">
                     <input type={showConfirmPassword ? 'text' : 'password'} value={registerForm.confirmPassword}
-                      onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
-                      placeholder="Confirm password" className="am-input" required />
+                      onChange={(e) => { setRegisterForm({ ...registerForm, confirmPassword: e.target.value }); setFieldErrors(prev => ({ ...prev, confirmPassword: '' })); }}
+                      placeholder="Confirm password" className={`am-input ${fieldErrors.confirmPassword ? 'am-input-error' : ''}`} />
                     <button type="button" className="am-eye" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                       {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                   </div>
+                  {fieldErrors.confirmPassword && <span className="am-field-error">{fieldErrors.confirmPassword}</span>}
                 </div>
               </div>
 
@@ -286,32 +330,37 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                 <div className="am-field">
                   <label className="am-label">Country</label>
                   <input type="text" value={registerForm.country}
-                    onChange={(e) => setRegisterForm({ ...registerForm, country: e.target.value })}
-                    placeholder="Country" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, country: e.target.value }); setFieldErrors(prev => ({ ...prev, country: '' })); }}
+                    placeholder="Country" className={`am-input ${fieldErrors.country ? 'am-input-error' : ''}`} />
+                  {fieldErrors.country && <span className="am-field-error">{fieldErrors.country}</span>}
                 </div>
                 <div className="am-field">
                   <label className="am-label">State</label>
                   <input type="text" value={registerForm.state}
-                    onChange={(e) => setRegisterForm({ ...registerForm, state: e.target.value })}
-                    placeholder="State" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, state: e.target.value }); setFieldErrors(prev => ({ ...prev, state: '' })); }}
+                    placeholder="State" className={`am-input ${fieldErrors.state ? 'am-input-error' : ''}`} />
+                  {fieldErrors.state && <span className="am-field-error">{fieldErrors.state}</span>}
                 </div>
                 <div className="am-field">
                   <label className="am-label">City</label>
                   <input type="text" value={registerForm.city}
-                    onChange={(e) => setRegisterForm({ ...registerForm, city: e.target.value })}
-                    placeholder="City" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, city: e.target.value }); setFieldErrors(prev => ({ ...prev, city: '' })); }}
+                    placeholder="City" className={`am-input ${fieldErrors.city ? 'am-input-error' : ''}`} />
+                  {fieldErrors.city && <span className="am-field-error">{fieldErrors.city}</span>}
                 </div>
                 <div className="am-field am-col-2">
                   <label className="am-label">Address</label>
                   <input type="text" value={registerForm.address}
-                    onChange={(e) => setRegisterForm({ ...registerForm, address: e.target.value })}
-                    placeholder="Street address" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, address: e.target.value }); setFieldErrors(prev => ({ ...prev, address: '' })); }}
+                    placeholder="Street address" className={`am-input ${fieldErrors.address ? 'am-input-error' : ''}`} />
+                  {fieldErrors.address && <span className="am-field-error">{fieldErrors.address}</span>}
                 </div>
                 <div className="am-field">
                   <label className="am-label">Zip Code</label>
                   <input type="text" value={registerForm.zipCode}
-                    onChange={(e) => setRegisterForm({ ...registerForm, zipCode: e.target.value })}
-                    placeholder="Zip code" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, zipCode: e.target.value }); setFieldErrors(prev => ({ ...prev, zipCode: '' })); }}
+                    placeholder="Zip code" className={`am-input ${fieldErrors.zipCode ? 'am-input-error' : ''}`} />
+                  {fieldErrors.zipCode && <span className="am-field-error">{fieldErrors.zipCode}</span>}
                 </div>
               </div>
 
@@ -320,22 +369,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                 <div className="am-field">
                   <label className="am-label">Verification Code</label>
                   <input type="text" value={registerForm.verifyCode}
-                    onChange={(e) => setRegisterForm({ ...registerForm, verifyCode: e.target.value })}
-                    placeholder="e.g. SS358" className="am-input" required />
+                    onChange={(e) => { setRegisterForm({ ...registerForm, verifyCode: e.target.value }); setFieldErrors(prev => ({ ...prev, verifyCode: '' })); }}
+                    placeholder="e.g. SS358" className={`am-input ${fieldErrors.verifyCode ? 'am-input-error' : ''}`} />
+                  {fieldErrors.verifyCode && <span className="am-field-error">{fieldErrors.verifyCode}</span>}
                 </div>
               )}
 
               <div className="am-footer-row">
-                <label className="am-terms">
-                  <input
-                    type="checkbox"
-                    checked={registerForm.acceptTerms}
-                    onChange={(e) => setRegisterForm({ ...registerForm, acceptTerms: e.target.checked })}
-                    className="am-check"
-                    required
-                  />
-                  <span>I accept the <a href="#terms" className="am-link">Terms &amp; Conditions</a></span>
-                </label>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label className="am-terms">
+                    <input
+                      type="checkbox"
+                      checked={registerForm.acceptTerms}
+                      onChange={(e) => { setRegisterForm({ ...registerForm, acceptTerms: e.target.checked }); setFieldErrors(prev => ({ ...prev, acceptTerms: '' })); }}
+                      className="am-check"
+                    />
+                    <span>I accept the <a href="#terms" className="am-link">Terms &amp; Conditions</a></span>
+                  </label>
+                  {fieldErrors.acceptTerms && <span className="am-field-error" style={{ marginTop: '4px' }}>{fieldErrors.acceptTerms}</span>}
+                </div>
 
                 <button type="submit" className="am-submit" disabled={registerMutation.isPending}>
                   {registerMutation.isPending
@@ -433,14 +485,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
 
         /* ─── Body (no scroll) ─── */
         .am-body {
-          padding: 18px 24px 20px;
+          padding: 14px 24px 16px;
         }
 
         /* ─── Form ─── */
         .am-form {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 6px;
         }
 
         .am-title-row {
@@ -487,7 +539,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
         .am-field {
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 1px;
         }
 
         .am-label {
@@ -500,11 +552,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
 
         .am-input {
           width: 100%;
-          padding: 7px 12px;
+          padding: 5px 10px;
           background: #f5f8ff;
           border: 1.5px solid #dde8fa;
-          border-radius: 7px;
-          font-size: 0.84rem;
+          border-radius: 6px;
+          font-size: 0.82rem;
           color: #1e293b;
           font-family: inherit;
           transition: all 0.2s ease;
@@ -521,6 +573,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
           background: #fff;
           border-color: var(--secondary, #2e80ec);
           box-shadow: 0 0 0 3px rgba(46, 128, 236, 0.12);
+        }
+
+        .am-input-error {
+          border-color: #dc2626 !important;
+        }
+
+        .am-field-error {
+          color: #dc2626;
+          font-size: 0.7rem;
+          font-weight: 600;
+          margin-top: 2px;
         }
 
         /* ─── Password wrapper ─── */
@@ -553,13 +616,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
         .am-grid-2 {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 8px;
+          gap: 6px;
         }
 
         .am-grid-3 {
           display: grid;
           grid-template-columns: 1fr 1fr 1fr;
-          gap: 8px;
+          gap: 6px;
         }
 
         .am-col-2 { grid-column: span 2; }

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 const services = [
   {
     icon: <Gem size={26} />,
-    title: 'Holiday Homes'
+    title: 'SkyRun Rentals'
   },
   {
     icon: <Award size={26} />,
@@ -83,7 +83,7 @@ const AboutSection: React.FC = () => {
               <div className="section-header" style={{ textAlign: 'left', alignItems: 'flex-start', marginBottom: '25px' }}>
                 <span className="cursive-subtitle">Are you ready to travel?</span>
                 <h2 className="section-title" style={{ margin: '10px 0 0 0', fontSize: '36px', lineHeight: '1.25' }}>
-                  Holiday Haven Homes is a <br />
+                  SkyRun Rentals is a <br />
                   World Leading Online <br />
                   Booking Platform
                 </h2>

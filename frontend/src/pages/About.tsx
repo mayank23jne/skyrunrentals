@@ -20,7 +20,7 @@ const About: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            Get to know Holidayhavenhomes
+            Get to know Skyrunrentals
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -64,7 +64,7 @@ const About: React.FC = () => {
               <h2>We have a place for everyone</h2>
             </div>
             <div className="belief-text">
-              <p>We started pairing homeowners with families looking for places to stay in 2007, and Holiday Haven Homes was born. Since then, we've grown into a trusted global vacation brand with a unique selection of 2+ million whole homes all over the world. In other words, there's room for everyone. Holidayhavenhomes takes diversity and inclusion seriously, because we believe that family is everything. No matter how it takes shape.</p>
+              <p>We started pairing homeowners with families looking for places to stay in 2007, and Skyrunrentals was born. Since then, we've grown into a trusted global vacation brand with a unique selection of 2+ million whole homes all over the world. In other words, there's room for everyone. Skyrunrentals takes diversity and inclusion seriously, because we believe that family is everything. No matter how it takes shape.</p>
             </div>
           </div>
 

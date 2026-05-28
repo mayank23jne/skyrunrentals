@@ -13,7 +13,7 @@ const PrivacyPolicy: React.FC = () => {
       title: "COLLECTION OF INFORMATION AND IT'S PROTECTION",
       paragraphs: [
         "We collect information like email addresses or other personal information required for authentication of property owners. This information is either collected through email communication or a direct phone call. This information is strictly used for owner identification and future correspondences only. We do not get involved in any information selling processes. Privacy of the information is our first priority.",
-        "Entire property details, photos and other information is provided by the property owners. holidayhavenhomes.com is not responsible for any data duplicacy or authenticity as it is owners copyright and their responsibilty."
+        "Entire property details, photos and other information is provided by the property owners. skyrunrentals.com is not responsible for any data duplicacy or authenticity as it is owners copyright and their responsibilty."
       ]
     },
     {
@@ -90,8 +90,8 @@ const PrivacyPolicy: React.FC = () => {
       return (
         <>
           {parts[0]}
-          <a href="mailto:info@holidayhavenhomes.com" className="support-link">
-            SUPPORT (info@holidayhavenhomes.com)
+          <a href="mailto:info@skyrunrentals.com" className="support-link">
+            SUPPORT (info@skyrunrentals.com)
           </a>
           {parts[1]}
         </>
@@ -105,7 +105,7 @@ const PrivacyPolicy: React.FC = () => {
       <Navbar />
 
       <main className="policy-main">
-        
+
         {/* Sleek Minimal Header */}
         <section className="policy-hero">
           <div className="hero-mesh-overlay">
@@ -119,7 +119,7 @@ const PrivacyPolicy: React.FC = () => {
             </div>
             <h1 className="policy-title">Privacy & Policy</h1>
             <p className="policy-subtitle">
-              Please read our core privacy guidelines to understand how Holiday Haven Homes collects, utilizes, and secures your platform information.
+              Please read our core privacy guidelines to understand how Skyrunrentals collects, utilizes, and secures your platform information.
             </p>
             <div className="policy-meta">
               <span>Effective Date: March 16, 2015</span>
@@ -132,7 +132,7 @@ const PrivacyPolicy: React.FC = () => {
         {/* Content Section */}
         <section className="policy-content-section">
           <div className="container policy-container-centered">
-            
+
             {/* Direct Stack of Cards */}
             <div className="policy-clauses-wrapper">
               {points.map((point, index) => (

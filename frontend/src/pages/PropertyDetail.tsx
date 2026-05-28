@@ -56,7 +56,12 @@ const PropertyDetail: React.FC = () => {
   const [enquiryAdults, setEnquiryAdults] = useState<number>(1);
   const [enquiryChildren, setEnquiryChildren] = useState<number>(0);
   const [enquiryMessage, setEnquiryMessage] = useState<string>('');
+  const [enquiryCountry, setEnquiryCountry] = useState<string>('United States');
   const [enquirySent, setEnquirySent] = useState<boolean>(false);
+  const [enquiryLoading, setEnquiryLoading] = useState<boolean>(false);
+
+  const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
+  const [enquiryErrors, setEnquiryErrors] = useState<Record<string, string>>({});
 
   // Calendar navigation state
   const [calendarBaseYear, setCalendarBaseYear] = useState<number>(new Date().getFullYear());
@@ -200,7 +205,8 @@ const PropertyDetail: React.FC = () => {
     property_extras: extras = {},
     nearby_places: nearby = {},
     bedding_info: bedding = [],
-    user_detail: host = {},
+    user_detail: assignedUser = {},
+    creator_detail: host = {},
     country,
     state,
     city
@@ -316,7 +322,17 @@ const PropertyDetail: React.FC = () => {
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!checkIn || !checkOut) return;
+    const newErrors: Record<string, string> = {};
+    if (!checkIn) newErrors.checkIn = 'Check In date is required';
+    if (!checkOut) newErrors.checkOut = 'Check Out date is required';
+    if (!guestsCount) newErrors.guestsCount = 'Number of adults is required';
+
+    if (Object.keys(newErrors).length > 0) {
+      setBookingErrors(newErrors);
+      return;
+    }
+
+    setBookingErrors({});
     setBookingLoading(true);
     setTimeout(() => {
       setBookingLoading(false);
@@ -324,19 +340,55 @@ const PropertyDetail: React.FC = () => {
     }, 1500);
   };
 
-  const handleEnquirySubmit = (e: React.FormEvent) => {
+  const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!enquiryFirstName || !enquiryLastName || !enquiryEmail || !enquiryMessage) return;
-    setEnquirySent(true);
-    setTimeout(() => {
-      setEnquiryFirstName('');
-      setEnquiryLastName('');
-      setEnquiryEmail('');
-      setEnquiryPhone('');
-      setEnquiryArrival('');
-      setEnquiryDeparture('');
-      setEnquiryMessage('');
-    }, 2000);
+    const newErrors: Record<string, string> = {};
+    if (!enquiryFirstName.trim()) newErrors.firstName = 'First name is required';
+    if (!enquiryLastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!enquiryEmail.trim()) newErrors.email = 'Email is required';
+    if (!enquiryMessage.trim()) newErrors.message = 'Message is required';
+
+    if (Object.keys(newErrors).length > 0) {
+      setEnquiryErrors(newErrors);
+      return;
+    }
+
+    setEnquiryErrors({});
+    setEnquiryLoading(true);
+
+    try {
+      await api.post(`/admin/properties/${id}/enquire`, {
+        firstName: enquiryFirstName,
+        lastName: enquiryLastName,
+        email: enquiryEmail,
+        phone: enquiryPhone,
+        country: enquiryCountry,
+        arrival: enquiryArrival,
+        departure: enquiryDeparture,
+        adults: enquiryAdults,
+        children: enquiryChildren,
+        message: enquiryMessage
+      });
+
+      setEnquirySent(true);
+      setTimeout(() => {
+        setEnquiryFirstName('');
+        setEnquiryLastName('');
+        setEnquiryEmail('');
+        setEnquiryPhone('');
+        setEnquiryArrival('');
+        setEnquiryDeparture('');
+        setEnquiryAdults(1);
+        setEnquiryChildren(0);
+        setEnquiryMessage('');
+        setEnquirySent(false);
+      }, 3000);
+    } catch (err: any) {
+      console.error('Failed to send enquiry:', err);
+      setEnquiryErrors({ submit: err.response?.data?.message || 'Failed to send enquiry. Please try again.' });
+    } finally {
+      setEnquiryLoading(false);
+    }
   };
 
   // Admin-matching calendar: Monday-based week, ghost days, navigable
@@ -773,9 +825,9 @@ const PropertyDetail: React.FC = () => {
                             let numColor = '#1e293b';
                             let gradientBg: string | undefined;
 
-                            if (isBooked) { bgColor = '#1e293b'; numColor = '#fff'; }
-                            else if (isAM) { gradientBg = 'linear-gradient(to bottom right, #1e293b 50%, #fff 50%)'; }
-                            else if (isPM) { gradientBg = 'linear-gradient(to bottom right, #fff 50%, #1e293b 50%)'; }
+                            if (isBooked) { bgColor = '#132742'; numColor = '#fff'; }
+                            else if (isAM) { gradientBg = 'linear-gradient(to bottom right, #132742 50%, #ffffff 50%)'; numColor = '#fff'; }
+                            else if (isPM) { gradientBg = 'linear-gradient(to bottom right, #ffffff 50%, #132742 50%)'; numColor = '#132742'; }
 
                             return (
                               <div
@@ -812,24 +864,24 @@ const PropertyDetail: React.FC = () => {
 
                 {/* Legend (Key) */}
                 <div style={{ marginTop: '2rem', width: '100%' }}>
-                  <div style={{ background: '#1e293b', padding: '0.75rem', textAlign: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
+                  <div style={{ background: '#132742', padding: '0.75rem', textAlign: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
                     Key
                   </div>
-                  <div style={{ background: '#f3f4f6', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', fontSize: '0.875rem', color: '#1e293b' }}>
+                  <div style={{ background: '#f3f4f6', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', fontSize: '0.875rem', color: '#132742' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ width: '36px', height: '36px', background: '#fff', display: 'inline-block' }}></span>
                       <span>Available</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '36px', height: '36px', background: '#1e293b', display: 'inline-block' }}></span>
+                      <span style={{ width: '36px', height: '36px', background: '#132742', display: 'inline-block' }}></span>
                       <span>Booked</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, #1e293b 50%, white 50%)' }}></span>
+                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, #132742 50%, #ffffff 50%)' }}></span>
                       <span>Booked am</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, white 50%, #1e293b 50%)' }}></span>
+                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, #ffffff 50%, #132742 50%)' }}></span>
                       <span>Booked pm</span>
                     </div>
                   </div>
@@ -1179,43 +1231,43 @@ const PropertyDetail: React.FC = () => {
               <div style={{ height: '1px', background: '#e2e8f0' }} />
             </div>
 
-            
-              {/* Dynamic Amenities */}
-              {property.propertyAmenities && property.propertyAmenities.length > 0 && (
-                <div style={{ width: '100%' }}>
-                  {Object.entries(
-                    property.propertyAmenities.reduce((acc: any, pa: any) => {
-                      if (pa.amenityItem && pa.amenityItem.category) {
-                        const catName = pa.amenityItem.category.name;
-                        if (!acc[catName]) acc[catName] = [];
-                        acc[catName].push({ name: pa.amenityItem.name, icon: pa.amenityItem.icon });
-                      }
-                      return acc;
-                    }, {})
-                  ).map(([catName, items]: any, idx) => (
-                    <div key={idx}>
-                      <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>{catName}</div>
-                      <div style={{ height: '1px', background: '#e2e8f0' }} />
-                      <div style={{ padding: '0.75rem 0' }}>
-                        <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                          {items.map((item: any, i: number) => (
-                            <div key={i} style={{ color: '#64748b', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {item.icon && (() => {
-                                const IconName = item.icon.split('-').map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
-                                const IconComp = (LucideIcons as any)[IconName];
-                                return IconComp ? <IconComp size={14} /> : <Check size={14} />;
-                              })()}
-                              <span>{item.name}</span>
-                            </div>
-                          ))}
-                        </div>
+
+            {/* Dynamic Amenities */}
+            {property.propertyAmenities && property.propertyAmenities.length > 0 && (
+              <div style={{ width: '100%' }}>
+                {Object.entries(
+                  property.propertyAmenities.reduce((acc: any, pa: any) => {
+                    if (pa.amenityItem && pa.amenityItem.category) {
+                      const catName = pa.amenityItem.category.name;
+                      if (!acc[catName]) acc[catName] = [];
+                      acc[catName].push({ name: pa.amenityItem.name, icon: pa.amenityItem.icon });
+                    }
+                    return acc;
+                  }, {})
+                ).map(([catName, items]: any, idx) => (
+                  <div key={idx}>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>{catName}</div>
+                    <div style={{ height: '1px', background: '#e2e8f0' }} />
+                    <div style={{ padding: '0.75rem 0' }}>
+                      <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                        {items.map((item: any, i: number) => (
+                          <div key={i} style={{ color: '#64748b', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {item.icon && (() => {
+                              const IconName = item.icon.split('-').map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+                              const IconComp = (LucideIcons as any)[IconName];
+                              return IconComp ? <IconComp size={14} /> : <Check size={14} />;
+                            })()}
+                            <span>{item.name}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
+            )}
 
-              {/* Additional Info Section (Attractions, Leisure, Sports, Local Services) */}
+            {/* Additional Info Section (Attractions, Leisure, Sports, Local Services) */}
             <div style={{ width: '100%' }}>
               <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Additional Info</div>
               <div style={{ height: '1px', background: '#e2e8f0' }} />
@@ -1344,18 +1396,21 @@ const PropertyDetail: React.FC = () => {
               <div style={{ marginBottom: '2.5rem' }}>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Check In" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    <input type="text" placeholder="Check In" value={checkIn} onChange={(e) => { setCheckIn(e.target.value); setBookingErrors(prev => ({ ...prev, checkIn: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkIn ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    {bookingErrors.checkIn && <span className="field-error-msg">{bookingErrors.checkIn}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Check Out" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    <input type="text" placeholder="Check Out" value={checkOut} onChange={(e) => { setCheckOut(e.target.value); setBookingErrors(prev => ({ ...prev, checkOut: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkOut ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    {bookingErrors.checkOut && <span className="field-error-msg">{bookingErrors.checkOut}</span>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
                   <div style={{ flex: 1 }}>
-                    <select value={guestsCount} onChange={(e) => setGuestsCount(parseInt(e.target.value))} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
+                    <select value={guestsCount} onChange={(e) => { setGuestsCount(parseInt(e.target.value)); setBookingErrors(prev => ({ ...prev, guestsCount: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.guestsCount ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
                       <option value="">Select Adults</option>
                       {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
+                    {bookingErrors.guestsCount && <span className="field-error-msg">{bookingErrors.guestsCount}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
                     <select style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
@@ -1377,13 +1432,22 @@ const PropertyDetail: React.FC = () => {
 
               {/* Contact the Owner Section */}
               <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem' }}>Contact the owner</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1.5rem' }}>Name : {host?.firstName} {host?.lastName || 'Greg Gilliom'}</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1.5rem' }}>Name : {host?.firstname} {host?.lastname || 'Richard'}</div>
 
               <form onSubmit={handleEnquirySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <input type="text" placeholder="First Name" value={enquiryFirstName} onChange={(e) => setEnquiryFirstName(e.target.value)} required style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
-                <input type="text" placeholder="Last Name" value={enquiryLastName} onChange={(e) => setEnquiryLastName(e.target.value)} required style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
-                <input type="email" placeholder="Email" value={enquiryEmail} onChange={(e) => setEnquiryEmail(e.target.value)} required style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
-                <select style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
+                <div>
+                  <input type="text" placeholder="First Name" value={enquiryFirstName} onChange={(e) => { setEnquiryFirstName(e.target.value); setEnquiryErrors(prev => ({ ...prev, firstName: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.firstName ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                  {enquiryErrors.firstName && <span className="field-error-msg">{enquiryErrors.firstName}</span>}
+                </div>
+                <div>
+                  <input type="text" placeholder="Last Name" value={enquiryLastName} onChange={(e) => { setEnquiryLastName(e.target.value); setEnquiryErrors(prev => ({ ...prev, lastName: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.lastName ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                  {enquiryErrors.lastName && <span className="field-error-msg">{enquiryErrors.lastName}</span>}
+                </div>
+                <div>
+                  <input type="email" placeholder="Email" value={enquiryEmail} onChange={(e) => { setEnquiryEmail(e.target.value); setEnquiryErrors(prev => ({ ...prev, email: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.email ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                  {enquiryErrors.email && <span className="field-error-msg">{enquiryErrors.email}</span>}
+                </div>
+                <select value={enquiryCountry} onChange={(e) => setEnquiryCountry(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
                   <option value="United States">United States</option>
                   <option value="Canada">Canada</option>
                   <option value="United Kingdom">United Kingdom</option>
@@ -1420,19 +1484,24 @@ const PropertyDetail: React.FC = () => {
                   </div>
                 </div>
 
-                <textarea rows={4} value={enquiryMessage} onChange={(e) => setEnquiryMessage(e.target.value)} required placeholder="Message to owner/manager" style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', resize: 'vertical', color: '#334155', marginTop: '4px' }} />
+                <div>
+                  <textarea rows={4} value={enquiryMessage} onChange={(e) => { setEnquiryMessage(e.target.value); setEnquiryErrors(prev => ({ ...prev, message: '' })); }} placeholder="Message to owner/manager" style={{ width: '100%', border: enquiryErrors.message ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', resize: 'vertical', color: '#334155', marginTop: '4px' }} />
+                  {enquiryErrors.message && <span className="field-error-msg">{enquiryErrors.message}</span>}
+                </div>
 
                 <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', lineHeight: 1.5, marginTop: '4px' }}>
                   BY CLICKING 'SEND EMAIL' YOU ARE<br />AGREEING TO OUR <a href="#" style={{ color: '#557f9f', textDecoration: 'none' }}>TERMS AND<br />CONDITIONS</a>
                 </div>
+
+                {enquiryErrors.submit && <div style={{ color: '#dc2626', fontSize: '0.875rem', marginBottom: '8px', textAlign: 'center' }}>{enquiryErrors.submit}</div>}
 
                 {enquirySent ? (
                   <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '4px', textAlign: 'center', fontWeight: 600, marginTop: '4px' }}>
                     Message sent successfully!
                   </div>
                 ) : (
-                  <button type="submit" style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '10px', borderRadius: '24px', fontSize: '0.95rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s', marginTop: '4px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#436b8a'} onMouseLeave={(e) => e.currentTarget.style.background = '#557f9f'}>
-                    Send message
+                  <button type="submit" disabled={enquiryLoading} style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '10px', borderRadius: '24px', fontSize: '0.95rem', border: 'none', cursor: enquiryLoading ? 'not-allowed' : 'pointer', transition: 'background 0.2s', marginTop: '4px', opacity: enquiryLoading ? 0.7 : 1 }} onMouseEnter={(e) => !enquiryLoading && (e.currentTarget.style.background = '#436b8a')} onMouseLeave={(e) => !enquiryLoading && (e.currentTarget.style.background = '#557f9f')}>
+                    {enquiryLoading ? 'Sending...' : 'Send message'}
                   </button>
                 )}
               </form>

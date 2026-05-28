@@ -11,7 +11,7 @@ import { MailModule } from '../mail/mail.module';
     PassportModule,
     JwtModule.register({
       secret: 'SECRET_KEY',
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '2h' },
     }),
     MailModule,
   ],

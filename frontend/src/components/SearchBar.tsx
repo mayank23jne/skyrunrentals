@@ -30,6 +30,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
 
   const [showGuestDropdown, setShowGuestDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
+  const [destError, setDestError] = useState('');
   const guestsOptions = Array.from({ length: 12 }, (_, i) => `${i + 1} Guest${i === 0 ? '' : 's'}`);
 
   const destRef = useRef<HTMLDivElement>(null);
@@ -75,9 +76,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
 
   const handleSearch = () => {
     if (!searchData.destination.trim()) {
-      alert("Please enter a destination or property ID.");
+      setDestError("Destination or Property ID is required.");
       return;
     }
+    setDestError('');
 
     const params = new URLSearchParams();
     if (searchData.destination) params.set('venue', searchData.destination);
@@ -104,8 +106,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
               onChange={(e) => {
                 setSearchData({ ...searchData, destination: e.target.value });
                 setShowDestDropdown(e.target.value.trim().length > 0);
+                if (e.target.value.trim()) setDestError('');
               }}
             />
+            {destError && (
+              <div className="error-tooltip">
+                {destError}
+              </div>
+            )}
             {showDestDropdown && (
               <div className="dropdown-menu dest-dropdown">
                 {filteredCountries.length > 0 ? (
@@ -258,6 +266,38 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
           .separator-line { display: none; }
           .search-btn-full { width: 100%; height: 70px; border-radius: 0 0 12px 12px; }
           .dropdown-menu { position: static; box-shadow: none; border: 1px solid #eee; margin-top: 10px; border-radius: 8px; }
+        }
+
+        .error-tooltip {
+          position: absolute;
+          bottom: -25px;
+          left: 35px;
+          color: white;
+          background: #ef4444;
+          padding: 2px 10px;
+          border-radius: 12px;
+          font-size: 13px;
+          font-weight: 500;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          z-index: 1000;
+          animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          pointer-events: none;
+          white-space: nowrap;
+        }
+        
+        .error-tooltip::after {
+          content: "";
+          position: absolute;
+          bottom: 100%;
+          left: 15px;
+          border-width: 6px;
+          border-style: solid;
+          border-color: transparent transparent #ef4444 transparent;
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-5px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

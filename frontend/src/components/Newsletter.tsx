@@ -1,9 +1,18 @@
 import React from 'react';
 import { Send } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import newsImg from "../assets/newsletter1.jpg";
+import airplaneImg from "../assets/airplane.png";
+import travelersImg from "../assets/nesletter.png";
 
 const Newsletter: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate('/list-property');
+  };
   return (
     <section className="newsletter-section" style={{ marginTop: '220px' }}>
       <div className="container">
@@ -14,18 +23,18 @@ const Newsletter: React.FC = () => {
         >
           {/* Decorative Elements */}
           <div className="decor-airplane">
-            <img src="/src/assets/airplane.png" alt="Airplane" className="arch-plan-img" />
+            <img src={airplaneImg} alt="Airplane" className="arch-plan-img" />
           </div>
 
           <div className="decor-image-arch">
-            <img src="/src/assets/nesletter.png" alt="Travelers" className="arch-img" />
+            <img src={travelersImg} alt="Travelers" className="arch-img" />
           </div>
 
           <div className="newsletter-content">
             <h2 className="newsletter-title">Sign Up Your Newsletter</h2>
 
             <div className="newsletter-form-container">
-              <form className="newsletter-form">
+              <form className="newsletter-form" onSubmit={handleSubscribe}>
                 <input
                   type="email"
                   placeholder="Enter Email Address"

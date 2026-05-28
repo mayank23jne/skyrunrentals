@@ -74,7 +74,7 @@ const RegisterCTA: React.FC = () => {
             {/* MIDDLE: Text Copy Area */}
             <div className="cta-text-column">
               <span className="cta-handwritten">Start hosting today</span>
-              <h2 className="cta-title">Register To Holiday Haven</h2>
+              <h2 className="cta-title">Register To SkyRun Rentals</h2>
               <p className="cta-description">
                 At home, at a small business, or a large property—your hosting business runs better
                 when we automatically distribute, manage, and optimize your listings across all channels.

@@ -77,8 +77,8 @@ const RefundPolicy: React.FC = () => {
       return (
         <>
           {parts[0]}
-          <a href="mailto:info@holidayhavenhomes.com" className="support-link">
-            Customer Support team (info@holidayhavenhomes.com)
+          <a href="mailto:info@skyrunrentals.com" className="support-link">
+            Customer Support team (info@skyrunrentals.com)
           </a>
           {parts[1]}
         </>
@@ -92,7 +92,7 @@ const RefundPolicy: React.FC = () => {
       <Navbar />
 
       <main className="refund-main">
-        
+
         {/* Sleek Minimal Header */}
         <section className="refund-hero">
           <div className="hero-mesh-overlay">
@@ -119,7 +119,7 @@ const RefundPolicy: React.FC = () => {
         {/* Content Section */}
         <section className="refund-content-section">
           <div className="container refund-container-centered">
-            
+
             {/* Direct Stack of Cards */}
             <div className="refund-clauses-wrapper">
               {points.map((point, index) => (

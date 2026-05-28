@@ -6,7 +6,7 @@
         <div class="layout">
             <%- include('../../partials/sidebar', { activePage: 'settings-amenities' }) %>
                 <main>
-                    <%- include('../../partials/header', { pageTitle: 'Amenities Master' }) %>
+                    <%- include('../../partials/header', { pageTitle: 'Amenities' }) %>
 
                         <style>
                             .grid-container {
@@ -282,7 +282,6 @@
                                     <table class="data-table">
                                         <thead>
                                             <tr>
-                                                <th>Icon</th>
                                                 <th>Amenity Name</th>
                                                 <th style="width: 80px;">Actions</th>
                                             </tr>
@@ -360,7 +359,7 @@
             function renderItems() {
                 const tbody = document.getElementById('items-tbody');
                 if (!selectedCategoryId) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Select a category to view items</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="2" style="text-align: center;">Select a category to view items</td></tr>';
                     return;
                 }
 
@@ -368,7 +367,7 @@
                 const items = category && category.items ? category.items : [];
 
                 if (items.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No amenities in this category.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No amenities in this category.</td></tr>';
                     return;
                 }
 
@@ -376,7 +375,6 @@
                 items.forEach(item => {
                     html += `
                     <tr>
-                        <td>${item.icon ? '<i class="' + item.icon + '" style="color: #64748b;"></i>' : '-'}</td>
                         <td><strong>${item.name}</strong></td>
                         <td>
                             <div class="action-btns">
@@ -441,7 +439,8 @@
             });
 
             async function deleteCategory(id) {
-                if (!confirm('Are you sure you want to delete this category? All associated amenities will also be deleted.')) return;
+                const confirmed = await openDeleteModal('Delete Category', 'Are you sure you want to delete this category? All associated amenities will also be deleted.');
+                if (!confirmed) return;
                 const res = await fetch(`/api/admin/settings/amenity-categories/${id}/delete`, { method: 'POST' });
                 if (res.ok) window.location.reload();
             }
@@ -486,7 +485,8 @@
             });
 
             async function deleteItem(id) {
-                if (!confirm('Are you sure you want to delete this amenity?')) return;
+                const confirmed = await openDeleteModal('Delete Amenity', 'Are you sure you want to delete this amenity?');
+                if (!confirmed) return;
                 const res = await fetch(`/api/admin/settings/amenity-items/${id}/delete`, { method: 'POST' });
                 if (res.ok) window.location.reload();
             }

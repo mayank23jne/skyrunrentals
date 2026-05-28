@@ -264,7 +264,7 @@ export class SettingsController {
     return res.render('settings/amenities/index', {
       admin: { ...req.user, username: req.user.username || req.user.email },
       activePage: 'settings-amenities',
-      pageTitle: 'Amenities Master',
+      pageTitle: 'Amenities',
       categories,
     });
   }

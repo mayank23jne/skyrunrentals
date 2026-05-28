@@ -113,7 +113,7 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
 
           const res = await api.post('/payment/payment-init', {
             request_type: 'create_payment_intent',
-            itemName: 'Holiday Haven Homes Subscription',
+            itemName: 'Skyrun Rentals Subscription',
             itemPrice: numericPrice,
             plantype: '1', // Default or grab from props if needed
           });

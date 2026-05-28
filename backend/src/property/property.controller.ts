@@ -265,6 +265,19 @@ export class PropertyController {
     }
   }
 
+  @Post(':id/enquire')
+  @ApiOperation({ summary: 'Send enquiry message to owner' })
+  async createEnquiry(@Param('id', ParseIntPipe) id: number, @Body() body: any, @Res({ passthrough: true }) res) {
+    try {
+      await this.propertyService.createOwnerMessage(id, body);
+      return { message: 'Message sent successfully' };
+    } catch (error) {
+      console.error('Error creating owner message:', error);
+      res.status(500);
+      return { message: 'Internal server error' };
+    }
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Post(':id/priority')
   @ApiOperation({ summary: 'Update property priority' })

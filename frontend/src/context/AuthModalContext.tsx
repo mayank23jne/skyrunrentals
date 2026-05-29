@@ -5,7 +5,8 @@ import AuthModal from '../components/AuthModal';
 interface AuthModalContextType {
   isAuthModalOpen: boolean;
   authModalTab: 'signin' | 'register';
-  openAuthModal: (tab?: 'signin' | 'register') => void;
+  initialEmail?: string;
+  openAuthModal: (tab?: 'signin' | 'register', email?: string) => void;
   closeAuthModal: () => void;
 }
 
@@ -14,9 +15,11 @@ const AuthModalContext = createContext<AuthModalContextType | undefined>(undefin
 export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'register'>('signin');
+  const [initialEmail, setInitialEmail] = useState<string>('');
 
-  const openAuthModal = (tab: 'signin' | 'register' = 'signin') => {
+  const openAuthModal = (tab: 'signin' | 'register' = 'signin', email: string = '') => {
     setAuthModalTab(tab);
+    setInitialEmail(email);
     setIsAuthModalOpen(true);
   };
 
@@ -25,7 +28,7 @@ export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <AuthModalContext.Provider value={{ isAuthModalOpen, authModalTab, openAuthModal, closeAuthModal }}>
+    <AuthModalContext.Provider value={{ isAuthModalOpen, authModalTab, initialEmail, openAuthModal, closeAuthModal }}>
       {children}
       <AnimatePresence>
         {isAuthModalOpen && (
@@ -33,6 +36,7 @@ export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             isOpen={isAuthModalOpen}
             onClose={closeAuthModal}
             initialTab={authModalTab}
+            initialEmail={initialEmail}
           />
         )}
       </AnimatePresence>

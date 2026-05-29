@@ -29,9 +29,12 @@ export class BookingController {
     const currentPage = parseInt(page, 10) || 1;
     const skippedItems = (currentPage - 1) * pageSize;
 
+    const isOwner = req.user.usertype === '1';
+    const ownerId = isOwner ? req.user.id : undefined;
+
     const [bookings, totalCount] = await Promise.all([
-      this.bookingService.findPropertyBookings({ skip: skippedItems, take: pageSize, search }),
-      this.bookingService.countPropertyBookings(search),
+      this.bookingService.findPropertyBookings({ skip: skippedItems, take: pageSize, search, ownerId }),
+      this.bookingService.countPropertyBookings(search, ownerId),
     ]);
 
     const totalPages = Math.ceil(totalCount / pageSize);
@@ -85,9 +88,12 @@ export class BookingController {
     const currentPage = parseInt(page, 10) || 1;
     const skippedItems = (currentPage - 1) * pageSize;
 
+    const isOwner = req.user.usertype === '1';
+    const ownerId = isOwner ? req.user.id : undefined;
+
     const [enquiries, totalCount] = await Promise.all([
-      this.bookingService.findEnquiries({ skip: skippedItems, take: pageSize, search }),
-      this.bookingService.countEnquiries(search),
+      this.bookingService.findEnquiries({ skip: skippedItems, take: pageSize, search, ownerId }),
+      this.bookingService.countEnquiries(search, ownerId),
     ]);
 
     const totalPages = Math.ceil(totalCount / pageSize);
@@ -132,9 +138,12 @@ export class BookingController {
     const currentPage = parseInt(page, 10) || 1;
     const skippedItems = (currentPage - 1) * pageSize;
 
+    const isOwner = req.user.usertype === '1';
+    const ownerId = isOwner ? req.user.id : undefined;
+
     const [transactions, totalCount] = await Promise.all([
-      this.bookingService.findTransactions({ skip: skippedItems, take: pageSize, search }),
-      this.bookingService.countTransactions(search),
+      this.bookingService.findTransactions({ skip: skippedItems, take: pageSize, search, ownerId }),
+      this.bookingService.countTransactions(search, ownerId),
     ]);
 
     const totalPages = Math.ceil(totalCount / pageSize);

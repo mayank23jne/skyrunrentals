@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Quote, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import { API_BASE_URL } from '../services/api';
 
@@ -19,6 +20,7 @@ const Testimonial: React.FC = () => {
   const [testimonials, setTestimonials] = useState<Feedback[]>([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${API_BASE}/public/settings/feedback`)
@@ -53,20 +55,29 @@ const Testimonial: React.FC = () => {
 
       <div className="container">
         <div className="section-header">
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            className="section-subtitle"
+          <div className="header-text-content">
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              className="section-subtitle"
+            >
+              Testimonials
+            </motion.span>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="section-title"
+            >
+              Our Valuable Customer Says
+            </motion.h2>
+          </div>
+          <button 
+            className="view-all-btn"
+            onClick={() => navigate('/testimonials')}
           >
-            Testimonials
-          </motion.span>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="section-title"
-          >
-            Our Valuable Customer Says
-          </motion.h2>
+            <span>View All</span>
+            <ArrowRight size={18} />
+          </button>
         </div>
 
         <div className="testimonial-grid">
@@ -196,6 +207,42 @@ const Testimonial: React.FC = () => {
           padding: 0 20px;
           position: relative;
           z-index: 1;
+        }
+
+        .section-header {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          gap: 24px;
+          margin-bottom: 60px;
+        }
+
+        .header-text-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .view-all-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 24px;
+          border-radius: 50px;
+          background: transparent;
+          border: 2px solid var(--primary);
+          color: var(--primary);
+          font-weight: 600;
+          font-size: 15px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .view-all-btn:hover {
+          background: var(--primary);
+          color: white;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
 
@@ -372,6 +419,7 @@ const Testimonial: React.FC = () => {
         @media (max-width: 576px) {
           .image-wrapper { width: 260px; height: 260px; }
           .header-title { font-size: 32px; }
+          .section-header { flex-direction: column; align-items: center; text-align: center; gap: 20px; }
         }
       `}</style>
     </section>

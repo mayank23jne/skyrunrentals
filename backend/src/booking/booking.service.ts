@@ -6,9 +6,13 @@ export class BookingService {
   constructor(private prisma: PrismaService) { }
 
   // --- PROPERTY BOOKINGS ---
-  async findPropertyBookings(options: { skip?: number; take?: number; search?: string }) {
-    const { skip, take, search } = options;
+  async findPropertyBookings(options: { skip?: number; take?: number; search?: string; ownerId?: number }) {
+    const { skip, take, search, ownerId } = options;
     const where: any = {};
+
+    if (ownerId !== undefined) {
+      where.propertyOwner = ownerId;
+    }
 
     if (search) {
       where.OR = [
@@ -27,8 +31,12 @@ export class BookingService {
     });
   }
 
-  async countPropertyBookings(search?: string) {
+  async countPropertyBookings(search?: string, ownerId?: number) {
     const where: any = {};
+    
+    if (ownerId !== undefined) {
+      where.propertyOwner = ownerId;
+    }
     if (search) {
       where.OR = [
         { firstName: { contains: search } },
@@ -49,9 +57,13 @@ export class BookingService {
   }
 
   // --- BOOKING ENQUIRIES (OwnerMessages) ---
-  async findEnquiries(options: { skip?: number; take?: number; search?: string }) {
-    const { skip, take, search } = options;
+  async findEnquiries(options: { skip?: number; take?: number; search?: string; ownerId?: number }) {
+    const { skip, take, search, ownerId } = options;
     const where: any = {};
+
+    if (ownerId !== undefined) {
+      where.propertyOwner = ownerId;
+    }
 
     if (search) {
       where.OR = [
@@ -69,8 +81,12 @@ export class BookingService {
     });
   }
 
-  async countEnquiries(search?: string) {
+  async countEnquiries(search?: string, ownerId?: number) {
     const where: any = {};
+    
+    if (ownerId !== undefined) {
+      where.propertyOwner = ownerId;
+    }
     if (search) {
       where.OR = [
         { firstname: { contains: search } },
@@ -82,9 +98,13 @@ export class BookingService {
   }
 
   // --- PAYMENT HISTORY (Transactions) ---
-  async findTransactions(options: { skip?: number; take?: number; search?: string }) {
-    const { skip, take, search } = options;
+  async findTransactions(options: { skip?: number; take?: number; search?: string; ownerId?: number }) {
+    const { skip, take, search, ownerId } = options;
     const where: any = {};
+
+    if (ownerId !== undefined) {
+      where.userId = ownerId;
+    }
 
     if (search) {
       where.OR = [
@@ -107,8 +127,12 @@ export class BookingService {
     });
   }
 
-  async countTransactions(search?: string) {
+  async countTransactions(search?: string, ownerId?: number) {
     const where: any = {};
+    
+    if (ownerId !== undefined) {
+      where.userId = ownerId;
+    }
     if (search) {
       where.OR = [
         { status: { contains: search } },

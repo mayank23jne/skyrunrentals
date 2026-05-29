@@ -9,9 +9,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialTab?: 'signin' | 'register';
+  initialEmail?: string;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'signin' }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'signin', initialEmail = '' }) => {
   const { setUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'signin' | 'register'>(initialTab);
   const [showPassword, setShowPassword] = useState(false);
@@ -37,11 +38,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     setIsLoading(false);
   }, [activeTab, isOpen]);
 
-  const [signInEmail, setSignInEmail] = useState('');
+  const [signInEmail, setSignInEmail] = useState(initialTab === 'signin' ? initialEmail : '');
   const [signInPassword, setSignInPassword] = useState('');
 
   const [registerForm, setRegisterForm] = useState({
-    firstName: '', lastName: '', email: '', phone: '',
+    firstName: '', lastName: '', email: initialTab === 'register' ? initialEmail : '', phone: '',
     password: '', confirmPassword: '',
     country: '', city: '', address: '', state: '', zipCode: '',
     verifyCode: '', acceptTerms: false
@@ -73,7 +74,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     if (!registerForm.firstName) errors.firstName = 'First name is required';
     if (!registerForm.lastName) errors.lastName = 'Last name is required';
     if (!registerForm.email) errors.email = 'Email is required';
-    if (!registerForm.phone) errors.phone = 'Phone is required';
+    
+    const phoneDigits = registerForm.phone.replace(/\D/g, '');
+    if (!registerForm.phone) {
+      errors.phone = 'Phone is required';
+    } else if (phoneDigits.length < 10) {
+      errors.phone = 'Phone number must be at least 10 digits';
+    } else if (phoneDigits.length > 15) {
+      errors.phone = 'Phone number must be at most 15 digits';
+    }
+    
     if (!registerForm.password) errors.password = 'Password is required';
     if (!registerForm.confirmPassword) errors.confirmPassword = 'Confirm password is required';
     if (!registerForm.country) errors.country = 'Country is required';
@@ -81,11 +91,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     if (!registerForm.city) errors.city = 'City is required';
     if (!registerForm.address) errors.address = 'Address is required';
     if (!registerForm.zipCode) errors.zipCode = 'Zip code is required';
-    
+
     if (!registerForm.acceptTerms) {
       errors.acceptTerms = 'You must accept the terms';
-    } else if (!registerForm.verifyCode) {
-      errors.verifyCode = 'Verification code is required';
+    }
+
+    if (registerForm.password !== registerForm.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
     }
 
     if (Object.keys(errors).length > 0) {
@@ -93,18 +105,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
       return;
     }
 
-    if (registerForm.password !== registerForm.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
     registerMutation.mutate({
-      first_name: registerForm.firstName, last_name: registerForm.lastName,
+      firstname: registerForm.firstName, lastname: registerForm.lastName,
       email: registerForm.email, password: registerForm.password,
-      contact_no: registerForm.phone, country: registerForm.country,
+      contact_number: registerForm.phone, country: registerForm.country,
       state: registerForm.state, city: registerForm.city,
-      address: registerForm.address, zip: registerForm.zipCode,
-      verify_code: registerForm.verifyCode,
+      address: registerForm.address, zipcode: Number(registerForm.zipCode) || 0,
     });
   };
 
@@ -120,7 +126,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
       setTimeout(() => {
         onClose();
         if (userData.subscription_type === 0) {
-          window.location.href = '/payment';
+          window.location.href = '/list-property';
         } else {
           window.location.href = `${API_BASE_URL}/api/admin/dashboard`;
         }
@@ -128,6 +134,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    }
+  });
+
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await api.post('/auth/forgot-password', { email });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setSuccess(data.message || 'Reset password link dispatched.');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message;
+      setError(Array.isArray(msg) ? msg[0] : (msg || 'Failed to dispatch reset link. Please try again.'));
     }
   });
 
@@ -140,7 +160,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     const errors: Record<string, string> = {};
     if (!signInEmail) errors.signInEmail = 'Email is required';
     if (!signInPassword) errors.signInPassword = 'Password is required';
-    
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -150,7 +170,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
   };
 
   return (
-    <div className="am-overlay" onClick={onClose}>
+    <div className="am-overlay">
       <motion.div
         className="am-window"
         style={{ maxWidth: activeTab === 'signin' ? '450px' : '780px', transition: 'max-width 0.3s ease' }}
@@ -228,9 +248,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                 <a
                   href="#forgot"
                   className="am-forgot"
-                  onClick={(e) => { e.preventDefault(); alert('Reset password link dispatched.'); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setError(null);
+                    setSuccess(null);
+                    setFieldErrors({});
+                    if (!signInEmail) {
+                      setFieldErrors(prev => ({ ...prev, signInEmail: 'Please enter your email above to reset your password.' }));
+                      return;
+                    }
+                    forgotPasswordMutation.mutate(signInEmail);
+                  }}
+                  style={{ opacity: forgotPasswordMutation.isPending ? 0.7 : 1, pointerEvents: forgotPasswordMutation.isPending ? 'none' : 'auto' }}
                 >
-                  Forgot password?
+                  {forgotPasswordMutation.isPending ? 'Sending...' : 'Forgot password?'}
                 </a>
               </div>
 
@@ -289,7 +320,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                 <div className="am-field">
                   <label className="am-label">Phone</label>
                   <input type="tel" value={registerForm.phone}
-                    onChange={(e) => { setRegisterForm({ ...registerForm, phone: e.target.value }); setFieldErrors(prev => ({ ...prev, phone: '' })); }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9+\-\s()]/g, '');
+                      setRegisterForm({ ...registerForm, phone: val });
+                      const digitsLen = val.replace(/\D/g, '').length;
+                      if (digitsLen > 0 && digitsLen < 10) {
+                        setFieldErrors(prev => ({ ...prev, phone: 'Phone number must be at least 10 digits' }));
+                      } else if (digitsLen > 15) {
+                        setFieldErrors(prev => ({ ...prev, phone: 'Phone number must be at most 15 digits' }));
+                      } else {
+                        setFieldErrors(prev => ({ ...prev, phone: '' }));
+                      }
+                    }}
                     placeholder="+1 555 000 0000" className={`am-input ${fieldErrors.phone ? 'am-input-error' : ''}`} />
                   {fieldErrors.phone && <span className="am-field-error">{fieldErrors.phone}</span>}
                 </div>
@@ -314,7 +356,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                   <label className="am-label">Confirm Password</label>
                   <div className="am-pwd-wrap">
                     <input type={showConfirmPassword ? 'text' : 'password'} value={registerForm.confirmPassword}
-                      onChange={(e) => { setRegisterForm({ ...registerForm, confirmPassword: e.target.value }); setFieldErrors(prev => ({ ...prev, confirmPassword: '' })); }}
+                      onChange={(e) => { 
+                        setRegisterForm({ ...registerForm, confirmPassword: e.target.value }); 
+                        if (registerForm.password && e.target.value !== registerForm.password) {
+                          setFieldErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+                        } else {
+                          setFieldErrors(prev => ({ ...prev, confirmPassword: '' }));
+                        }
+                      }}
                       placeholder="Confirm password" className={`am-input ${fieldErrors.confirmPassword ? 'am-input-error' : ''}`} />
                     <button type="button" className="am-eye" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                       {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
@@ -364,10 +413,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                 </div>
               </div>
 
-              {/* Verification code — shown when terms accepted */}
+              {/* Promo code — shown when terms accepted */}
               {registerForm.acceptTerms && (
                 <div className="am-field">
-                  <label className="am-label">Verification Code</label>
+                  <label className="am-label">Promo Code</label>
                   <input type="text" value={registerForm.verifyCode}
                     onChange={(e) => { setRegisterForm({ ...registerForm, verifyCode: e.target.value }); setFieldErrors(prev => ({ ...prev, verifyCode: '' })); }}
                     placeholder="e.g. SS358" className={`am-input ${fieldErrors.verifyCode ? 'am-input-error' : ''}`} />
@@ -384,7 +433,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                       onChange={(e) => { setRegisterForm({ ...registerForm, acceptTerms: e.target.checked }); setFieldErrors(prev => ({ ...prev, acceptTerms: '' })); }}
                       className="am-check"
                     />
-                    <span>I accept the <a href="#terms" className="am-link">Terms &amp; Conditions</a></span>
+                    <span>I accept the <span className="am-link" style={{ cursor: 'default' }}>Terms &amp; Conditions</span></span>
                   </label>
                   {fieldErrors.acceptTerms && <span className="am-field-error" style={{ marginTop: '4px' }}>{fieldErrors.acceptTerms}</span>}
                 </div>
@@ -680,7 +729,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
         }
 
         .am-link {
-          color: var(--secondary, #2e80ec);
           font-weight: 600;
           text-decoration: none;
         }

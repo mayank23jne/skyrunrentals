@@ -66,11 +66,14 @@ export class AdminController {
   @Render('dashboard')
   @ApiOperation({ summary: 'Get admin dashboard' })
   async getDashboard(@Req() req) {
+    const isOwner = req.user.usertype === '1';
+    const ownerId = req.user.id;
+
     const [totalUsers, totalProperties, totalEnquiries, totalBookings] = await Promise.all([
-      this.prisma.user.count({ where: { deleted: 0 } }),
-      this.prisma.property.count(),
-      this.prisma.ownerMessage.count(),
-      this.prisma.propertyBooking.count(),
+      isOwner ? 0 : this.prisma.user.count({ where: { deleted: 0 } }),
+      this.prisma.property.count(isOwner ? { where: { createdBy: ownerId } } : undefined),
+      this.prisma.ownerMessage.count(isOwner ? { where: { propertyOwner: ownerId } } : undefined),
+      this.prisma.propertyBooking.count(isOwner ? { where: { propertyOwner: ownerId } } : undefined),
     ]);
 
     return {

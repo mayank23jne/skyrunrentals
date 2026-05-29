@@ -117,10 +117,10 @@ const Hero: React.FC = () => {
         .hero-bg { position: absolute; inset: 0; z-index: 1; }
         .hero-bg img { width: 100%; height: 100%; object-fit: cover; }
         .hero-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 1; }
-        .hero-content { position: relative; z-index: 10; text-align: center; width: 100%; }
+        .hero-content { position: relative; z-index: 99; text-align: center; width: 100%; }
         
         /* Airplane Decoration */
-        .plane-icon { width: 225px; position: absolute; bottom: 110px; left: 0; z-index: 11; }
+        .plane-icon { width: 225px; position: absolute; bottom: 110px; left: 0; z-index: 1; }
         
         .hero-text-wrapper { margin-bottom: 40px; margin-top: -100px; }
         .hero-subtitle { color: var(--accent); font-family: var(--subtitlefont); font-size: 23px; font-weight: 400; margin-bottom: 22px; letter-spacing: 1px; }

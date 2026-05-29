@@ -209,7 +209,8 @@ const PropertyDetail: React.FC = () => {
     creator_detail: host = {},
     country,
     state,
-    city
+    city,
+    property_type
   } = data;
 
   // Compile image list safely
@@ -296,9 +297,13 @@ const PropertyDetail: React.FC = () => {
   const nearbyItems = [];
   if (nearby.nearestAirport) nearbyItems.push({ type: 'airport', label: 'Nearest Airport', name: nearby.nearestAirport, distance: nearby.airportDistance });
   if (nearby.nearestBeach) nearbyItems.push({ type: 'beach', label: 'Nearest Beach', name: nearby.nearestBeach, distance: nearby.beachDistance });
-  if (nearby.nearestTrain) nearbyItems.push({ type: 'train', label: 'Nearest Train Station', name: nearby.nearestTrain, distance: nearby.trainDistance });
-  if (nearby.nearestRestaurant) nearbyItems.push({ type: 'restaurant', label: 'Restaurant & Fine Dining', name: nearby.nearestRestaurant, distance: nearby.restaurantDistance });
-  if (nearby.nearestFerry) nearbyItems.push({ type: 'ferry', label: 'Ferry Terminal', name: nearby.nearestFerry, distance: nearby.ferryDistance });
+  if (nearby.nearestFerry) nearbyItems.push({ type: 'ferry', label: 'Nearest Ferry', name: nearby.nearestFerry, distance: nearby.ferryDistance });
+  if (nearby.nearestTrain) nearbyItems.push({ type: 'train', label: 'Nearest Train', name: nearby.nearestTrain, distance: nearby.trainDistance });
+  if (nearby.nearestHighway) nearbyItems.push({ type: 'highway', label: 'Nearest Highway', name: nearby.nearestHighway, distance: nearby.highwayDistance });
+  if (nearby.nearestBar) nearbyItems.push({ type: 'bar', label: 'Nearest Bar', name: nearby.nearestBar, distance: nearby.barDistance });
+  if (nearby.nearestSki) nearbyItems.push({ type: 'ski', label: 'Nearest Ski', name: nearby.nearestSki, distance: nearby.skiDistance });
+  if (nearby.nearestGolf) nearbyItems.push({ type: 'golf', label: 'Nearest Golf', name: nearby.nearestGolf, distance: nearby.golfDistance });
+  if (nearby.nearestRestaurant) nearbyItems.push({ type: 'restaurant', label: 'Nearest Restaurant', name: nearby.nearestRestaurant, distance: nearby.restaurantDistance });
 
   // Calculate reservation details
   const nightlyBaseRate = parseFloat(property.rates?.[0]?.nightly || '0') || 250;
@@ -480,7 +485,7 @@ const PropertyDetail: React.FC = () => {
 .text-2xl{font-size:1.5rem;}
 .text-xl{font-size:1.25rem;}
 .text-base{font-size:1rem;}
-.text-sm{font-size:0.875rem;}
+.text-base{font-size:0.875rem;}
 .font-black{font-weight:900;}
 .font-bold{font-weight:700;}
 .tracking-tight{letter-spacing:-0.025em;}
@@ -536,7 +541,7 @@ const PropertyDetail: React.FC = () => {
 .font-medium{font-weight:500;}
 .font-normal{font-weight:400;}
 .text-xs{font-size:0.75rem;}
-.text-sm{font-size:0.875rem;}
+.text-base{font-size:0.875rem;}
 .text-base{font-size:1rem;}
 .text-lg{font-size:1.125rem;}
 .text-xl{font-size:1.25rem;}
@@ -612,9 +617,9 @@ const PropertyDetail: React.FC = () => {
         <div className="flex flex-row gap-8 main-layout">
 
           {/* Left Column (70%) */}
-          <div className="flex flex-col gap-0 left-column" style={{ width: '65%', paddingRight: '1.5rem' }}>
+          <div className="flex flex-col gap-8 left-column" style={{ width: '70%', paddingRight: '1.5rem' }}>
             {/* Hero Title Bar */}
-            <div style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem', background: '#fff' }}>
+            <div className="px-6 md:px-8" style={{ padding: '1.5rem', background: '#fff' }}>
               <div style={{ width: '100%' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <h3 style={{ fontSize: '22px', fontWeight: 600, color: '#1e293b', lineHeight: '1.2', margin: 0 }}>
@@ -641,7 +646,7 @@ const PropertyDetail: React.FC = () => {
             </div>
 
             {/* Sticky Navigation Menu */}
-            <div className="sticky-nav" style={{ position: 'sticky', top: '70px', zIndex: 40, background: '#fff', padding: '12px 0', marginTop: '10px', marginBottom: '10px', display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0' }}>
+            <div className="sticky-nav px-6 md:px-8" style={{ position: 'sticky', top: '70px', zIndex: 40, background: '#fff', padding: '12px', marginTop: '10px', marginBottom: '10px', display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0' }}>
               {['OVERVIEW', 'PHOTOS', 'AVAILABILITY', 'RATES', 'AMENITIES'].map((item) => {
                 const id = item.toLowerCase();
                 const isActive = activeSection === id;
@@ -668,37 +673,89 @@ const PropertyDetail: React.FC = () => {
             </div>
 
             {/* Property Narrative / Description */}
-            <section id="overview" className="py-12 bg-white" style={{ marginTop: '20px' }}>
+            <section id="overview" className="py-12 px-6 md:px-8 bg-white" style={{ marginTop: '20px', padding: '12px' }}>
               <div className="w-full">
                 <h3 className="fontSize: '22px', fontWeight: 600, font-black text-slate-900 mb-6 font-outfit" style={{ fontSize: '22px', fontWeight: 600 }}>
                   {property.propertyHeadline}
                 </h3>
                 <div
                   className="prose prose-slate max-w-none text-slate-600 leading-relaxed prose-p:mb-4 prose-a:text-secondary hover:prose-a:text-blue-600"
-                  style={{ fontSize: '0.875rem' }}
+                  style={{ fontSize: '1rem' }}
                   dangerouslySetInnerHTML={{ __html: property.propertyDescription || 'No detailed narrative loaded.' }}
                 />
               </div>
             </section>
             {/* Suitability & Photos (From Screenshot) */}
-            <section id="photos" className="py-8 bg-white w-full">
+            <section id="photos" className="py-8 px-6 md:px-8 bg-white w-full" style={{ padding: '12px' }}>
               <div className="w-full">
 
                 {/* Suitability */}
                 <div className="mb-8">
                   <div style={{ height: '1px', background: '#e2e8f0', marginBottom: '1rem' }} />
-                  <h2 style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', marginBottom: '0.5rem' }}>
-                    Suitability
+                  <h2 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1.2rem', marginBottom: '0.75rem' }}>
+                    Suitability :
                   </h2>
-                  <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
+                  <p style={{ color: '#475569', fontSize: '1rem', marginBottom: '1.5rem' }}>
                     {[
                       amenities?.childrenSuitability,
                       amenities?.smokingSuitability,
                       amenities?.wheelchairSuitability,
                       amenities?.petsSuitability,
                       amenities?.otherSuitability
-                    ].filter(Boolean).join(', ') || 'Not specified'}
+                    ].filter(Boolean).join(' , ') || 'Not specified'}
                   </p>
+                  
+                  {/* Nearby Places */}
+                  {nearbyItems.length > 0 && (
+                    <div style={{ marginTop: '2rem' }}>
+                      <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1.2rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Map size={20} className="text-blue-600" /> Nearby Places
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                        {nearbyItems.map((item, idx) => {
+                          const Icon = attractionIcons[item.type] || Map;
+                          const distanceParts = item.distance ? item.distance.split(',') : ['0.00', 'MILES'];
+                          const distVal = distanceParts[0];
+                          const distUnit = distanceParts[1] || 'MILES';
+                          
+                          return (
+                            <div 
+                              key={idx} 
+                              className="group transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+                              style={{ 
+                                background: '#fff', 
+                                border: '1px solid #e2e8f0', 
+                                borderRadius: '12px', 
+                                padding: '16px 20px', 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center', 
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)' 
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', transition: 'all 0.2s ease-in-out' }} className="group-hover:bg-blue-50 group-hover:text-blue-700">
+                                  <Icon size={20} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem', marginBottom: '2px' }}>{item.label}</span>
+                                  <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 500 }}>{item.name}</span>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', background: '#f1f5f9', padding: '6px 10px', borderRadius: '8px' }}>
+                                <span style={{ color: '#1e293b', fontSize: '0.95rem', fontWeight: 700, lineHeight: '1' }}>
+                                  {distVal}
+                                </span>
+                                <span style={{ color: '#64748b', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: '4px' }}>
+                                  {distUnit}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Photo Gallery Collage (Pure Grid) */}
@@ -750,23 +807,22 @@ const PropertyDetail: React.FC = () => {
             </section>
 
             {/* Interactive Calendar widget */}
-            <section id="availability" style={{ padding: '2rem 0', background: '#fff', width: '100%' }}>
+            <section id="availability" className="px-6 md:px-8" style={{ padding: '2rem', background: '#fff', width: '100%' }}>
               <div style={{ width: '100%' }}>
                 {/* Navigation */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem' }}>
-                  <button onClick={() => navYear(-1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Prev Year">
+                  <button onClick={() => navYear(-1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Prev Year">
                     <ChevronLeft size={12} /><ChevronLeft size={12} style={{ marginLeft: '-4px' }} />
                   </button>
-                  <button onClick={() => navMonth(-1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Prev Month">
+                  <button onClick={() => navMonth(-1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Prev Month">
                     <ChevronLeft size={14} />
                   </button>
-                  <button onClick={() => navMonth(1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Next Month">
+                  <button onClick={() => navMonth(1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Next Month">
                     <ChevronRight size={14} />
                   </button>
-                  <button onClick={() => navYear(1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Next Year">
+                  <button onClick={() => navYear(1)} style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '4px 8px', background: '#fff', color: '#64748b', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Next Year">
                     <ChevronRight size={12} /><ChevronRight size={12} style={{ marginLeft: '-4px' }} />
                   </button>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '8px' }}>Click on dates to check availability</span>
                 </div>
 
                 <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
@@ -779,7 +835,7 @@ const PropertyDetail: React.FC = () => {
                       <div key={mIdx} style={{ border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: '#fff' }}>
 
                         {/* Month Header */}
-                        <div style={{ background: '#1e293b', color: '#fff', textAlign: 'center', fontWeight: 700, fontSize: '0.95rem', padding: '10px 4px', letterSpacing: '0.03em' }}>
+                        <div style={{ background: '#1e293b', color: '#fff', textAlign: 'center', fontWeight: 700, fontSize: '1rem', padding: '10px 4px', letterSpacing: '0.03em' }}>
                           {m.monthName}
                         </div>
 
@@ -817,9 +873,39 @@ const PropertyDetail: React.FC = () => {
                             const isAM = status === 'am';
                             const isPM = status === 'pm';
 
-                            const displayRate = isWeekend && weekendRate !== nightlyBaseRate ? weekendRate : nightlyBaseRate;
+                            const cellDate = new Date(m.year, m.month, day);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const isPast = cellDate < today;
+
+                            // Find the dynamic rate for this specific date
+                            let matchedRate = null;
+                            if (rates && rates.length > 0) {
+                              for (const r of rates) {
+                                if (r.startDate && r.endDate) {
+                                  const s = new Date(r.startDate); s.setHours(0,0,0,0);
+                                  const e = new Date(r.endDate); e.setHours(23,59,59,999);
+                                  if (cellDate >= s && cellDate <= e) {
+                                    matchedRate = r;
+                                    break;
+                                  }
+                                }
+                              }
+                              // Fallback to a default rate if no dates are set on it
+                              if (!matchedRate) {
+                                const defaultRate = rates.find((r: any) => !r.startDate && !r.endDate);
+                                if (defaultRate) matchedRate = defaultRate;
+                                // If still no rate, fallback to the first rate to ensure we show a price
+                                else matchedRate = rates[0];
+                              }
+                            }
+
+                            const dynamicNightly = matchedRate ? (parseFloat(matchedRate.nightly || '0') || nightlyBaseRate) : nightlyBaseRate;
+                            const dynamicWeekend = matchedRate ? (parseFloat(matchedRate.weekendNight || matchedRate.weekend || '0') || dynamicNightly) : weekendRate;
+
+                            const displayRate = isWeekend && dynamicWeekend !== dynamicNightly ? dynamicWeekend : dynamicNightly;
                             const priceLabel = displayRate > 0 ? formatPrice(displayRate) : null;
-                            const priceColor = isWeekend && weekendRate !== nightlyBaseRate ? '#e07b1a' : '#fe9d3d';
+                            const priceColor = isWeekend && dynamicWeekend !== dynamicNightly ? '#e07b1a' : '#fe9d3d';
 
                             let bgColor = '#fff';
                             let numColor = '#1e293b';
@@ -829,15 +915,17 @@ const PropertyDetail: React.FC = () => {
                             else if (isAM) { gradientBg = 'linear-gradient(to bottom right, #132742 50%, #ffffff 50%)'; numColor = '#fff'; }
                             else if (isPM) { gradientBg = 'linear-gradient(to bottom right, #ffffff 50%, #132742 50%)'; numColor = '#132742'; }
 
+                            const isAvailable = !isBooked && !isAM && !isPM && !isPast;
+
                             return (
                               <div
                                 key={day}
-                                style={{ textAlign: 'center', padding: '6px 2px', background: gradientBg || bgColor, borderRight: !isLastCol ? '1px solid #e2e8f0' : 'none', borderBottom: '1px solid #e2e8f0', minHeight: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isBooked || isAM || isPM ? 'not-allowed' : 'pointer' }}
-                                onMouseEnter={e => { if (!isBooked && !isAM && !isPM) (e.currentTarget as HTMLDivElement).style.background = '#f1f5f9'; }}
-                                onMouseLeave={e => { if (!isBooked && !isAM && !isPM) (e.currentTarget as HTMLDivElement).style.background = '#fff'; }}
+                                style={{ textAlign: 'center', padding: '6px 2px', background: gradientBg || bgColor, borderRight: !isLastCol ? '1px solid #e2e8f0' : 'none', borderBottom: '1px solid #e2e8f0', minHeight: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: !isAvailable ? 'not-allowed' : 'pointer', opacity: isPast && !isBooked ? 0.6 : 1 }}
+                                onMouseEnter={e => { if (isAvailable) (e.currentTarget as HTMLDivElement).style.background = '#f1f5f9'; }}
+                                onMouseLeave={e => { if (isAvailable) (e.currentTarget as HTMLDivElement).style.background = '#fff'; }}
                               >
                                 <span style={{ color: numColor, fontSize: '0.85rem', fontWeight: 600, lineHeight: '1' }}>{day}</span>
-                                {!isBooked && !isAM && !isPM && priceLabel && (
+                                {isAvailable && priceLabel && (
                                   <span style={{ color: priceColor, fontSize: '0.68rem', fontWeight: 500, marginTop: '3px', lineHeight: '1' }}>{priceLabel}</span>
                                 )}
                               </div>
@@ -867,7 +955,7 @@ const PropertyDetail: React.FC = () => {
                   <div style={{ background: '#132742', padding: '0.75rem', textAlign: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
                     Key
                   </div>
-                  <div style={{ background: '#f3f4f6', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', fontSize: '0.875rem', color: '#132742' }}>
+                  <div style={{ background: '#f3f4f6', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', fontSize: '1rem', color: '#132742' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ width: '36px', height: '36px', background: '#fff', display: 'inline-block' }}></span>
                       <span>Available</span>
@@ -885,7 +973,7 @@ const PropertyDetail: React.FC = () => {
                       <span>Booked pm</span>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                  <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '1rem', color: '#64748b', fontWeight: 600 }}>
                     Last updated: {new Date(property.updatedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
                   </div>
                 </div>
@@ -893,7 +981,7 @@ const PropertyDetail: React.FC = () => {
             </section>
 
             {/* Rates Section */}
-            <section id="rates" className="py-8 bg-white w-full">
+            <section id="rates" className="py-8 px-6 md:px-8 bg-white w-full" style={{ padding: '12px' }}>
               <div className="w-full">
                 {rates && rates.length > 0 ? (
                   <div className="overflow-x-auto rounded-xl shadow-sm border border-slate-200" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
@@ -912,24 +1000,24 @@ const PropertyDetail: React.FC = () => {
                         {rates.map((rate: any, idx: number) => (
                           <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', background: '#fff', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                             <td style={{ padding: '20px' }}>
-                              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '15px', marginBottom: '8px', lineHeight: '1.4' }}>{rate.seasonName || `Standard Rates`}</div>
-                              <div style={{ color: '#64748b', fontSize: '12px', fontWeight: 600, display: 'inline-block', background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', marginBottom: '8px', lineHeight: '1.4' }}>{rate.seasonName || `Standard Rates`}</div>
+                              <div style={{ color: '#64748b', fontSize: '1rem', fontWeight: 600, display: 'inline-block', background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
                                 Min Stay: {rate.minimumStay || '3 Nights'}
                               </div>
                             </td>
-                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
                               {rate.nightly ? formatPrice(rate.nightly) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
-                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
                               {rate.weekendNight || rate.weekend ? formatPrice(rate.weekendNight || rate.weekend) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
-                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
                               {rate.weekly ? formatPrice(rate.weekly) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
-                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
                               {rate.monthly ? formatPrice(rate.monthly) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
-                            <td style={{ padding: '20px 24px 20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '15px', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '20px 24px 20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
                               {rate.event ? formatPrice(rate.event) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
                           </tr>
@@ -946,12 +1034,12 @@ const PropertyDetail: React.FC = () => {
             </section>
 
             {/* Additional Rate Information */}
-            <section style={{ padding: '0 0 2rem 0', background: '#fff', width: '100%' }}>
+            <section className="px-6 md:px-8" style={{ padding: '2rem', background: '#fff', width: '100%' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>
                 Additional Information About Rental Rates
               </h2>
               <div className="overflow-x-auto w-full">
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1rem' }}>
                   <tbody>
                     {extras?.refundableDamageDeposit && (
                       <tr style={{ background: '#f3f4f6' }}>
@@ -992,362 +1080,315 @@ const PropertyDetail: React.FC = () => {
               {/* Cancellation Policy */}
               {extras?.cancellationPolicy && (
                 <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
-                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Cancellation Policy:</div>
-                  <div style={{ color: '#3b82f6', fontSize: '0.875rem', lineHeight: '1.7' }}
+                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem', marginBottom: '0.5rem' }}>Cancellation Policy:</div>
+                  <div style={{ color: '#3b82f6', fontSize: '1rem', lineHeight: '1.7' }}
                     dangerouslySetInnerHTML={{ __html: extras.cancellationPolicy }}
                   />
                 </div>
               )}
             </section>
-            {/* Property Type (Start of Amenities group) */}
-            <div id="amenities" style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Property Type</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '0.875rem' }}>
-                {property.propertyType || <span style={{ fontStyle: 'italic' }}>Not specified</span>}
+            {/* Amenities Section Wrapper */}
+            <section className="py-8 px-6 md:px-8 bg-white w-full" style={{ padding: '12px' }}>
+              {/* Property Type (Start of Amenities group) */}
+              <div id="amenities" style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Property Type</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '1rem' }}>
+                  {property_type?.propertyName || property.propertyType || <span style={{ fontStyle: 'italic' }}>Not specified</span>}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
               </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
 
-            {/* Meals */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Meals</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '0.875rem' }}>
-                {extras?.meals || amenities?.meals || amenities?.accommodationType || <span style={{ fontStyle: 'italic' }}>Guests provide their own meals</span>}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* General Amenities */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>General</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {parsedPopularAmenities.length > 0 ? (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {parsedPopularAmenities.map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {['Internet', 'Heating', 'Washing Machine', 'Garage', 'Hair Dryer', 'Fireplace', 'Linens', 'Clothes Dryer', 'Living Room', 'Iron & Board', 'Air Conditioning', 'Towels', 'Parking', 'Fitness Room / Equipment'].map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Kitchen */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Kitchen</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {parsedKitchenAmenities.length > 0 ? (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {parsedKitchenAmenities.map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {['Kitchen', 'Oven', 'Dishes And Utensils', 'Toaster', 'Refrigerator', 'Microwave', 'Pantry Items', 'Child Highchair', 'Stove', 'Dishwasher', 'Coffee Maker'].map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Dining */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Dining</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '0.875rem' }}>
-                {amenities?.diningArea ? (
-                  <>{amenities.diningArea}{amenities.diningSeats ? ` With ${amenities.diningSeats} Seats` : ''}</>
-                ) : (
-                  <span style={{ color: '#64748b' }}>Dining Area With 20 Seats</span>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Bedrooms / Bedding */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Bedrooms</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {beddingItems.length > 0 ? (
-                  <>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '0.75rem' }}>
-                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Bedrooms - {beddingItems.reduce((acc, b) => acc + (b.count ? parseInt(b.count as any) || 0 : 0), 0) || property.bedrooms || 'Not specified'}</div>
-                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Sleeps - {property.sleeps || 'Not specified'}</div>
-                    </div>
-                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                      {beddingItems.map((b, i) => (
-                        <div key={i} style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                          {b.name} - {b.count || 0}
-                        </div>
-                      ))}
-                    </div>
-                    {beddingRecords?.note && (
-                      <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#1e293b' }}>
-                        <span style={{ fontWeight: 700 }}>Note:</span> <span style={{ color: '#64748b' }}>{beddingRecords.note}</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '0.75rem' }}>
-                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Bedrooms - 8</div>
-                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Sleeps - 20</div>
-                    </div>
-                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                      {['King Size Beds - 9', 'Queen Size Beds - 5', 'Twin Beds - 2', 'Sleeping Sofa/Futon - 0'].map((b, i) => (
-                        <div key={i} style={{ fontSize: '0.875rem', color: '#64748b' }}>{b}</div>
-                      ))}
-                    </div>
-                    <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#1e293b' }}>
-                      <span style={{ fontWeight: 700 }}>Note:</span> <span style={{ color: '#64748b' }}>5 bedrooms in the main mansion (no stairs) 1 bedroom upstairs in mansion 2 bedrooms in the casitas</span>
-                    </div>
-                  </>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Entertainment */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Entertainment</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {parsedEntertainment.length > 0 ? (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {parsedEntertainment.map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {['Television Available', 'Stereo Available', 'Pool Table Available', 'Satellite / Cable Available', 'Games Available', 'Ping Pong Table Available', 'Video Games Available', 'Game Room Available', 'Foosball Available'].map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Outdoor Features */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>OutDoor Features</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {parsedOutdoorAmenities.length > 0 ? (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {parsedOutdoorAmenities.map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {['Outdoor Grill Available', 'Deck / Patio Available', 'Lawn / Garden Available'].map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Pool & Spa */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Pool &amp; Spa Facilities</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {parsedPoolSpa.length > 0 ? (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {parsedPoolSpa.map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {['Private Pool Available', 'Hot Tub Available'].map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Themes */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Themes</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {parsedThemes.length > 0 ? (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {parsedThemes.map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {['Away From It All', 'Family', 'Tourist Attractions'].map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Other Services */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Other Services</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0' }}>
-                {parsedOtherServices.length > 0 ? (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {parsedOtherServices.map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                    {['Concierge Available', 'Private Chef Available'].map((item: string, i: number) => (
-                      <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-
-            {/* Dynamic Amenities */}
-            {property.propertyAmenities && property.propertyAmenities.length > 0 && (
+              {/* Meals */}
               <div style={{ width: '100%' }}>
-                {Object.entries(
-                  property.propertyAmenities.reduce((acc: any, pa: any) => {
-                    if (pa.amenityItem && pa.amenityItem.category) {
-                      const catName = pa.amenityItem.category.name;
-                      if (!acc[catName]) acc[catName] = [];
-                      acc[catName].push({ name: pa.amenityItem.name, icon: pa.amenityItem.icon });
-                    }
-                    return acc;
-                  }, {})
-                ).map(([catName, items]: any, idx) => (
-                  <div key={idx}>
-                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>{catName}</div>
-                    <div style={{ height: '1px', background: '#e2e8f0' }} />
-                    <div style={{ padding: '0.75rem 0' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Meals</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '1rem' }}>
+                  {extras?.meals || amenities?.meals || amenities?.accommodationType || <span style={{ fontStyle: 'italic' }}>Guests provide their own meals</span>}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* General Amenities */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>General</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {parsedPopularAmenities.length > 0 ? (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {parsedPopularAmenities.map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['Internet', 'Heating', 'Washing Machine', 'Garage', 'Hair Dryer', 'Fireplace', 'Linens', 'Clothes Dryer', 'Living Room', 'Iron & Board', 'Air Conditioning', 'Towels', 'Parking', 'Fitness Room / Equipment'].map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* Kitchen */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Kitchen</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {parsedKitchenAmenities.length > 0 ? (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {parsedKitchenAmenities.map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['Kitchen', 'Oven', 'Dishes And Utensils', 'Toaster', 'Refrigerator', 'Microwave', 'Pantry Items', 'Child Highchair', 'Stove', 'Dishwasher', 'Coffee Maker'].map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* Dining */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Dining</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0', color: '#64748b', fontSize: '1rem' }}>
+                  {amenities?.diningArea ? (
+                    <>{amenities.diningArea}{amenities.diningSeats ? ` With ${amenities.diningSeats} Seats` : ''}</>
+                  ) : (
+                    <span style={{ color: '#64748b' }}>Dining Area With 20 Seats</span>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* Bedrooms / Bedding */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Bedrooms</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {beddingItems.length > 0 ? (
+                    <>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '0.75rem' }}>
+                        <div style={{ color: '#64748b', fontSize: '1rem' }}>Bedrooms - {beddingItems.reduce((acc, b) => acc + (b.count ? parseInt(b.count as any) || 0 : 0), 0) || property.bedrooms || 'Not specified'}</div>
+                        <div style={{ color: '#64748b', fontSize: '1rem' }}>Sleeps - {property.sleeps || 'Not specified'}</div>
+                      </div>
                       <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
-                        {items.map((item: any, i: number) => (
-                          <div key={i} style={{ color: '#64748b', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            {item.icon && (() => {
-                              const IconName = item.icon.split('-').map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
-                              const IconComp = (LucideIcons as any)[IconName];
-                              return IconComp ? <IconComp size={14} /> : <Check size={14} />;
-                            })()}
-                            <span>{item.name}</span>
+                        {beddingItems.map((b, i) => (
+                          <div key={i} style={{ fontSize: '1rem', color: '#64748b' }}>
+                            {b.name} - {b.count || 0}
                           </div>
                         ))}
                       </div>
-                    </div>
-                  </div>
-                ))}
+                      {beddingRecords?.note && (
+                        <div style={{ marginTop: '0.75rem', fontSize: '1rem', color: '#1e293b' }}>
+                          <span style={{ fontWeight: 700 }}>Note:</span> <span style={{ color: '#64748b' }}>{beddingRecords.note}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '0.75rem' }}>
+                        <div style={{ color: '#64748b', fontSize: '1rem' }}>Bedrooms - 8</div>
+                        <div style={{ color: '#64748b', fontSize: '1rem' }}>Sleeps - 20</div>
+                      </div>
+                      <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                        {['King Size Beds - 9', 'Queen Size Beds - 5', 'Twin Beds - 2', 'Sleeping Sofa/Futon - 0'].map((b, i) => (
+                          <div key={i} style={{ fontSize: '1rem', color: '#64748b' }}>{b}</div>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: '0.75rem', fontSize: '1rem', color: '#1e293b' }}>
+                        <span style={{ fontWeight: 700 }}>Note:</span> <span style={{ color: '#64748b' }}>5 bedrooms in the main mansion (no stairs) 1 bedroom upstairs in mansion 2 bedrooms in the casitas</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
               </div>
-            )}
 
-            {/* Additional Info Section (Attractions, Leisure, Sports, Local Services) */}
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', padding: '0.75rem 0' }}>Additional Info</div>
-              <div style={{ height: '1px', background: '#e2e8f0' }} />
-              <div style={{ padding: '0.75rem 0', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-                <div>
-                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Attractions:</div>
-                  {parsedAttractions.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {parsedAttractions.map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+              {/* Entertainment */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Entertainment</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {parsedEntertainment.length > 0 ? (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {parsedEntertainment.map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
                       ))}
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {['churches', 'cinemas', 'restaurants'].map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['Television Available', 'Stereo Available', 'Pool Table Available', 'Satellite / Cable Available', 'Games Available', 'Ping Pong Table Available', 'Video Games Available', 'Game Room Available', 'Foosball Available'].map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
                       ))}
                     </div>
                   )}
                 </div>
-
-                <div>
-                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Leisure Activities:</div>
-                  {parsedLeisure.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {parsedLeisure.map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {['bird watching', 'gambling casinos', 'outlet shopping', 'photography', 'sight seeing', 'walking'].map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Local Services &amp; Businesses:</div>
-                  {parsedLocalServices.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {parsedLocalServices.map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {['fitness center'].map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.875rem', marginBottom: '8px' }}>Sports &amp; Adventure Activities:</div>
-                  {parsedSports.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {parsedSports.map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {['basketball court', 'golf', 'hiking', 'hunting', 'mountain climbing', 'mountaineering', 'swimming'].map((item, i) => (
-                        <div key={i} style={{ color: '#64748b', fontSize: '0.875rem' }}>{item}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
               </div>
-              <div style={{ height: '1px', background: '#e2e8f0', marginBottom: '2rem' }} />
-            </div>
+
+              {/* Outdoor Features */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>OutDoor Features</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {parsedOutdoorAmenities.length > 0 ? (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {parsedOutdoorAmenities.map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['Outdoor Grill Available', 'Deck / Patio Available', 'Lawn / Garden Available'].map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* Pool & Spa */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Pool &amp; Spa Facilities</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {parsedPoolSpa.length > 0 ? (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {parsedPoolSpa.map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['Private Pool Available', 'Hot Tub Available'].map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* Themes */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Themes</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {parsedThemes.length > 0 ? (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {parsedThemes.map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['Away From It All', 'Family', 'Tourist Attractions'].map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* Additional Info */}
+              <div style={{ width: '100%' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>Additional Info</div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+                <div style={{ padding: '0.75rem 0' }}>
+                  {amenities?.additionalInfo ? (
+                    <div className="additional-info-rich-text">
+                      <div
+                        className="text-slate-600 leading-relaxed"
+                        style={{ fontSize: '1rem' }}
+                        dangerouslySetInnerHTML={{ __html: amenities.additionalInfo }}
+                      />
+                      <style>{`
+                        .additional-info-rich-text p { margin-bottom: 0.75rem; }
+                        .additional-info-rich-text div:not(.row):not([class*="col-"]) > div:not(.row):not([class*="col-"]) { margin-bottom: 0.75rem; }
+                        .additional-info-rich-text h1, .additional-info-rich-text h2, .additional-info-rich-text h3, .additional-info-rich-text h4, .additional-info-rich-text h5, .additional-info-rich-text h6 { 
+                          margin-top: 1.25rem; margin-bottom: 0.5rem; color: #1e293b; font-weight: 700; 
+                        }
+                        .additional-info-rich-text ul { margin-bottom: 0.75rem; padding-left: 1.5rem; list-style-type: disc; }
+                        .additional-info-rich-text ol { margin-bottom: 0.75rem; padding-left: 1.5rem; list-style-type: decimal; }
+                        .additional-info-rich-text li { margin-bottom: 0.25rem; }
+                        .additional-info-rich-text strong, .additional-info-rich-text b { color: #1e293b; font-weight: 700; }
+                        /* If the editor output uses paragraphs for bold headings, add some top margin to them */
+                        .additional-info-rich-text p:has(strong:only-child) { margin-top: 1.25rem; margin-bottom: 0.25rem; }
+
+                        /* Legacy Bootstrap Grid Polyfill for Editor Content */
+                        .additional-info-rich-text .row { display: flex; flex-wrap: wrap; margin-left: -15px; margin-right: -15px; margin-bottom: 1rem; }
+                        .additional-info-rich-text [class*="col-"] { position: relative; width: 100%; padding-right: 15px; padding-left: 15px; }
+                        @media (min-width: 640px) {
+                          .additional-info-rich-text .col-md-3, .additional-info-rich-text .col-sm-3, .additional-info-rich-text .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+                          .additional-info-rich-text .col-md-4, .additional-info-rich-text .col-sm-4, .additional-info-rich-text .col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+                          .additional-info-rich-text .col-md-5, .additional-info-rich-text .col-sm-5, .additional-info-rich-text .col-lg-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+                          .additional-info-rich-text .col-md-6, .additional-info-rich-text .col-sm-6, .additional-info-rich-text .col-lg-6 { flex: 0 0 50%; max-width: 50%; }
+                          .additional-info-rich-text .col-md-8, .additional-info-rich-text .col-sm-8, .additional-info-rich-text .col-lg-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+                          .additional-info-rich-text .col-md-9, .additional-info-rich-text .col-sm-9, .additional-info-rich-text .col-lg-9 { flex: 0 0 75%; max-width: 75%; }
+                        }
+                      `}</style>
+                    </div>
+                  ) : (
+                    <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                      {['Winery Tours', 'Museums', 'Theme Parks', 'Water Parks', 'Zoo', 'Health/Beauty Spa'].map((item: string, i: number) => (
+                        <div key={i} style={{ color: '#64748b', fontSize: '1rem' }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
+              </div>
+
+              {/* Dynamic Amenities */}
+              {property.propertyAmenities && property.propertyAmenities.length > 0 && (
+                <div style={{ width: '100%' }}>
+                  {Object.entries(
+                    property.propertyAmenities.reduce((acc: any, pa: any) => {
+                      if (pa.amenityItem && pa.amenityItem.category) {
+                        const catName = pa.amenityItem.category.name;
+                        if (!acc[catName]) acc[catName] = [];
+                        acc[catName].push({ name: pa.amenityItem.name, icon: pa.amenityItem.icon });
+                      }
+                      return acc;
+                    }, {})
+                  ).map(([catName, items]: any, idx) => (
+                    <div key={idx}>
+                      <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', padding: '0.75rem 0' }}>{catName}</div>
+                      <div style={{ height: '1px', background: '#e2e8f0' }} />
+                      <div style={{ padding: '0.75rem 0' }}>
+                        <div className="amenities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 16px' }}>
+                          {items.map((item: any, i: number) => (
+                            <div key={i} style={{ color: '#64748b', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {item.icon && (() => {
+                                const IconName = item.icon.split('-').map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+                                const IconComp = (LucideIcons as any)[IconName];
+                                return IconComp ? <IconComp size={14} /> : <Check size={14} />;
+                              })()}
+                              <span>{item.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            </section>
+
           </div>
 
           {/* Right Column (30%) - Booking & Enquiry Widget */}
-          <div className="flex flex-col gap-6 right-column" style={{ width: '35%', paddingLeft: '1rem', paddingRight: '0.5rem', paddingBottom: '2rem', marginTop: '30px' }}>
+          <div className="flex flex-col gap-6 right-column" style={{ width: '30%', paddingLeft: '1rem', paddingRight: '0.5rem', paddingBottom: '2rem', marginTop: '30px' }}>
             {/* Inner wrapper */}
             <div>
 
@@ -1383,12 +1424,12 @@ const PropertyDetail: React.FC = () => {
                   <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '0.875rem' }}>{property.bedrooms || 4}</div>
                 </div>
                 <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
-                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.875rem' }}>Bathrooms</div>
-                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '0.875rem' }}>{property.bathrooms || 5}</div>
+                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '1rem' }}>Bathrooms</div>
+                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '1rem' }}>{property.bathrooms || 5}</div>
                 </div>
                 <div style={{ display: 'flex' }}>
-                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.875rem' }}>Property type</div>
-                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '0.875rem' }}>{property.propertyType || 'Farmhouse Rentals'}</div>
+                  <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontSize: '1rem' }}>Property type</div>
+                  <div style={{ flex: 1, padding: '12px 16px', color: '#64748b', fontSize: '1rem' }}>{property_type?.propertyName || property.propertyType || 'Farmhouse Rentals'}</div>
                 </div>
               </div>
 
@@ -1396,24 +1437,24 @@ const PropertyDetail: React.FC = () => {
               <div style={{ marginBottom: '2.5rem' }}>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Check In" value={checkIn} onChange={(e) => { setCheckIn(e.target.value); setBookingErrors(prev => ({ ...prev, checkIn: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkIn ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    <input type="text" placeholder="Check In" value={checkIn} onChange={(e) => { setCheckIn(e.target.value); setBookingErrors(prev => ({ ...prev, checkIn: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkIn ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
                     {bookingErrors.checkIn && <span className="field-error-msg">{bookingErrors.checkIn}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Check Out" value={checkOut} onChange={(e) => { setCheckOut(e.target.value); setBookingErrors(prev => ({ ...prev, checkOut: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkOut ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    <input type="text" placeholder="Check Out" value={checkOut} onChange={(e) => { setCheckOut(e.target.value); setBookingErrors(prev => ({ ...prev, checkOut: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkOut ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
                     {bookingErrors.checkOut && <span className="field-error-msg">{bookingErrors.checkOut}</span>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
                   <div style={{ flex: 1 }}>
-                    <select value={guestsCount} onChange={(e) => { setGuestsCount(parseInt(e.target.value)); setBookingErrors(prev => ({ ...prev, guestsCount: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.guestsCount ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
+                    <select value={guestsCount} onChange={(e) => { setGuestsCount(parseInt(e.target.value)); setBookingErrors(prev => ({ ...prev, guestsCount: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.guestsCount ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
                       <option value="">Select Adults</option>
                       {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                     {bookingErrors.guestsCount && <span className="field-error-msg">{bookingErrors.guestsCount}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <select style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
+                    <select style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
                       <option value="">Select Children</option>
                       {[0, 1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
@@ -1431,53 +1472,53 @@ const PropertyDetail: React.FC = () => {
               </div>
 
               {/* Contact the Owner Section */}
-              <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem' }}>Contact the owner</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1.5rem' }}>Name : {host?.firstname} {host?.lastname || 'Richard'}</div>
+              <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem' }}>Contact the owner</div>
+              <div style={{ fontSize: '1rem', color: '#64748b', marginBottom: '1.5rem' }}>Name : {host?.firstname ? `${host.firstname} ${host.lastname || ''}` : 'Property Owner'}</div>
 
               <form onSubmit={handleEnquirySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
-                  <input type="text" placeholder="First Name" value={enquiryFirstName} onChange={(e) => { setEnquiryFirstName(e.target.value); setEnquiryErrors(prev => ({ ...prev, firstName: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.firstName ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                  <input type="text" placeholder="First Name" value={enquiryFirstName} onChange={(e) => { setEnquiryFirstName(e.target.value); setEnquiryErrors(prev => ({ ...prev, firstName: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.firstName ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
                   {enquiryErrors.firstName && <span className="field-error-msg">{enquiryErrors.firstName}</span>}
                 </div>
                 <div>
-                  <input type="text" placeholder="Last Name" value={enquiryLastName} onChange={(e) => { setEnquiryLastName(e.target.value); setEnquiryErrors(prev => ({ ...prev, lastName: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.lastName ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                  <input type="text" placeholder="Last Name" value={enquiryLastName} onChange={(e) => { setEnquiryLastName(e.target.value); setEnquiryErrors(prev => ({ ...prev, lastName: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.lastName ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
                   {enquiryErrors.lastName && <span className="field-error-msg">{enquiryErrors.lastName}</span>}
                 </div>
                 <div>
-                  <input type="email" placeholder="Email" value={enquiryEmail} onChange={(e) => { setEnquiryEmail(e.target.value); setEnquiryErrors(prev => ({ ...prev, email: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.email ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                  <input type="email" placeholder="Email" value={enquiryEmail} onChange={(e) => { setEnquiryEmail(e.target.value); setEnquiryErrors(prev => ({ ...prev, email: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: enquiryErrors.email ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
                   {enquiryErrors.email && <span className="field-error-msg">{enquiryErrors.email}</span>}
                 </div>
-                <select value={enquiryCountry} onChange={(e) => setEnquiryCountry(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
+                <select value={enquiryCountry} onChange={(e) => setEnquiryCountry(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
                   <option value="United States">United States</option>
                   <option value="Canada">Canada</option>
                   <option value="United Kingdom">United Kingdom</option>
                 </select>
-                <input type="tel" placeholder="Phone No" value={enquiryPhone} onChange={(e) => setEnquiryPhone(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
+                <input type="tel" placeholder="Phone No" value={enquiryPhone} onChange={(e) => setEnquiryPhone(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Arrival" value={enquiryArrival} onChange={(e) => setEnquiryArrival(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    <input type="text" placeholder="Arrival" value={enquiryArrival} onChange={(e) => setEnquiryArrival(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Departure" value={enquiryDeparture} onChange={(e) => setEnquiryDeparture(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    <input type="text" placeholder="Departure" value={enquiryDeparture} onChange={(e) => setEnquiryDeparture(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
                   </div>
                 </div>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: '#334155', cursor: 'pointer', margin: '4px 0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', color: '#334155', cursor: 'pointer', margin: '4px 0' }}>
                   <input type="checkbox" checked={enquiryFlexible} onChange={(e) => setEnquiryFlexible(e.target.checked)} style={{ cursor: 'pointer' }} /> My travel dates are flexible.
                 </label>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>Adults</div>
-                    <select value={enquiryAdults} onChange={(e) => setEnquiryAdults(parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>Adults</div>
+                    <select value={enquiryAdults} onChange={(e) => setEnquiryAdults(parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
                       <option value="">Select one</option>
                       {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>Children</div>
-                    <select value={enquiryChildren} onChange={(e) => setEnquiryChildren(parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>Children</div>
+                    <select value={enquiryChildren} onChange={(e) => setEnquiryChildren(parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
                       <option value="">Select one</option>
                       {[0, 1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
@@ -1485,22 +1526,22 @@ const PropertyDetail: React.FC = () => {
                 </div>
 
                 <div>
-                  <textarea rows={4} value={enquiryMessage} onChange={(e) => { setEnquiryMessage(e.target.value); setEnquiryErrors(prev => ({ ...prev, message: '' })); }} placeholder="Message to owner/manager" style={{ width: '100%', border: enquiryErrors.message ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '0.875rem', borderRadius: '2px', outline: 'none', resize: 'vertical', color: '#334155', marginTop: '4px' }} />
+                  <textarea rows={4} value={enquiryMessage} onChange={(e) => { setEnquiryMessage(e.target.value); setEnquiryErrors(prev => ({ ...prev, message: '' })); }} placeholder="Message to owner/manager" style={{ width: '100%', border: enquiryErrors.message ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', resize: 'vertical', color: '#334155', marginTop: '4px' }} />
                   {enquiryErrors.message && <span className="field-error-msg">{enquiryErrors.message}</span>}
                 </div>
 
-                <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', lineHeight: 1.5, marginTop: '4px' }}>
+                <div style={{ fontSize: '1rem', color: '#64748b', textTransform: 'uppercase', lineHeight: 1.5, marginTop: '4px' }}>
                   BY CLICKING 'SEND EMAIL' YOU ARE<br />AGREEING TO OUR <a href="#" style={{ color: '#557f9f', textDecoration: 'none' }}>TERMS AND<br />CONDITIONS</a>
                 </div>
 
-                {enquiryErrors.submit && <div style={{ color: '#dc2626', fontSize: '0.875rem', marginBottom: '8px', textAlign: 'center' }}>{enquiryErrors.submit}</div>}
+                {enquiryErrors.submit && <div style={{ color: '#dc2626', fontSize: '1rem', marginBottom: '8px', textAlign: 'center' }}>{enquiryErrors.submit}</div>}
 
                 {enquirySent ? (
                   <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '4px', textAlign: 'center', fontWeight: 600, marginTop: '4px' }}>
                     Message sent successfully!
                   </div>
                 ) : (
-                  <button type="submit" disabled={enquiryLoading} style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '10px', borderRadius: '24px', fontSize: '0.95rem', border: 'none', cursor: enquiryLoading ? 'not-allowed' : 'pointer', transition: 'background 0.2s', marginTop: '4px', opacity: enquiryLoading ? 0.7 : 1 }} onMouseEnter={(e) => !enquiryLoading && (e.currentTarget.style.background = '#436b8a')} onMouseLeave={(e) => !enquiryLoading && (e.currentTarget.style.background = '#557f9f')}>
+                  <button type="submit" disabled={enquiryLoading} style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '10px', borderRadius: '24px', fontSize: '1rem', border: 'none', cursor: enquiryLoading ? 'not-allowed' : 'pointer', transition: 'background 0.2s', marginTop: '4px', opacity: enquiryLoading ? 0.7 : 1 }} onMouseEnter={(e) => !enquiryLoading && (e.currentTarget.style.background = '#436b8a')} onMouseLeave={(e) => !enquiryLoading && (e.currentTarget.style.background = '#557f9f')}>
                     {enquiryLoading ? 'Sending...' : 'Send message'}
                   </button>
                 )}
@@ -1508,14 +1549,14 @@ const PropertyDetail: React.FC = () => {
 
               {/* Travel Guard Promo */}
               <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>Get Vacation Protection for Your Booking!</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>Get Vacation Protection for Your Booking!</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
                   <div style={{ border: '2px solid #0284c7', padding: '0px 4px', borderRadius: '2px' }}>
-                    <span style={{ color: '#0284c7', fontWeight: 900, fontSize: '0.75rem', letterSpacing: '0.5px' }}>AIG</span>
+                    <span style={{ color: '#0284c7', fontWeight: 900, fontSize: '1rem', letterSpacing: '0.5px' }}>AIG</span>
                   </div>
                   <div style={{ color: '#0284c7', fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.5px' }}>Travel Guard&reg;</div>
                 </div>
-                <div style={{ fontSize: '0.7rem', color: '#1e293b', fontWeight: 600 }}>
+                <div style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 600 }}>
                   <a href="#" style={{ color: '#0284c7', textDecoration: 'none' }}>Get Protected Now</a> Travel with peace of mind
                 </div>
               </div>

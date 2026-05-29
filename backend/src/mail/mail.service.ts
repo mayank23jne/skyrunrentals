@@ -86,7 +86,7 @@ export class MailService {
   ): Promise<boolean> {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
-    const logoURL = 'https://holidayhavenhomes.com/assets/img/logo.png'; // Placeholder or actual URL
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
@@ -139,7 +139,7 @@ export class MailService {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
-    const logoURL = `${imgPath}assets/img/logo.png`;
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
 
     const messagetable = `
       <div style='width: 500px;margin: auto;border: solid 5px #579981;padding: 20px;border-radius: 10px;text-align:center;'>
@@ -210,7 +210,7 @@ export class MailService {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
-    const logoURL = `${imgPath}assets/img/logo.png`;
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
     const flexible = data.travel === '1' ? 'Dates are flexible.' : '';
@@ -517,7 +517,7 @@ export class MailService {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
-    const logoURL = `${imgPath}assets/img/logo.png`;
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
     const messagetable = `
@@ -618,7 +618,7 @@ export class MailService {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
     const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
-    const logoURL = `${imgPath}assets/img/logo.png`;
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
     const messagetable = `

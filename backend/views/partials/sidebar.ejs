@@ -7,9 +7,11 @@
         <a href="<%= process.env.APP_URL %>" class="nav-item">
             <i data-lucide="home"></i> Home
         </a>
+        <% if (admin && admin.usertype !== '2') { %>
         <a href="/admin/dashboard" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>">
             <i data-lucide="layout-dashboard"></i> Dashboard
         </a>
+        <% } %>
         <a href="/admin/properties" class="nav-item <%= activePage === 'properties' ? 'active' : '' %>">
             <i data-lucide="map-pin"></i> Property Listing
         </a>

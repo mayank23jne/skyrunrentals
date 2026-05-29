@@ -69,5 +69,12 @@ export class ContactController {
   async contactOwner(@Body() contactOwnerDto: ContactOwnerDto) {
     return this.contactService.contactOwner(contactOwnerDto);
   }
+
+  @Public()
+  @Post('submit')
+  @ApiOperation({ summary: 'Submit contact us form' })
+  async submitContactForm(@Body() body: any) {
+    return this.contactService.submitContactUs(body);
+  }
 }
 

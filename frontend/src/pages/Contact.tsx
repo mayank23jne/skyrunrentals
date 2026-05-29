@@ -6,12 +6,16 @@ import { Mail, Headphones, MapPin, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BackToTop from '../components/BackToTop';
 import bannerImg from '../assets/banner_bg.jpg';
+import api from '../services/api';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '', message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = 'Name is required';
@@ -23,10 +27,22 @@ const Contact: React.FC = () => {
       return;
     }
 
-    // Usually you would submit this to an API
-    alert('Message sent successfully!');
-    setFormData({ name: '', email: '', phone: '', address: '', message: '' });
-    setErrors({});
+    setSuccessMsg('');
+    setErrorMsg('');
+    setIsSubmitting(true);
+    try {
+      await api.post('/admin/contacts/submit', formData);
+      setSuccessMsg('Message sent successfully!');
+      setFormData({ name: '', email: '', phone: '', address: '', message: '' });
+      setErrors({});
+      setTimeout(() => setSuccessMsg(''), 5000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setErrorMsg('Failed to send message. Please try again later.');
+      setTimeout(() => setErrorMsg(''), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,6 +115,18 @@ const Contact: React.FC = () => {
                 <h2 className="section-title">Send us a Message</h2>
               </div>
 
+              {successMsg && (
+                <div style={{ background: '#dcfce7', color: '#166534', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontWeight: 600, border: '1px solid #bbf7d0', textAlign: 'center' }}>
+                  {successMsg}
+                </div>
+              )}
+
+              {errorMsg && (
+                <div style={{ background: '#fee2e2', color: '#991b1b', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontWeight: 600, border: '1px solid #fecaca', textAlign: 'center' }}>
+                  {errorMsg}
+                </div>
+              )}
+
               <form className="contact-form" onSubmit={handleSubmit}>
                 <div className="form-row">
                   <div className="form-group">
@@ -126,8 +154,8 @@ const Contact: React.FC = () => {
                 </div>
 
                 <div className="form-submit">
-                  <button type="submit" className="submit-btn">
-                    Send Message <Send size={18} />
+                  <button type="submit" className="submit-btn" disabled={isSubmitting} style={{ opacity: isSubmitting ? 0.7 : 1 }}>
+                    {isSubmitting ? 'Sending...' : 'Send Message'} {!isSubmitting && <Send size={18} />}
                   </button>
                 </div>
               </form>

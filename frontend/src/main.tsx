@@ -18,6 +18,8 @@ import LiabilityInsurance from './pages/LiabilityInsurance';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import RefundPolicy from './pages/RefundPolicy';
 import Payment from './pages/Payment';
+import ResetPassword from './pages/ResetPassword';
+import TestimonialsPage from './pages/TestimonialsPage';
 import ScrollToTop from './components/ScrollToTop';
 import { AuthModalProvider } from './context/AuthModalContext';
 import { AuthProvider } from './context/AuthContext';
@@ -53,6 +55,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/refund-policy" element={<RefundPolicy />} />
               <Route path="/payment" element={<Payment />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/testimonials" element={<TestimonialsPage />} />
               {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             </Routes>
           </BrowserRouter>

@@ -104,13 +104,10 @@ const FeeCalculator: React.FC = () => {
 
               {/* Holiday Haven Homes (Highlight Row) */}
               <div className="result-row highlight">
-                <div className="logo-col">
+                <div className="logo-col" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {/* Custom HHH SVG Logo */}
-                  <svg viewBox="0 0 160 40" width="140" height="35" className="logo-svg">
-                    <path d="M12 25 L20 18 L28 25 M14 24 L14 32 L26 32 L26 24" stroke="#3b82f6" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
-                    <text x="35" y="24" fontFamily="'Inter', sans-serif" fontWeight="900" fontSize="15" fill="#1e3a8a">Skyrun Rentals</text>
-                    <text x="35" y="34" fontFamily="'Inter', sans-serif" fontWeight="700" fontSize="9" fill="#fe9d3d" letterSpacing="1">HOMES</text>
-                  </svg>
+                  <img src="/favicon.png" alt="Skyrun Rentals Logo" style={{ height: '35px', objectFit: 'contain' }} className="logo-svg" />
+                  <span style={{ fontWeight: '900', color: '#1e3a8a', fontSize: '16px', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.5px' }}>Skyrunrentals</span>
                 </div>
                 <div className="amount-col highlight-amt">
                   <span className="earn-amount">{feeData ? formatPrice(feeData.holidayHavenHomes) : '...'}</span>
@@ -183,7 +180,7 @@ const FeeCalculator: React.FC = () => {
         <div className="fee-modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="fee-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="fee-modal-header">
-              <h3>How our fees compare</h3>
+              <div></div>
               <button className="fee-modal-close" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
 
@@ -201,12 +198,9 @@ const FeeCalculator: React.FC = () => {
 
               {/* Holiday Haven Homes */}
               <div className="fee-table-row">
-                <div className="fee-col">
-                  <svg viewBox="0 0 160 40" width="140" height="35" className="logo-svg">
-                    <path d="M12 25 L20 18 L28 25 M14 24 L14 32 L26 32 L26 24" stroke="#3b82f6" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
-                    <text x="35" y="24" fontFamily="'Inter', sans-serif" fontWeight="900" fontSize="15" fill="#1e3a8a">Skyrun Rentals</text>
-                    <text x="35" y="34" fontFamily="'Inter', sans-serif" fontWeight="700" fontSize="9" fill="#fe9d3d" letterSpacing="1">HOMES</text>
-                  </svg>
+                <div className="fee-col" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img src="/favicon.png" alt="Skyrun Rentals Logo" style={{ height: '30px', objectFit: 'contain' }} className="logo-svg" />
+                  <span style={{ fontWeight: '900', color: '#1e3a8a', fontSize: '14px', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.5px' }}>Skyrunrentals</span>
                 </div>
                 <div className="fee-col" data-label="Fees">5%</div>
                 <div className="fee-col" data-label="Amount">{formatPrice(sliderValue * 0.05)}</div>

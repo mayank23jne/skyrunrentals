@@ -48,9 +48,13 @@ export class PropertyService {
     }
   }
 
-  async findMany(options: { skip?: number; take?: number; search?: string; countryId?: number; stateId?: number; cityId?: number }) {
-    const { skip, take, search, countryId, stateId, cityId } = options;
+  async findMany(options: { skip?: number; take?: number; search?: string; countryId?: number; stateId?: number; cityId?: number; ownerId?: number }) {
+    const { skip, take, search, countryId, stateId, cityId, ownerId } = options;
     const where: any = {};
+
+    if (ownerId !== undefined) {
+      where.createdBy = ownerId;
+    }
 
     // Geographic filters
     if (cityId) {
@@ -99,9 +103,13 @@ export class PropertyService {
     }));
   }
 
-  async count(options: { search?: string; countryId?: number; stateId?: number; cityId?: number } = {}) {
-    const { search, countryId, stateId, cityId } = options;
+  async count(options: { search?: string; countryId?: number; stateId?: number; cityId?: number; ownerId?: number } = {}) {
+    const { search, countryId, stateId, cityId, ownerId } = options;
     const where: any = {};
+
+    if (ownerId !== undefined) {
+      where.createdBy = ownerId;
+    }
 
     if (cityId) {
       where.city = String(cityId);
@@ -839,6 +847,9 @@ export class PropertyService {
     const cityId = parseInt(property.city || '');
     const city = property.city ? await this.prisma.city.findFirst({ where: !isNaN(cityId) ? { id: cityId } : { name: property.city } }) : null;
 
+    const propertyTypeId = parseInt(property.propertyType || '');
+    const propertyTypeObj = property.propertyType ? await this.prisma.propertyType.findFirst({ where: !isNaN(propertyTypeId) ? { id: propertyTypeId } : { propertyName: property.propertyType } }) : null;
+
     // Fetch bookings (id_item in bookings table corresponds to BookingItem.id)
     const bookingItem = await this.prisma.bookingItem.findFirst({
       where: { idRefExternal: id }
@@ -878,6 +889,7 @@ export class PropertyService {
       country,
       state,
       city,
+      property_type: propertyTypeObj,
       countries,
       currency: allCurrencies,
       contact_detail: property.contacts[0] || null,
@@ -1051,23 +1063,27 @@ export class PropertyService {
           orderBy: { nightly: 'asc' }
         }
       },
-      orderBy: { id: 'desc' }
+      orderBy: { id: 'asc' }
     });
 
     const countryIds = [...new Set(propertiesRaw.map(p => parseInt(p.country as string, 10)).filter(id => !isNaN(id)))];
+    const stateIds = [...new Set(propertiesRaw.map(p => parseInt(p.state as string, 10)).filter(id => !isNaN(id)))];
     const propertyCityIds = [...new Set(propertiesRaw.map(p => parseInt(p.city as string, 10)).filter(id => !isNaN(id)))];
 
-    const [countries, propertyCities] = await Promise.all([
+    const [countries, states, propertyCities] = await Promise.all([
       countryIds.length > 0 ? this.prisma.country.findMany({ where: { id: { in: countryIds } } }) : [],
+      stateIds.length > 0 ? this.prisma.state.findMany({ where: { id: { in: stateIds } } }) : [],
       propertyCityIds.length > 0 ? this.prisma.city.findMany({ where: { id: { in: propertyCityIds } } }) : []
     ]);
 
     const countryMap = Object.fromEntries(countries.map(c => [c.id, c.name]));
+    const stateMap = Object.fromEntries(states.map(s => [s.id, s.name]));
     const cityMap = Object.fromEntries(propertyCities.map(c => [c.id, c.name]));
 
     const properties = propertiesRaw.map(p => ({
       ...p,
       country: p.country && !isNaN(parseInt(p.country as string, 10)) ? countryMap[parseInt(p.country as string, 10)] || p.country : p.country,
+      state: p.state && !isNaN(parseInt(p.state as string, 10)) ? stateMap[parseInt(p.state as string, 10)] || p.state : p.state,
       city: p.city && !isNaN(parseInt(p.city as string, 10)) ? cityMap[parseInt(p.city as string, 10)] || p.city : p.city,
       photos: p.photos.map(photo => ({
         ...photo,
@@ -1085,6 +1101,61 @@ export class PropertyService {
       currentPage: page,
       totalPages: Math.ceil(totalCount / pageSize),
     };
+  }
+
+  async searchLocations(q: string) {
+    if (!q) return [];
+    
+    const results: any[] = [];
+    const propertyId = parseInt(q, 10);
+    if (!isNaN(propertyId)) {
+      const prop = await this.prisma.property.findUnique({ where: { id: propertyId }});
+      if (prop) {
+         results.push({ type: 'property', id: prop.id, label: `Property ID: ${prop.id}` });
+      }
+    }
+
+    const [countries, states, cities] = await Promise.all([
+      this.prisma.country.findMany({
+        where: { name: { contains: q } },
+        take: 5
+      }),
+      this.prisma.state.findMany({
+        where: { name: { contains: q } },
+        include: { country: true },
+        take: 5
+      }),
+      this.prisma.city.findMany({
+        where: { name: { contains: q } },
+        include: { state: { include: { country: true } } },
+        take: 10
+      })
+    ]);
+
+    countries.forEach(c => {
+      results.push({ type: 'country', id: c.id, label: c.name });
+    });
+
+    states.forEach(s => {
+      results.push({ 
+        type: 'state', 
+        id: s.id, 
+        stateId: s.id, 
+        label: `${s.name}, ${s.country?.name || ''}`.replace(/,\s*$/, '') 
+      });
+    });
+
+    cities.forEach(c => {
+      const parts = [c.name, c.state?.name, c.state?.country?.name].filter(Boolean);
+      results.push({ 
+        type: 'city', 
+        id: c.id, 
+        stateId: c.state?.id, 
+        label: parts.join(', ') 
+      });
+    });
+
+    return results;
   }
 
   async getListing(query: ListingPropertyDto) {
@@ -1241,7 +1312,7 @@ export class PropertyService {
             orderBy: { nightly: 'asc' }
           }
         },
-        orderBy: { id: 'desc' }
+        orderBy: { id: 'asc' }
       }),
       this.prisma.currency.findMany({ orderBy: { id: 'asc' } }),
       this.prisma.propertyType.findMany({
@@ -1255,19 +1326,23 @@ export class PropertyService {
     ]);
 
     const countryIds = [...new Set(propertiesRaw.map(p => parseInt(p.country as string, 10)).filter(id => !isNaN(id)))];
+    const stateIds = [...new Set(propertiesRaw.map(p => parseInt(p.state as string, 10)).filter(id => !isNaN(id)))];
     const cityIds = [...new Set(propertiesRaw.map(p => parseInt(p.city as string, 10)).filter(id => !isNaN(id)))];
 
-    const [countries, propertyCities] = await Promise.all([
+    const [countries, states, propertyCities] = await Promise.all([
       countryIds.length > 0 ? this.prisma.country.findMany({ where: { id: { in: countryIds } } }) : [],
+      stateIds.length > 0 ? this.prisma.state.findMany({ where: { id: { in: stateIds } } }) : [],
       cityIds.length > 0 ? this.prisma.city.findMany({ where: { id: { in: cityIds } } }) : []
     ]);
 
     const countryMap = Object.fromEntries(countries.map(c => [c.id, c.name]));
+    const stateMap = Object.fromEntries(states.map(s => [s.id, s.name]));
     const cityMap = Object.fromEntries(propertyCities.map(c => [c.id, c.name]));
 
     const properties = propertiesRaw.map(p => ({
       ...p,
       country: p.country && !isNaN(parseInt(p.country as string, 10)) ? countryMap[parseInt(p.country as string, 10)] || p.country : p.country,
+      state: p.state && !isNaN(parseInt(p.state as string, 10)) ? stateMap[parseInt(p.state as string, 10)] || p.state : p.state,
       city: p.city && !isNaN(parseInt(p.city as string, 10)) ? cityMap[parseInt(p.city as string, 10)] || p.city : p.city,
       photos: p.photos.map(photo => ({
         ...photo,

@@ -143,4 +143,20 @@ export class ContactService {
       success: '<div class="msgalerts"><span class="alert alert-success">Enquiry Submitted Successfully</span></div>',
     };
   }
+
+  async submitContactUs(data: any) {
+    const nameParts = (data.name || '').trim().split(' ');
+    const firstname = nameParts[0] || '';
+    const lastname = nameParts.slice(1).join(' ') || '';
+    
+    return this.prisma.contactUs.create({
+      data: {
+        firstname,
+        lastname,
+        email: data.email || '',
+        website: data.phone || '', // Map phone to website since schema has no phone field
+        message: data.address ? `Addr: ${data.address} | ${data.message}`.substring(0, 255) : (data.message || '').substring(0, 255),
+      }
+    });
+  }
 }

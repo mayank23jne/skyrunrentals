@@ -31,26 +31,42 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
   const [showGuestDropdown, setShowGuestDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
   const [destError, setDestError] = useState('');
+  const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const guestsOptions = Array.from({ length: 12 }, (_, i) => `${i + 1} Guest${i === 0 ? '' : 's'}`);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const checkDropdownDirection = (ref: React.RefObject<HTMLDivElement | null>) => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      setDropdownDirection(spaceAbove > spaceBelow ? 'up' : 'down');
+    }
+  };
 
   const destRef = useRef<HTMLDivElement>(null);
   const guestRef = useRef<HTMLDivElement>(null);
 
-  const { data: countries } = useQuery({
-    queryKey: ['countries'],
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+
+  const { data: searchLocations, isFetching } = useQuery({
+    queryKey: ['searchLocations', searchData.destination],
     queryFn: async () => {
-      const response = await api.get('/properties/countries');
+      if (!searchData.destination.trim()) return [];
+      const response = await api.get(`/properties/search-locations?q=${encodeURIComponent(searchData.destination)}`);
       return response.data;
     },
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
+    enabled: searchData.destination.trim().length > 0,
+    staleTime: 60000,
   });
 
-  const filteredCountries = countries?.filter((c: any) =>
-    c.name.toLowerCase().includes(searchData.destination.toLowerCase())
-  ) || [];
+  const locations = searchLocations || [];
 
   useEffect(() => {
     setSearchData({
@@ -82,12 +98,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
     setDestError('');
 
     const params = new URLSearchParams();
-    if (searchData.destination) params.set('venue', searchData.destination);
     if (searchData.arrive) params.set('check_in', searchData.arrive);
     if (searchData.depart) params.set('check_out', searchData.depart);
     if (searchData.guests) params.set('guest', searchData.guests);
 
-    navigate(`/listing?${params.toString()}`);
+    if (selectedLocation) {
+      if (selectedLocation.type === 'country') {
+        navigate(`/listing/countries/${selectedLocation.id}?${params.toString()}`);
+      } else if (selectedLocation.type === 'state' || selectedLocation.type === 'city') {
+        navigate(`/listing/states/${selectedLocation.stateId}?${params.toString()}`);
+      } else {
+        if (searchData.destination) params.set('venue', selectedLocation.id);
+        navigate(`/listing?${params.toString()}`);
+      }
+    } else {
+      if (searchData.destination) params.set('venue', searchData.destination);
+      navigate(`/listing?${params.toString()}`);
+    }
   };
 
   return (
@@ -105,8 +132,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
               value={searchData.destination}
               onChange={(e) => {
                 setSearchData({ ...searchData, destination: e.target.value });
-                setShowDestDropdown(e.target.value.trim().length > 0);
+                setSelectedLocation(null); // Reset selection when user types
+                const isShowing = e.target.value.trim().length > 0;
+                setShowDestDropdown(isShowing);
+                if (isShowing) checkDropdownDirection(destRef);
                 if (e.target.value.trim()) setDestError('');
+              }}
+              onClick={(e) => {
+                const isShowing = (e.target as HTMLInputElement).value.trim().length > 0;
+                setShowDestDropdown(isShowing);
+                if (isShowing) checkDropdownDirection(destRef);
               }}
             />
             {destError && (
@@ -115,25 +150,33 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
               </div>
             )}
             {showDestDropdown && (
-              <div className="dropdown-menu dest-dropdown">
-                {filteredCountries.length > 0 ? (
-                  filteredCountries.map((country: any) => (
-                    <div
-                      key={country.id}
-                      className="dropdown-option"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setSearchData({ ...searchData, destination: country.name });
-                        setShowDestDropdown(false);
-                      }}
-                    >
-                      {country.name}
-                    </div>
-                  ))
+              <div
+                className="dropdown-menu dest-dropdown"
+                style={dropdownDirection === 'up' ? { bottom: 'calc(100% - 10px)', top: 'auto' } : { top: 'calc(100% - 10px)', bottom: 'auto' }}
+              >
+                {locations.length > 0 ? (
+                  <>
+                    <div className="dropdown-group-title">Matches</div>
+                    {locations.map((loc: any, idx: number) => (
+                      <div
+                        key={`loc-${loc.type}-${loc.id}-${idx}`}
+                        className="dropdown-option"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSearchData({ ...searchData, destination: loc.label });
+                          setSelectedLocation(loc);
+                          setShowDestDropdown(false);
+                        }}
+                      >
+                        <MapPin size={14} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle', color: '#999' }} />
+                        {loc.label}
+                      </div>
+                    ))}
+                  </>
                 ) : (
-                  <div className="dropdown-option" style={{ color: '#999', cursor: 'default' }}>
-                    Loading or no countries found...
+                  <div className="dropdown-empty" style={{ padding: '12px 16px', color: '#999' }}>
+                    {isFetching ? 'Searching...' : 'No locations found'}
                   </div>
                 )}
               </div>
@@ -143,70 +186,87 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
 
         <div className="separator-line" />
 
-        {/* Arrive */}
-        <div className="search-item">
-          <CalendarIcon className="item-icon" size={24} />
-          <div className="item-text" style={{ flex: 1 }}>
-            <p className="item-label">Arrive</p>
-            <DatePicker
-              selected={searchData.arrive ? new Date(searchData.arrive) : null}
-              onChange={(date: Date | null) => {
-                if (date) {
-                  // Format as YYYY-MM-DD to keep the date format consistent
-                  const year = date.getFullYear();
-                  const month = String(date.getMonth() + 1).padStart(2, '0');
-                  const day = String(date.getDate()).padStart(2, '0');
-                  setSearchData({ ...searchData, arrive: `${year}-${month}-${day}` });
-                } else {
-                  setSearchData({ ...searchData, arrive: '' });
-                }
-              }}
-              placeholderText="Check-in Date"
-              className="item-input date-input"
-              minDate={new Date()}
-            />
-          </div>
-        </div>
-
-        <div className="separator-line" />
-
-        {/* Depart */}
-        <div className="search-item">
-          <CalendarIcon className="item-icon" size={24} />
-          <div className="item-text" style={{ flex: 1 }}>
-            <p className="item-label">Depart</p>
-            <DatePicker
-              selected={searchData.depart ? new Date(searchData.depart) : null}
-              onChange={(date: Date | null) => {
-                if (date) {
-                  const year = date.getFullYear();
-                  const month = String(date.getMonth() + 1).padStart(2, '0');
-                  const day = String(date.getDate()).padStart(2, '0');
-                  setSearchData({ ...searchData, depart: `${year}-${month}-${day}` });
-                } else {
-                  setSearchData({ ...searchData, depart: '' });
-                }
-              }}
-              placeholderText="Check-out Date"
-              className="item-input date-input"
-              minDate={searchData.arrive ? new Date(searchData.arrive) : new Date()}
-            />
-          </div>
-        </div>
+        {/* Date Range Picker */}
+        <DatePicker
+          selectsRange={true}
+          startDate={searchData.arrive ? new Date(searchData.arrive) : undefined}
+          endDate={searchData.depart ? new Date(searchData.depart) : undefined}
+          onChange={(update: [Date | null, Date | null]) => {
+            const [start, end] = update;
+            setSearchData(prev => {
+              let arrive = prev.arrive;
+              let depart = prev.depart;
+              if (start) {
+                const year = start.getFullYear();
+                const month = String(start.getMonth() + 1).padStart(2, '0');
+                const day = String(start.getDate()).padStart(2, '0');
+                arrive = `${year}-${month}-${day}`;
+              } else {
+                arrive = '';
+              }
+              if (end) {
+                const year = end.getFullYear();
+                const month = String(end.getMonth() + 1).padStart(2, '0');
+                const day = String(end.getDate()).padStart(2, '0');
+                depart = `${year}-${month}-${day}`;
+              } else {
+                depart = '';
+              }
+              return { ...prev, arrive, depart };
+            });
+          }}
+          monthsShown={isMobile ? 1 : 2}
+          minDate={new Date()}
+          wrapperClassName="date-picker-range-wrapper"
+          customInput={
+            <div style={{ display: 'flex', width: '100%', height: '100%', cursor: 'pointer' }}>
+              <div className="search-item" style={{ flex: 1, paddingRight: '15px' }}>
+                <CalendarIcon className="item-icon" size={24} />
+                <div className="item-text" style={{ flex: 1 }}>
+                  <p className="item-label">Arrive</p>
+                  <div className="item-value-display">
+                    {searchData.arrive || <span style={{color: '#777'}}>Check-in Date</span>}
+                  </div>
+                </div>
+              </div>
+              <div className="separator-line" />
+              <div className="search-item" style={{ flex: 1, paddingLeft: '15px' }}>
+                <CalendarIcon className="item-icon" size={24} />
+                <div className="item-text" style={{ flex: 1 }}>
+                  <p className="item-label">Depart</p>
+                  <div className="item-value-display">
+                    {searchData.depart || <span style={{color: '#777'}}>Check-out Date</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        />
 
         <div className="separator-line" />
 
         {/* Guests */}
         <div className="search-item" ref={guestRef}>
-          <Users className="item-icon" size={24} onClick={() => setShowGuestDropdown(!showGuestDropdown)} style={{ cursor: 'pointer' }} />
-          <div className="item-text" onClick={() => setShowGuestDropdown(!showGuestDropdown)} style={{ cursor: 'pointer' }}>
+          <Users className="item-icon" size={24} onClick={() => {
+            const willShow = !showGuestDropdown;
+            setShowGuestDropdown(willShow);
+            if (willShow) checkDropdownDirection(guestRef);
+          }} style={{ cursor: 'pointer' }} />
+          <div className="item-text" onClick={() => {
+            const willShow = !showGuestDropdown;
+            setShowGuestDropdown(willShow);
+            if (willShow) checkDropdownDirection(guestRef);
+          }} style={{ cursor: 'pointer' }}>
             <p className="item-label">Guests</p>
             <div className="item-value-display">
               {searchData.guests} <ChevronDown size={14} />
             </div>
           </div>
           {showGuestDropdown && (
-            <div className="dropdown-menu" style={{ top: '100%', left: 0 }}>
+            <div
+              className="dropdown-menu"
+              style={dropdownDirection === 'up' ? { bottom: 'calc(100% - 10px)', top: 'auto', left: 0 } : { top: 'calc(100% - 10px)', bottom: 'auto', left: 0 }}
+            >
               {guestsOptions.map(opt => (
                 <div
                   key={opt}
@@ -243,13 +303,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
         .date-input { cursor: pointer; }
         .item-value-display { font-size: 14px; font-weight: 500; color: #777; margin: 4px 0 0 0; display: flex; align-items: center; gap: 8px; }
         
-        .dropdown-menu { opacity: 1; pointer-events: all; position: absolute; top: calc(100% - 10px); left: 0; width: 100%; min-width: 220px; background: white; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.12); border: 1px solid #eaeaea; z-index: 99999; max-height: 280px; overflow-y: auto; padding: 10px 0;}
+        .dropdown-menu { opacity: 1; pointer-events: all; position: absolute; top: calc(100% - 10px); left: 0; width: 100%; min-width: 250px; background: white; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.12); border: 1px solid #eaeaea; z-index: 9999999; max-height: 280px; overflow-y: auto; padding: 10px 0;}
         .dropdown-menu::-webkit-scrollbar { width: 6px; }
         .dropdown-menu::-webkit-scrollbar-track { background: transparent; }
         .dropdown-menu::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         
-        .dropdown-option { padding: 12px 25px; font-size: 15px; font-weight: 500; color: #444; transition: all 0.2s ease; cursor: pointer; text-align: left; }
-        .dropdown-option:hover { background: black; color: var(--accent); padding-left: 32px; }
+        .dropdown-group-title { padding: 8px 25px; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 1px; background: #fafafa; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; margin: 4px 0; }
+        .dropdown-group-title:first-child { border-top: none; margin-top: 0; }
+        
+        .dropdown-option { padding: 10px 25px; font-size: 14px; font-weight: 500; color: #444; transition: all 0.2s ease; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dropdown-option:hover { background: #f8fafc; color: var(--accent); padding-left: 30px; }
 
         .separator-line { width: 1px; height: 50px; background: #eee; }
         .search-btn-full { background: var(--accent); color: white; padding: 0 45px; height: 100%; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; border: none; cursor: pointer; margin-left: auto; border-radius: 0 12px 12px 0;}
@@ -260,12 +323,33 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
         .react-datepicker__input-container { width: 100%; }
         .react-datepicker__input-container input { width: 100%; border: none; background: transparent; font-size: 14px; font-weight: 500; color: #777; outline: none; padding: 4px 0 0 0; cursor: pointer; font-family: inherit;}
         
+        .react-datepicker { font-family: inherit; border: none; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); padding: 15px; }
+        .react-datepicker__header { background-color: white; border-bottom: none; padding-top: 10px; }
+        .react-datepicker__current-month { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; }
+        .react-datepicker__day-name { color: #1a1a1a; font-weight: 700; font-size: 13px; width: 40px; line-height: 40px; margin: 0; }
+        .react-datepicker__day { width: 40px; line-height: 40px; font-weight: 500; color: #1a1a1a; border-radius: 50%; margin: 0; transition: all 0.2s ease; outline: none; }
+        .react-datepicker__day:hover { background-color: #f1f5f9; color: var(--accent); border-radius: 50%; }
+        .react-datepicker__day--in-range { background-color: #f1f5f9 !important; color: #1a1a1a !important; border-radius: 0; }
+        .react-datepicker__day--range-start, .react-datepicker__day--selecting-range-start { background-color: var(--accent) !important; color: white !important; border-radius: 50% 0 0 50% !important; }
+        .react-datepicker__day--range-end { background-color: var(--accent) !important; color: white !important; border-radius: 0 50% 50% 0 !important; }
+        .react-datepicker__day--range-start.react-datepicker__day--range-end { border-radius: 50% !important; }
+        .react-datepicker__day--keyboard-selected { background-color: transparent; }
+        .react-datepicker__day--outside-month { color: #ccc; }
+        .react-datepicker__triangle { display: none; }
+        .react-datepicker__navigation { top: 25px; }
+        
+        .date-picker-range-wrapper { flex: 2; height: 100%; display: flex; }
+        .date-picker-range-wrapper .react-datepicker__input-container { display: flex; width: 100%; height: 100%; }
+        
         @media (max-width: 1024px) {
           .search-bar-content { flex-direction: column; height: auto; }
           .search-item { width: 100%; padding: 25px; height: auto; }
           .separator-line { display: none; }
           .search-btn-full { width: 100%; height: 70px; border-radius: 0 0 12px 12px; }
           .dropdown-menu { position: static; box-shadow: none; border: 1px solid #eee; margin-top: 10px; border-radius: 8px; }
+          
+          .date-picker-range-wrapper { width: 100%; }
+          .date-picker-range-wrapper .react-datepicker__input-container > div { flex-direction: column !important; }
         }
 
         .error-tooltip {

@@ -5,83 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api, { API_BASE_URL } from '../services/api';
 import { useCurrency } from '../context/CurrencyContext';
-import prop1 from '../assets/prop1.png';
-import prop2 from '../assets/prop2.png';
-
-const fallbackProperties = [
-  {
-    id: 1,
-    image: prop1,
-    title: "Vancouver unique 2 bed float home",
-    location: "Vancouver, Canada",
-    price: 2800,
-    rating: 5,
-    beds: 2,
-    baths: 1,
-    guests: 6,
-    category: "New"
-  },
-  {
-    id: 2,
-    image: prop2,
-    title: "Spectacular - Casa Blanca",
-    location: "Marbella, Spain",
-    price: 3900,
-    rating: 5,
-    beds: 7,
-    baths: 5,
-    guests: 12,
-    category: "Featured"
-  },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800",
-    title: "Better than Oceanfront, this REALLY is O",
-    location: "Miami, USA",
-    price: 8400,
-    rating: 5,
-    beds: 4,
-    baths: 5,
-    guests: 8,
-    category: "Discount"
-  },
-  {
-    id: 4,
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
-    title: "Vibrant Luxury Beachfront Villa",
-    location: "Malibu, California",
-    price: 5500,
-    rating: 5,
-    beds: 5,
-    baths: 4,
-    guests: 10,
-    category: "Popular"
-  },
-  {
-    id: 5,
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
-    title: "Modern Oasis with Infinite Pool",
-    location: "Los Angeles, USA",
-    price: 4200,
-    rating: 5,
-    beds: 6,
-    baths: 5,
-    guests: 12,
-    category: "Popular"
-  },
-  {
-    id: 6,
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800",
-    title: "Scenic Mountainside Glass Mansion",
-    location: "Aspen, Colorado",
-    price: 6900,
-    rating: 5,
-    beds: 8,
-    baths: 7,
-    guests: 16,
-    category: "Featured"
-  }
-];
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800";
 
 
 const PopularPropertyCard = ({ property, fallbackImage, navigate, formatPrice }: any) => {
@@ -142,7 +66,7 @@ const PopularTours: React.FC = () => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const { formatPrice } = useCurrency();
-  const { data: properties = fallbackProperties, isLoading } = useQuery({
+  const { data: properties = [], isLoading } = useQuery({
     queryKey: ['popular-tours'],
     queryFn: async () => {
       const response = await api.get('/properties/listing?recommended=1');
@@ -150,19 +74,19 @@ const PopularTours: React.FC = () => {
         return response.data.properties.map((p: any, index: number) => {
           return {
             id: p.id,
-            image: p.photos?.[0]?.imageName || fallbackProperties[index % fallbackProperties.length].image,
+            image: p.photos?.find((photo: any) => photo.defaultImage === 1)?.imageName || p.photos?.[0]?.imageName || DEFAULT_IMAGE,
             images: p.photos?.map((photo: any) => photo.imageName) || [],
             title: p.propertyHeadline || 'Premium Retreat',
             location: `${p.city || ''}, ${p.country || ''}`.replace(/^, | , $/g, '') || 'Global Escape',
-            price: p.rates?.[0]?.nightly ? Number(p.rates[0].nightly) : 1500,
+            price: p.rates?.[0]?.nightly ? Number(p.rates[0].nightly) : '',
             rating: 5,
-            beds: p.bedroom || 3,
-            baths: p.bathroom || 2,
-            guests: p.sleeps || 6
+            beds: p.bedroom || '',
+            baths: p.bathroom || '',
+            guests: p.sleeps || ''
           };
         });
       }
-      return fallbackProperties;
+      return [];
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
   });
@@ -191,6 +115,10 @@ const PopularTours: React.FC = () => {
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
   };
+
+  if (!isLoading && properties.length === 0) {
+    return null;
+  }
 
   return (
     <section className="popular-tours-section">
@@ -254,7 +182,7 @@ const PopularTours: React.FC = () => {
                       duration: 0.3,
                     }}
                   >
-                    <PopularPropertyCard property={property} fallbackImage={fallbackProperties[idx % fallbackProperties.length].image} navigate={navigate} formatPrice={formatPrice} />
+                    <PopularPropertyCard property={property} fallbackImage={DEFAULT_IMAGE} navigate={navigate} formatPrice={formatPrice} />
                   </motion.div>
                 );
               })}

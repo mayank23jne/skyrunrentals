@@ -645,6 +645,8 @@ model AmenityCategory {
   id        Int          @id @default(autoincrement())
   name      String       @db.VarChar(255)
   items     AmenityItem[]
+
+  @@map("amenitycategory")
 }
 
 model AmenityItem {
@@ -654,6 +656,8 @@ model AmenityItem {
   icon             String?           @db.VarChar(255)
   category         AmenityCategory   @relation(fields: [categoryId], references: [id])
   propertyAmenities PropertyAmenity[]
+
+  @@map("amenityitem")
 }
 
 model PropertyAmenity {
@@ -662,4 +666,6 @@ model PropertyAmenity {
   amenityItemId Int
   property      Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   amenityItem   AmenityItem @relation(fields: [amenityItemId], references: [id], onDelete: Cascade)
+
+  @@map("propertyamenity")
 }

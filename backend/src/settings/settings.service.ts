@@ -225,9 +225,14 @@ export class SettingsService {
 
   // AMENITY CATEGORIES
   async findAmenityCategories() {
-    return this.prisma.amenityCategory.findMany({
-      include: { items: true },
-    });
+    try {
+      return await this.prisma.amenityCategory.findMany({
+        include: { items: true },
+      });
+    } catch (e) {
+      console.error('Error fetching amenity categories (table likely missing):', e);
+      return [];
+    }
   }
 
   async createAmenityCategory(data: any) {

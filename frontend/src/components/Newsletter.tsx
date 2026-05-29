@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import newsImg from "../assets/newsletter1.jpg";
 import airplaneImg from "../assets/airplane.png";
 import travelersImg from "../assets/nesletter.png";
+import { useAuthModal } from '../context/AuthModalContext';
 
 const Newsletter: React.FC = () => {
   const navigate = useNavigate();
+  const { openAuthModal } = useAuthModal();
+  const [email, setEmail] = useState('');
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/list-property');
+    openAuthModal('register', email);
   };
   return (
     <section className="newsletter-section" style={{ marginTop: '220px' }}>
@@ -37,8 +40,11 @@ const Newsletter: React.FC = () => {
               <form className="newsletter-form" onSubmit={handleSubscribe}>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter Email Address"
                   className="newsletter-input"
+                  required
                 />
                 <button type="submit" className="newsletter-btn">
                   Subscribe <Send size={18} strokeWidth={2.5} />

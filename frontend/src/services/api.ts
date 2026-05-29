@@ -4,6 +4,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -11,6 +12,7 @@ const api = axios.create({
 
 export const apiBase = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

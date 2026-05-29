@@ -104,6 +104,27 @@ export class PublicPropertyController {
   }
 
   @Public()
+  @Get('search-locations')
+  @ApiOperation({ summary: 'Search locations by query' })
+  async searchLocations(@Query('q') q: string) {
+    return this.propertyService.searchLocations(q);
+  }
+
+  @Public()
+  @Get('all-ids')
+  @ApiOperation({ summary: 'Get all property IDs for search dropdown' })
+  async getAllPropertyIds() {
+    const properties = await this.prisma.property.findMany({
+      select: {
+        id: true,
+        propertyHeadline: true,
+      },
+      orderBy: { id: 'desc' }
+    });
+    return properties;
+  }
+
+  @Public()
   @Get('calculate-fees')
   @ApiOperation({ summary: 'Calculate booking fees based on booking value' })
   async getCalculateFees(@Query('value') valueStr: string) {

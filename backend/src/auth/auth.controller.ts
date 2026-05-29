@@ -54,5 +54,25 @@ export class AuthController {
     });
     return { success: true };
   }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset link' })
+  @ApiResponse({ status: 200, description: 'Reset password link dispatched' })
+  async forgotPassword(@Body('email') email: string) {
+    if (!email) {
+      throw new UnauthorizedException('Email is required');
+    }
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using token' })
+  async resetPassword(@Body() body: any) {
+    const { id, token, newPassword } = body;
+    if (!id || !token || !newPassword) {
+      throw new UnauthorizedException('Missing required fields');
+    }
+    return this.authService.resetPassword(id, token, newPassword);
+  }
 }
 

@@ -138,6 +138,9 @@ const Listing: React.FC = () => {
   const hasMore = isFilteringActive ? hasFilteredNextPage : hasInitialNextPage;
   const loadMore = isFilteringActive ? fetchFilteredNextPage : fetchInitialNextPage;
 
+  const displayDestination = venue || displayData?.properties?.[0]?.[
+    venue_type === 'countries' ? 'country' : venue_type === 'cities' ? 'city' : 'state'
+  ] || displayData?.properties?.[0]?.state || displayData?.properties?.[0]?.country || '';
 
   return (
     <div className="listing-page">
@@ -152,6 +155,14 @@ const Listing: React.FC = () => {
 
           <div style={{ marginBottom: '40px' }}>
             <SearchBar />
+            {displayDestination && (
+              <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '50px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Destination:</span>
+                  <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>{displayDestination}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="listing-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: '30px' }}>

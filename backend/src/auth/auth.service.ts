@@ -55,12 +55,22 @@ export class AuthService {
   }
 
   async register(data: any) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: data.email },
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: data.email },
+          { contact_number: data.contact_number },
+        ]
+      },
     });
 
     if (existingUser) {
-      throw new BadRequestException('Email already in use');
+      if (existingUser.email === data.email) {
+        throw new BadRequestException('Email already in use');
+      }
+      if (existingUser.contact_number === data.contact_number) {
+        throw new BadRequestException('Phone number already in use');
+      }
     }
 
     const plainPassword = data.password;
@@ -85,7 +95,7 @@ export class AuthService {
     });
 
     if (!user) {
-      return { success: false, message: 'Your mail is not registered with us' };
+      throw new BadRequestException('Your mail is not registered with us');
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -97,6 +107,30 @@ export class AuthService {
 
     const resetLink = `${process.env.APP_URL || 'http://localhost:5173'}/reset-password?id=${user.id}&token=${token}`;
     
-    // We would need mailService here, but since authService doesn't inject it yet, let's inject it.
+    await this.mailService.sendForgotPasswordEmail(email, resetLink);
+    return { success: true, message: 'Reset password link dispatched.' };
+  }
+
+  async resetPassword(id: number, token: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: Number(id), token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    const hashedPassword = crypto.createHash('md5').update(newPassword).digest('hex');
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        password: hashedPassword,
+        original_password: newPassword,
+        token: '' // Clear token after successful reset
+      },
+    });
+
+    return { success: true, message: 'Password has been reset successfully' };
   }
 }

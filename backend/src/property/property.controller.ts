@@ -50,6 +50,9 @@ export class PropertyController {
     const filterStateId = stateId ? parseInt(stateId, 10) : undefined;
     const filterCityId = cityId ? parseInt(cityId, 10) : undefined;
 
+    const isOwner = req.user.usertype === '1';
+    const ownerId = isOwner ? req.user.id : undefined;
+
     const [properties, totalCount, countries] = await Promise.all([
       this.propertyService.findMany({
         skip: skippedItems,
@@ -58,12 +61,14 @@ export class PropertyController {
         countryId: filterCountryId,
         stateId: filterStateId,
         cityId: filterCityId,
+        ownerId,
       }),
       this.propertyService.count({
         search,
         countryId: filterCountryId,
         stateId: filterStateId,
         cityId: filterCityId,
+        ownerId,
       }),
       this.prisma.country.findMany({ orderBy: { name: 'asc' } })
     ]);
@@ -96,6 +101,13 @@ export class PropertyController {
   @Get('add')
   @ApiOperation({ summary: 'Get the add property page' })
   async getAddPropertyPage(@Req() req, @Res() res) {
+    if (req.user.usertype === '1') {
+      const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
+      if (!user || user.subscription_type === 0) {
+        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property`);
+      }
+    }
+
     const [countries, propertyTypes, propertyViews, users, currencies, amenityCategories] = await Promise.all([
       this.prisma.country.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.propertyType.findMany({ orderBy: { propertyName: 'asc' } }),
@@ -134,10 +146,17 @@ export class PropertyController {
   @UseInterceptors(FilesInterceptor('photos', 20))
   async createProperty(
     @Req() req,
-    @Res({ passthrough: true }) res,
+    @Res() res,
     @Body() createPropertyDto: CreatePropertyDto,
     @UploadedFiles() files: Express.Multer.File[]
   ) {
+    if (req.user.usertype === '1') {
+      const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
+      if (!user || user.subscription_type === 0) {
+        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property`);
+      }
+    }
+
     try {
       const property = await this.propertyService.create(createPropertyDto, files, req.user.id);
       return property;
@@ -265,6 +284,7 @@ export class PropertyController {
     }
   }
 
+  @Public()
   @Post(':id/enquire')
   @ApiOperation({ summary: 'Send enquiry message to owner' })
   async createEnquiry(@Param('id', ParseIntPipe) id: number, @Body() body: any, @Res({ passthrough: true }) res) {

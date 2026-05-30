@@ -94,14 +94,12 @@ export class CheckLoginDto {
 
 export class AdminRegisterDto {
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  first_name: string;
+  @IsOptional()
+  first_name?: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  last_name: string;
+  @IsOptional()
+  last_name?: string;
 
   @ApiProperty()
   @IsEmail()
@@ -110,42 +108,35 @@ export class AdminRegisterDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsString()
   @MinLength(6)
   password: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  contact_no: string;
+  @IsOptional()
+  contact_no?: string | number;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  country: string;
+  @IsOptional()
+  country?: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  state: string;
+  @IsOptional()
+  state?: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  city: string;
+  @IsOptional()
+  city?: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  address: string;
+  @IsOptional()
+  address?: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  zip: string | number;
+  @IsOptional()
+  zip?: string | number;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  verify_code: string;
+  @IsOptional()
+  verify_code?: string;
 }
 

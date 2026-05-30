@@ -121,7 +121,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
     <div className={`search-bar-container ${className || ''}`} style={style}>
       <div className="search-bar-content">
         {/* Destination */}
-        <div className="search-item" ref={destRef}>
+        <div className="search-item" ref={destRef} style={{ flex: 1.5 }}>
           <MapPin className="item-icon" size={24} />
           <div className="item-text">
             <p className="item-label">Destination / Property ID</p>
@@ -152,7 +152,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
             {showDestDropdown && (
               <div
                 className="dropdown-menu dest-dropdown"
-                style={dropdownDirection === 'up' ? { bottom: 'calc(100% - 10px)', top: 'auto' } : { top: 'calc(100% - 10px)', bottom: 'auto' }}
+                style={dropdownDirection === 'up' ? { bottom: 'calc(100% - 0px)', top: 'auto' } : { top: 'calc(100% - 10px)', bottom: 'auto' }}
               >
                 {locations.length > 0 ? (
                   <>
@@ -225,7 +225,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
                 <div className="item-text" style={{ flex: 1 }}>
                   <p className="item-label">Arrive</p>
                   <div className="item-value-display">
-                    {searchData.arrive || <span style={{color: '#777'}}>Check-in Date</span>}
+                    {searchData.arrive || <span style={{ color: '#777' }}>Check-in Date</span>}
                   </div>
                 </div>
               </div>
@@ -235,7 +235,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
                 <div className="item-text" style={{ flex: 1 }}>
                   <p className="item-label">Depart</p>
                   <div className="item-value-display">
-                    {searchData.depart || <span style={{color: '#777'}}>Check-out Date</span>}
+                    {searchData.depart || <span style={{ color: '#777' }}>Check-out Date</span>}
                   </div>
                 </div>
               </div>
@@ -265,7 +265,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
           {showGuestDropdown && (
             <div
               className="dropdown-menu"
-              style={dropdownDirection === 'up' ? { bottom: 'calc(100% - 10px)', top: 'auto', left: 0 } : { top: 'calc(100% - 10px)', bottom: 'auto', left: 0 }}
+              style={dropdownDirection === 'up' ? { bottom: 'calc(100% - 0px)', top: 'auto', left: 0 } : { top: 'calc(100% - 10px)', bottom: 'auto', left: 0 }}
             >
               {guestsOptions.map(opt => (
                 <div
@@ -335,6 +335,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
         .react-datepicker__day--range-start.react-datepicker__day--range-end { border-radius: 50% !important; }
         .react-datepicker__day--keyboard-selected { background-color: transparent; }
         .react-datepicker__day--outside-month { color: #ccc; }
+        .react-datepicker__day--disabled { color: #ccc !important; cursor: not-allowed; opacity: 0.5; pointer-events: none; }
+        .react-datepicker__day--disabled:hover { background-color: transparent !important; color: #ccc !important; }
         .react-datepicker__triangle { display: none; }
         .react-datepicker__navigation { top: 25px; }
         

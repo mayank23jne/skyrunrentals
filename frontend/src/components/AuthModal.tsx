@@ -125,11 +125,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
       setSuccess('Login successful! Redirecting...');
       setTimeout(() => {
         onClose();
-        if (userData.subscription_type === 0) {
-          window.location.href = '/list-property';
-        } else {
-          window.location.href = `${API_BASE_URL}/api/admin/dashboard`;
-        }
+        window.location.href = `${API_BASE_URL}/api/admin/dashboard`;
       }, 800);
     },
     onError: (err: any) => {

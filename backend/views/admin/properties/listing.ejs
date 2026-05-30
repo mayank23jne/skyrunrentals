@@ -220,11 +220,11 @@
                                         <% }) %>
                                 </select>
 
-                                <select id="state-filter" class="filter-select" onchange="handleStateChange()">
+                                <select id="state-filter" class="filter-select" onchange="handleStateChange()" onmousedown="checkStateClick(event)">
                                     <option value="">All States</option>
                                 </select>
 
-                                <select id="city-filter" class="filter-select" onchange="updateTable(1)">
+                                <select id="city-filter" class="filter-select" onchange="updateTable(1)" onmousedown="checkCityClick(event)">
                                     <option value="">All Cities</option>
                                 </select>
                             </div>
@@ -330,6 +330,39 @@
                     });
                 }
                 updateTable(1);
+            }
+
+            window.showNotification = function(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed; top: 1.5rem; right: 1.5rem; padding: 1rem 1.5rem; 
+                    background: ${type === 'success' ? '#10b981' : '#ef4444'}; color: white;
+                    border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+                    z-index: 9999; 
+                `;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.5s';
+                    setTimeout(() => toast.remove(), 500);
+                }, 3000);
+            };
+
+            function checkStateClick(event) {
+                const countryId = document.getElementById('country-filter').value;
+                if (!countryId) {
+                    event.preventDefault();
+                    window.showNotification('Please choose a country first.', 'error');
+                }
+            }
+
+            function checkCityClick(event) {
+                const stateId = document.getElementById('state-filter').value;
+                if (!stateId) {
+                    event.preventDefault();
+                    window.showNotification('Please choose a state first.', 'error');
+                }
             }
 
             function renderPagination(current, total) {

@@ -538,24 +538,40 @@ export class AdminService {
   }
 
   async registerUser(data: any) {
-    if (data.verify_code !== 'SS358') {
+    if (data.verify_code && data.verify_code !== 'SS358') {
       throw new BadRequestException('Invalid Verification Code');
+    }
+
+    const existingEmail = await this.prisma.user.findFirst({
+      where: { email: data.email }
+    });
+    if (existingEmail) {
+      throw new BadRequestException('This email is already in use');
+    }
+
+    if (data.contact_no) {
+      const existingPhone = await this.prisma.user.findFirst({
+        where: { contact_number: String(data.contact_no) }
+      });
+      if (existingPhone) {
+        throw new BadRequestException('This phone number is already in use');
+      }
     }
 
     const hashedPassword = crypto.createHash('md5').update(data.password).digest('hex');
 
     const user = await this.prisma.user.create({
       data: {
-        firstname: data.first_name,
-        lastname: data.last_name,
+        firstname: data.first_name || '',
+        lastname: data.last_name || '',
         email: data.email,
         password: hashedPassword,
         original_password: data.password,
-        contact_number: data.contact_no,
-        country: data.country,
-        state: data.state,
-        city: data.city,
-        address: data.address,
+        contact_number: data.contact_no ? String(data.contact_no) : '',
+        country: data.country || '',
+        state: data.state || '',
+        city: data.city || '',
+        address: data.address || '',
         zipcode: parseInt(data.zip) || 0,
         usertype: '1',
         subscription_type: 0,

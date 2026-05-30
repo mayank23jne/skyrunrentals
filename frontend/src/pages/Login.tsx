@@ -23,11 +23,7 @@ const Login: React.FC = () => {
     },
     onSuccess: (data) => {
       localStorage.setItem('admin_user', JSON.stringify(data.user));
-      if (data.user.subscription_type === 0) {
-        navigate('/list-property');
-      } else {
-        window.location.href = `${API_BASE_URL}/api/admin/dashboard`;
-      }
+      window.location.href = `${API_BASE_URL}/api/admin/dashboard`;
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');

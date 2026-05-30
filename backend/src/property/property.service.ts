@@ -366,9 +366,9 @@ export class PropertyService {
       property = await this.prisma.property.findUnique({
         where: { id },
         include: {
-            contacts: true,
-            amenities: true,
-            propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
+          contacts: true,
+          amenities: true,
+          propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
           beddingInfo: true,
           nearbyPlaces: true,
           rates: true,
@@ -384,8 +384,8 @@ export class PropertyService {
       property = await this.prisma.property.findUnique({
         where: { id },
         include: {
-            contacts: true,
-            amenities: true,
+          contacts: true,
+          amenities: true,
           beddingInfo: true,
           nearbyPlaces: true,
           rates: true,
@@ -628,7 +628,7 @@ export class PropertyService {
       }
 
       // Add new photos (S3 Integration)
-      let maxOrder = existingPhotos.length > 0 
+      let maxOrder = existingPhotos.length > 0
         ? Math.max(...existingPhotos.map(p => typeof p.imageOrder === 'number' && !isNaN(p.imageOrder) ? p.imageOrder : 0))
         : -1;
       if (isNaN(maxOrder) || !isFinite(maxOrder)) maxOrder = -1;
@@ -719,7 +719,7 @@ export class PropertyService {
       where: { id },
       select: { createdBy: true }
     });
-    
+
     // Find country ID if passed as name
     let countryId = 1; // Default
     if (data.country) {
@@ -798,9 +798,9 @@ export class PropertyService {
       property = await this.prisma.property.findUnique({
         where: { id },
         include: {
-            contacts: true,
-            amenities: true,
-            propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
+          contacts: true,
+          amenities: true,
+          propertyAmenities: { include: { amenityItem: { include: { category: true } } } },
           beddingInfo: true,
           nearbyPlaces: true,
           rates: true,
@@ -814,8 +814,8 @@ export class PropertyService {
       property = await this.prisma.property.findUnique({
         where: { id },
         include: {
-            contacts: true,
-            amenities: true,
+          contacts: true,
+          amenities: true,
           beddingInfo: true,
           nearbyPlaces: true,
           rates: true,
@@ -1105,17 +1105,16 @@ export class PropertyService {
 
   async searchLocations(q: string) {
     if (!q) return [];
-    
-    const results: any[] = [];
-    const propertyId = parseInt(q, 10);
-    if (!isNaN(propertyId)) {
-      const prop = await this.prisma.property.findUnique({ where: { id: propertyId }});
-      if (prop) {
-         results.push({ type: 'property', id: prop.id, label: `Property ID: ${prop.id}` });
-      }
-    }
 
-    const [countries, states, cities] = await Promise.all([
+    const results: any[] = [];
+    const safeQ = q.replace(/'/g, "''");
+
+    const isNumeric = /^\d+$/.test(q.trim());
+
+    const [rawProperties, countries, states, cities] = await Promise.all([
+      isNumeric ? this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT id, property_headline as propertyHeadline FROM property WHERE CAST(id AS CHAR) LIKE '%${safeQ}%' LIMIT 10`
+      ) : Promise.resolve([]),
       this.prisma.country.findMany({
         where: { name: { contains: q } },
         take: 5
@@ -1132,26 +1131,30 @@ export class PropertyService {
       })
     ]);
 
+    rawProperties.forEach(p => {
+      results.push({ type: 'property', id: p.id, label: `Property ID: ${p.id} - ${p.propertyHeadline || 'No Headline'}` });
+    });
+
     countries.forEach(c => {
       results.push({ type: 'country', id: c.id, label: c.name });
     });
 
     states.forEach(s => {
-      results.push({ 
-        type: 'state', 
-        id: s.id, 
-        stateId: s.id, 
-        label: `${s.name}, ${s.country?.name || ''}`.replace(/,\s*$/, '') 
+      results.push({
+        type: 'state',
+        id: s.id,
+        stateId: s.id,
+        label: `${s.name}, ${s.country?.name || ''}`.replace(/,\s*$/, '')
       });
     });
 
     cities.forEach(c => {
       const parts = [c.name, c.state?.name, c.state?.country?.name].filter(Boolean);
-      results.push({ 
-        type: 'city', 
-        id: c.id, 
-        stateId: c.state?.id, 
-        label: parts.join(', ') 
+      results.push({
+        type: 'city',
+        id: c.id,
+        stateId: c.state?.id,
+        label: parts.join(', ')
       });
     });
 

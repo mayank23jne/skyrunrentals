@@ -65,7 +65,7 @@ const ResetPassword = () => {
   return (
     <div className="reset-page-container">
       <Navbar />
-      
+
       <div className="reset-body">
         <div className="reset-card">
           <div className="reset-header">
@@ -84,9 +84,9 @@ const ResetPassword = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => { 
-                    setPassword(e.target.value); 
-                    setErrors(prev => ({ ...prev, password: '' })); 
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors(prev => ({ ...prev, password: '' }));
                   }}
                   placeholder="••••••••••"
                   className={`reset-input ${errors.password ? 'reset-input-error' : ''}`}
@@ -104,8 +104,8 @@ const ResetPassword = () => {
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
-                  onChange={(e) => { 
-                    setConfirmPassword(e.target.value); 
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
                     if (password && e.target.value !== password) {
                       setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
                     } else {
@@ -127,7 +127,7 @@ const ResetPassword = () => {
                 ? <><Loader2 size={16} className="reset-spin" /><span>Resetting...</span></>
                 : <span>Update Password</span>}
             </button>
-            
+
             <div className="reset-footer">
               <Link to="/" className="reset-home-link">Return to Home</Link>
             </div>
@@ -159,8 +159,9 @@ const ResetPassword = () => {
           max-width: 450px;
           border-radius: 16px;
           box-shadow: 0 20px 40px rgba(4, 20, 36, 0.08);
-          padding: 35px;
+          padding: 25px;
           box-sizing: border-box;
+          margin-top: 72px;
         }
 
         .reset-header {

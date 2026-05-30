@@ -71,13 +71,6 @@ const Testimonial: React.FC = () => {
               Our Valuable Customer Says
             </motion.h2>
           </div>
-          <button 
-            className="view-all-btn"
-            onClick={() => navigate('/testimonials')}
-          >
-            <span>View All</span>
-            <ArrowRight size={18} />
-          </button>
         </div>
 
         <div className="testimonial-grid">
@@ -148,6 +141,16 @@ const Testimonial: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="view-all-container">
+          <button 
+            className="view-all-btn"
+            onClick={() => navigate('/testimonials')}
+          >
+            <span>View All</span>
+            <ArrowRight size={18} />
+          </button>
         </div>
       </div>
 
@@ -245,6 +248,11 @@ const Testimonial: React.FC = () => {
           box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
+        .view-all-container {
+          display: flex;
+          justify-content: center;
+          margin-top: 60px;
+        }
 
         .testimonial-grid {
           display: grid;

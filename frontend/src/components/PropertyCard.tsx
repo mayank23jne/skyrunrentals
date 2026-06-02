@@ -73,31 +73,31 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             </button>
             <div className="slider-dots">
               {displayImages.map((_, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className={`slider-dot ${idx === currentImageIndex ? 'active' : ''}`}
                 />
               ))}
             </div>
           </>
         )}
-        <div className="absolute top-4 right-4 glass px-3 py-1 rounded-full flex items-center gap-1">
+        {/* <div className="absolute top-4 right-4 glass px-3 py-1 rounded-full flex items-center gap-1">
           <Star size={14} className="fill-accent text-accent" />
           <span className="text-xs font-bold text-primary">{rating}</span>
-        </div>
+        </div> */}
         <div className="absolute bottom-4 left-4 bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-lg">
           {price}<span className="text-white/70 font-normal">/night</span>
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-6 cursor-pointer" onClick={() => id && window.open(`/property/${id}`, '_blank')}>
         <div className="flex items-center gap-1 text-accent mb-2">
           <MapPin size={14} />
           <span className="text-xs font-bold uppercase tracking-wider">{location}</span>
         </div>
         <h3 className={`text-xl font-bold text-primary ${propertyDescription ? 'mb-2' : 'mb-4'} truncate`}>{title}</h3>
         {propertyDescription && (
-          <p 
+          <p
             className="text-sm text-text-muted mb-4 line-clamp-2"
             title={propertyDescription.replace(/<[^>]+>/g, '')}
             dangerouslySetInnerHTML={{ __html: propertyDescription }}
@@ -119,7 +119,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               <span className="text-xs font-medium">{guests}</span>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => id && window.open(`/property/${id}`, '_blank')}
             className="text-primary font-bold text-sm hover:text-accent transition-colors"
           >

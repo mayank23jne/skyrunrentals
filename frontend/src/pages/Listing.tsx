@@ -154,7 +154,7 @@ const Listing: React.FC = () => {
           </div>
 
           <div style={{ marginBottom: '40px' }}>
-            <SearchBar />
+            <SearchBar initialData={{ destination: displayDestination, arrive: check_in, depart: check_out, guests: guest }} />
             {displayDestination && (
               <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '50px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>

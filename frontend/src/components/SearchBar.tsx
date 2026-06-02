@@ -301,7 +301,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
         .item-input { border: none; background: transparent; font-size: 14px; font-weight: 500; color: #777; width: 100%; outline: none; padding: 4px 0 0 0; }
         .item-input::placeholder { color: #777; }
         .date-input { cursor: pointer; }
-        .item-value-display { font-size: 14px; font-weight: 500; color: #777; margin: 4px 0 0 0; display: flex; align-items: center; gap: 8px; }
+        .item-value-display { font-size: 13px; font-weight: 500; color: #777; margin: 4px 0 0 0; display: flex; align-items: center; gap: 8px; }
         
         .dropdown-menu { opacity: 1; pointer-events: all; position: absolute; top: calc(100% - 10px); left: 0; width: 100%; min-width: 250px; background: white; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.12); border: 1px solid #eaeaea; z-index: 9999999; max-height: 280px; overflow-y: auto; padding: 10px 0;}
         .dropdown-menu::-webkit-scrollbar { width: 6px; }

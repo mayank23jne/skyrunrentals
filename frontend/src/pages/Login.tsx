@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMutation } from '@tanstack/react-query';
 import api, { API_BASE_URL } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import loginBg from '../assets/login-bg.png';
 
 const Login: React.FC = () => {
@@ -12,6 +13,16 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { logout, setUser } = useAuth();
+
+  useEffect(() => {
+    if (searchParams.get('logout') === 'true') {
+      logout().then(() => {
+        navigate('/login', { replace: true });
+      });
+    }
+  }, [searchParams, logout, navigate]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -22,8 +33,8 @@ const Login: React.FC = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      localStorage.setItem('admin_user', JSON.stringify(data.user));
-      window.location.href = `${API_BASE_URL}/api/admin/dashboard`;
+      setUser(data.user, data.access_token);
+      window.location.href = `${API_BASE_URL}/api/admin/dashboard?token=${data.access_token}`;
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
@@ -14,6 +14,7 @@ import loginBg from '../assets/login-bg.png';
 
 const Payment: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, setUser } = useAuth();
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
@@ -35,12 +36,27 @@ const Payment: React.FC = () => {
   const SPECIAL_PLAN_ID = 'skyrunrental-special';
 
   useEffect(() => {
-    if (plans.length > 0 && !selectedPlanId) {
-      setSelectedPlanId(plans[0].id.toString());
-    }
-  }, [plans, selectedPlanId]);
+    if (plans.length > 0) {
+      const searchParams = new URLSearchParams(location.search);
+      const planNameFromUrl = searchParams.get('plan');
+      
+      let matchedPlanId = '';
+      if (planNameFromUrl) {
+        const found = plans.find((p: any) => p?.planName?.toLowerCase() === planNameFromUrl.toLowerCase());
+        if (found) {
+          matchedPlanId = found.id.toString();
+        }
+      }
 
-  const selectedPlan = plans.find((p: any) => p.id.toString() === selectedPlanId) || null;
+      if (matchedPlanId && selectedPlanId !== matchedPlanId) {
+        setSelectedPlanId(matchedPlanId);
+      } else if (!selectedPlanId && !matchedPlanId && plans[0]?.id) {
+        setSelectedPlanId(plans[0].id.toString());
+      }
+    }
+  }, [plans, location.search, selectedPlanId]);
+
+  const selectedPlan = plans.find((p: any) => p?.id?.toString() === selectedPlanId) || null;
   const isSpecialPlan = selectedPlanId === SPECIAL_PLAN_ID;
 
   const handleAddCustomPrice = () => {
@@ -362,7 +378,7 @@ const Payment: React.FC = () => {
         }
 
         .payment-main-content {
-          padding-top: 100px;
+          padding-top: 150px;
           padding-bottom: 80px;
           margin-top: 0;
         }

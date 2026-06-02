@@ -13,6 +13,7 @@ import Flights from './pages/Flights';
 import ListProperty from './pages/ListProperty';
 import Listing from './pages/Listing';
 import PropertyDetail from './pages/PropertyDetail';
+import Checkout from './pages/Checkout';
 import FAQ from './pages/FAQ';
 import LiabilityInsurance from './pages/LiabilityInsurance';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -50,6 +51,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="/listing/states/:propertyId" element={<Listing />} />
               <Route path="/listing/cities/:propertyId" element={<Listing />} />
               <Route path="/property/:id" element={<PropertyDetail />} />
+              <Route path="/checkout/:id" element={<Checkout />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/liability-insurance" element={<LiabilityInsurance />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />

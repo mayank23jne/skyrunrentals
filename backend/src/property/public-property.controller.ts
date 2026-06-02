@@ -6,6 +6,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import { FilterPropertyDto } from './dto/filter-property.dto';
 import { ListingPropertyDto } from './dto/listing-property.dto';
 import { PropertyEntity } from './entities/property.entity';
+import { CreatePropertyBookingDto } from './dto/create-property-booking.dto';
 
 @ApiTags('Public/Properties')
 @Controller('properties')
@@ -13,7 +14,7 @@ export class PublicPropertyController {
   constructor(
     private propertyService: PropertyService,
     private prisma: PrismaService,
-  ) {}
+  ) { }
 
   @Public()
   @Get(':id/details')
@@ -35,7 +36,7 @@ export class PublicPropertyController {
   @ApiOperation({ summary: 'Process a mock payment for a subscription plan' })
   async mockPayment(@Body() body: any) {
     const { userId, planType, amount, description, noOfProperty } = body;
-    
+
     if (userId) {
       // Create PaymentDetail record
       await this.prisma.paymentDetail.create({
@@ -51,7 +52,7 @@ export class PublicPropertyController {
           createdDate: new Date(),
         }
       });
-      
+
       // Update User subscription_type
       await this.prisma.user.update({
         where: { id: parseInt(userId, 10) },
@@ -85,9 +86,9 @@ export class PublicPropertyController {
     if (stunning === '1') {
       whereClause.stunning = 1;
     }
-    const states = await this.prisma.state.findMany({ 
+    const states = await this.prisma.state.findMany({
       where: whereClause, // only fetch states with images (and optional stunning flag) for the slider
-      orderBy: { name: 'asc' } 
+      orderBy: { name: 'asc' }
     });
 
     return states.map(state => ({
@@ -129,13 +130,13 @@ export class PublicPropertyController {
   @ApiOperation({ summary: 'Calculate booking fees based on booking value' })
   async getCalculateFees(@Query('value') valueStr: string) {
     const value = parseFloat(valueStr || '1000');
-    
+
     // Formula based on the provided screenshot requirements:
     // Holiday Haven Homes: 5% fee -> Earn = Total * 0.95
     // Airbnb: 14% to 18% fee -> Earn = Total * 0.86 (for the "or less" conservative estimate)
     // Booking.com: 15% to 25% fee -> Earn = Total * 0.85
     // Vrbo: 15% fee -> Earn = Total * 0.85
-    
+
     return {
       bookingValue: value,
       holidayHavenHomes: Math.round(value * 0.95),
@@ -143,5 +144,12 @@ export class PublicPropertyController {
       bookingCom: Math.round(value * 0.85),
       vrbo: Math.round(value * 0.85)
     };
+  }
+
+  @Public()
+  @Post(':id/book')
+  @ApiOperation({ summary: 'Submit a booking request for a property' })
+  async createBooking(@Param('id', ParseIntPipe) id: number, @Body() body: CreatePropertyBookingDto) {
+    return this.propertyService.createPropertyBooking(id, body);
   }
 }

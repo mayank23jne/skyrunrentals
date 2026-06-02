@@ -9,7 +9,7 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     const accepts = request.accepts(['html', 'json']);
-    const loginUrl = `${process.env.APP_URL || 'http://localhost:5173'}/login`;
+    const loginUrl = `${process.env.APP_URL || 'http://localhost:5173'}/login?logout=true`;
 
     if (accepts === 'html') {
       response.redirect(loginUrl);

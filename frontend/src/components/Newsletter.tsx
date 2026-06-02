@@ -34,7 +34,7 @@ const Newsletter: React.FC = () => {
           </div>
 
           <div className="newsletter-content">
-            <h2 className="newsletter-title">Sign Up Your Newsletter</h2>
+            <h2 className="newsletter-title">Sign Up for SkyRunRentals</h2>
 
             <div className="newsletter-form-container">
               <form className="newsletter-form" onSubmit={handleSubscribe}>
@@ -47,7 +47,7 @@ const Newsletter: React.FC = () => {
                   required
                 />
                 <button type="submit" className="newsletter-btn">
-                  Subscribe <Send size={18} strokeWidth={2.5} />
+                  Sign Up <Send size={18} strokeWidth={2.5} />
                 </button>
               </form>
             </div>

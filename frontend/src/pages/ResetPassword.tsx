@@ -135,12 +135,12 @@ const ResetPassword = () => {
         </div>
       </div>
 
-      <Footer />
+      {/* <Footer /> */}
 
       <style>{`
         .reset-page-container {
           min-height: 100vh;
-          display: flex;
+          display: flex;  
           flex-direction: column;
           background: #f8fafc;
         }

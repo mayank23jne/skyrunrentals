@@ -7,6 +7,7 @@ import * as path from 'path';
 import { S3Service } from '../s3/s3.service';
 import { extname } from 'path';
 import { ListingPropertyDto } from './dto/listing-property.dto';
+import { CreatePropertyBookingDto } from './dto/create-property-booking.dto';
 
 @Injectable()
 export class PropertyService {
@@ -747,6 +748,31 @@ export class PropertyService {
     });
   }
 
+  async createPropertyBooking(propertyId: number, data: CreatePropertyBookingDto) {
+    return this.prisma.propertyBooking.create({
+      data: {
+        propertyId: propertyId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        mobile: data.mobile,
+        message: data.message || '',
+        street: data.street || '',
+        city: data.city || '',
+        country: data.country || '',
+        zip: data.zip || '',
+        adults: data.adults || 1,
+        childs: data.childs || 0,
+        bookingDates: data.bookingDates,
+        amount: data.amount || '0',
+        status: 'Pending',
+        terms: 1,
+        response: '',
+        createdAt: new Date(),
+      }
+    });
+  }
+
   async updatePriority(id: number, priority: number) {
     return this.prisma.property.update({
       where: { id },
@@ -864,6 +890,24 @@ export class PropertyService {
         },
         orderBy: { theDate: 'asc' }
       });
+
+      const states = await this.prisma.bookingState.findMany();
+      const stateIdToCode: Record<number, string> = {};
+      states.forEach(s => {
+        if (s.code === 'BOOKED') stateIdToCode[s.id] = 'booked';
+        if (s.code === 'BKDAM') stateIdToCode[s.id] = 'am';
+        if (s.code === 'BKDPM') stateIdToCode[s.id] = 'pm';
+      });
+
+      const calendarBlockedDates: Record<string, string> = {};
+      bookings.forEach(b => {
+        if (b.theDate && !isNaN(b.theDate.getTime())) {
+          const dateStr = b.theDate.toISOString().split('T')[0];
+          const status = stateIdToCode[b.idState];
+          if (status) calendarBlockedDates[dateStr] = status;
+        }
+      });
+      (property as any).calendarBlockedDates = calendarBlockedDates;
     }
 
     const defaultPhoto = property.photos.find(p => p.defaultImage === 1);
@@ -1132,7 +1176,7 @@ export class PropertyService {
     ]);
 
     rawProperties.forEach(p => {
-      results.push({ type: 'property', id: p.id, label: `Property ID: ${p.id} - ${p.propertyHeadline || 'No Headline'}` });
+      results.push({ type: 'property', id: p.id, label: `ID: ${p.id} - ${p.propertyHeadline || 'No Headline'}` });
     });
 
     countries.forEach(c => {

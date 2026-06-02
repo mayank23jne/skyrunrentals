@@ -74,7 +74,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     if (!registerForm.firstName) errors.firstName = 'First name is required';
     if (!registerForm.lastName) errors.lastName = 'Last name is required';
     if (!registerForm.email) errors.email = 'Email is required';
-    
+
     const phoneDigits = registerForm.phone.replace(/\D/g, '');
     if (!registerForm.phone) {
       errors.phone = 'Phone is required';
@@ -83,7 +83,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     } else if (phoneDigits.length > 15) {
       errors.phone = 'Phone number must be at most 15 digits';
     }
-    
+
     if (!registerForm.password) errors.password = 'Password is required';
     if (!registerForm.confirmPassword) errors.confirmPassword = 'Confirm password is required';
     if (!registerForm.country) errors.country = 'Country is required';
@@ -106,11 +106,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     }
 
     registerMutation.mutate({
-      firstname: registerForm.firstName, lastname: registerForm.lastName,
+      first_name: registerForm.firstName, last_name: registerForm.lastName,
       email: registerForm.email, password: registerForm.password,
-      contact_number: registerForm.phone, country: registerForm.country,
+      contact_no: registerForm.phone, country: registerForm.country,
       state: registerForm.state, city: registerForm.city,
-      address: registerForm.address, zipcode: Number(registerForm.zipCode) || 0,
+      address: registerForm.address, zip: Number(registerForm.zipCode) || 0,
+      verify_code: registerForm.verifyCode,
     });
   };
 
@@ -121,11 +122,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
     },
     onSuccess: (data) => {
       const userData = data.user;
-      setUser(userData);
+      setUser(userData, data.access_token);
       setSuccess('Login successful! Redirecting...');
       setTimeout(() => {
         onClose();
-        window.location.href = `${API_BASE_URL}/api/admin/dashboard`;
+        window.location.href = `${API_BASE_URL}/api/admin/dashboard?token=${data.access_token}`;
       }, 800);
     },
     onError: (err: any) => {
@@ -352,8 +353,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                   <label className="am-label">Confirm Password</label>
                   <div className="am-pwd-wrap">
                     <input type={showConfirmPassword ? 'text' : 'password'} value={registerForm.confirmPassword}
-                      onChange={(e) => { 
-                        setRegisterForm({ ...registerForm, confirmPassword: e.target.value }); 
+                      onChange={(e) => {
+                        setRegisterForm({ ...registerForm, confirmPassword: e.target.value });
                         if (registerForm.password && e.target.value !== registerForm.password) {
                           setFieldErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
                         } else {
@@ -415,7 +416,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
                   <label className="am-label">Promo Code</label>
                   <input type="text" value={registerForm.verifyCode}
                     onChange={(e) => { setRegisterForm({ ...registerForm, verifyCode: e.target.value }); setFieldErrors(prev => ({ ...prev, verifyCode: '' })); }}
-                    placeholder="e.g. SS358" className={`am-input ${fieldErrors.verifyCode ? 'am-input-error' : ''}`} />
+                    placeholder="Enter Promo Code" className={`am-input ${fieldErrors.verifyCode ? 'am-input-error' : ''}`} />
                   {fieldErrors.verifyCode && <span className="am-field-error">{fieldErrors.verifyCode}</span>}
                 </div>
               )}

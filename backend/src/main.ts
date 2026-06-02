@@ -15,6 +15,20 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalFilters(new UnauthorizedExceptionFilter());
   app.use(cookieParser());
+  
+  // Set JWT cookie from token query parameter for cross-domain SSO
+  app.use((req: any, res: any, next: any) => {
+    if (req.query && req.query.token) {
+      res.cookie('jwt', req.query.token, {
+        httpOnly: true,
+        secure: false, // Set to true in production with HTTPS
+        sameSite: 'lax',
+        maxAge: 3600000,
+      });
+    }
+    next();
+  });
+
   // Enable CORS for the React frontend
   // app.enableCors();
   app.setGlobalPrefix('api');

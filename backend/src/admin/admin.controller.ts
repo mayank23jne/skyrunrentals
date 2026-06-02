@@ -69,12 +69,50 @@ export class AdminController {
     const isOwner = req.user.usertype === '1';
     const ownerId = req.user.id;
 
-    const [totalUsers, totalProperties, totalEnquiries, totalBookings] = await Promise.all([
+    const [totalUsers, totalProperties, totalEnquiries, totalBookings, recentBookings, recentPayments] = await Promise.all([
       isOwner ? 0 : this.prisma.user.count({ where: { deleted: 0 } }),
       this.prisma.property.count(isOwner ? { where: { createdBy: ownerId } } : undefined),
       this.prisma.ownerMessage.count(isOwner ? { where: { propertyOwner: ownerId } } : undefined),
       this.prisma.propertyBooking.count(isOwner ? { where: { propertyOwner: ownerId } } : undefined),
+      this.prisma.propertyBooking.findMany({
+        where: isOwner ? { propertyOwner: ownerId } : undefined,
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        include: { property: { select: { propertyHeadline: true } } }
+      }),
+      this.prisma.paymentDetail.findMany({
+        where: isOwner ? { userId: ownerId } : undefined,
+        orderBy: { createdDate: 'desc' },
+        take: 5,
+        include: { user: { select: { firstname: true, lastname: true } } }
+      })
     ]);
+
+    const formatTime = (date: Date) => {
+      const diff = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+      if (diff < 60) return `Just now`;
+      if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+      return `${Math.floor(diff / 86400)} days ago`;
+    };
+
+    let activities = [
+      ...recentBookings.map(b => ({
+        id: `b_${b.id}`,
+        action: `New booking for ${b.property?.propertyHeadline || 'Property'} by ${b.firstName} ${b.lastName}`,
+        time: formatTime(b.createdAt),
+        date: new Date(b.createdAt).getTime()
+      })),
+      ...recentPayments.map(p => ({
+        id: `p_${p.id}`,
+        action: `Payment of $${p.amount} received from ${p.user?.firstname} ${p.user?.lastname}`,
+        time: formatTime(p.createdDate),
+        date: new Date(p.createdDate).getTime()
+      }))
+    ];
+
+    activities.sort((a, b) => b.date - a.date);
+    const recentActivity = activities.slice(0, 5).map(({ date, ...rest }) => rest);
 
     return {
       admin: { ...req.user, username: req.user.username || req.user.email },
@@ -87,10 +125,7 @@ export class AdminController {
         totalBookings,
         revenue: "$45,200"
       },
-      recentActivity: [
-        { id: 1, action: "New booking for Ocean Villa", time: "2 hours ago" },
-        { id: 2, action: "Payment received from John Doe", time: "4 hours ago" }
-      ]
+      recentActivity
     };
   }
 

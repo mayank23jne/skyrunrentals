@@ -14,7 +14,8 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   isLoggedIn: boolean;
-  setUser: (user: AuthUser | null) => void;
+  token: string | null;
+  setUser: (user: AuthUser | null, token?: string) => void;
   logout: () => Promise<void>;
 }
 
@@ -32,27 +33,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  const setUser = useCallback((u: AuthUser | null) => {
+  const [token, setTokenState] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('admin_token');
+    } catch {
+      return null;
+    }
+  });
+
+  const setUser = useCallback((u: AuthUser | null, t?: string) => {
     setUserState(u);
     if (u) {
       localStorage.setItem(USER_KEY, JSON.stringify(u));
+      if (t) {
+        setTokenState(t);
+        localStorage.setItem('admin_token', t);
+      }
     } else {
+      setTokenState(null);
       localStorage.removeItem(USER_KEY);
+      localStorage.removeItem('admin_token');
     }
   }, []);
 
+  // Sync user state with token state
+  useEffect(() => {
+    if (user && !token) {
+      // If we have a user but no token, the state is invalid/legacy
+      setUserState(null);
+      localStorage.removeItem(USER_KEY);
+    }
+  }, [user, token]);
+
   const logout = useCallback(async () => {
     try {
-      // Clear backend JWT cookie
       await api.post('/auth/logout');
-    } catch {
-      // silently ignore network errors during logout
-    }
+    } catch {}
     setUser(null);
   }, [setUser]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, setUser, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!(user && token), token, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

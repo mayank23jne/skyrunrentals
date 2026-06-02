@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrency } from '../context/CurrencyContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,9 +32,12 @@ import * as LucideIcons from 'lucide-react';
 import Navbar from '../components/Navbar';
 import SearchBar from '../components/SearchBar';
 import Footer from '../components/Footer';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const PropertyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
 
@@ -42,8 +45,12 @@ const PropertyDetail: React.FC = () => {
   const [checkIn, setCheckIn] = useState<string>('');
   const [checkOut, setCheckOut] = useState<string>('');
   const [guestsCount, setGuestsCount] = useState<number>(1);
+  const [bookingChildrenCount, setBookingChildrenCount] = useState<number>(0);
   const [bookingSuccess, setBookingSuccess] = useState<boolean>(false);
   const [bookingLoading, setBookingLoading] = useState<boolean>(false);
+
+  const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
+  const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
 
   // Message Enquiry States
   const [enquiryFirstName, setEnquiryFirstName] = useState<string>('');
@@ -125,6 +132,14 @@ const PropertyDetail: React.FC = () => {
       return response.data;
     },
     enabled: !!id,
+  });
+
+  const { data: countries = [] } = useQuery({
+    queryKey: ['countries'],
+    queryFn: async () => {
+      const response = await api.get('/properties/countries');
+      return response.data;
+    }
   });
 
   if (isLoading) {
@@ -213,6 +228,20 @@ const PropertyDetail: React.FC = () => {
     property_type
   } = data;
 
+  // Parse blocked dates from the JSON string stored in property.calendarBlockedDates
+  let blockedDatesMap: Record<string, string> = {};
+  try {
+    if (property.calendarBlockedDates) {
+      if (typeof property.calendarBlockedDates === 'string') {
+        blockedDatesMap = JSON.parse(property.calendarBlockedDates);
+      } else if (typeof property.calendarBlockedDates === 'object') {
+        blockedDatesMap = property.calendarBlockedDates;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to parse calendar blocked dates", e);
+  }
+
   // Compile image list safely
   const allPhotos: any[] = [];
   if (default_image) {
@@ -240,17 +269,26 @@ const PropertyDetail: React.FC = () => {
   // Resilient parsing for list amenities
   const parseList = (val: any): string[] => {
     if (!val) return [];
+
+    const cleanItem = (item: string) => {
+      if (typeof item !== 'string') return item;
+      return item.replace(/\s*Available$/i, '').trim();
+    };
+
     if (typeof val === 'string') {
       if (val.startsWith('[') && val.endsWith(']')) {
         try {
-          return JSON.parse(val);
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) {
+            return parsed.map(cleanItem);
+          }
         } catch (e) {
           // ignore
         }
       }
-      return val.split(',').map((i: string) => i.trim()).filter(Boolean);
+      return val.split(',').map(cleanItem).filter(Boolean);
     }
-    if (Array.isArray(val)) return val;
+    if (Array.isArray(val)) return val.map(cleanItem);
     return [];
   };
 
@@ -322,8 +360,47 @@ const PropertyDetail: React.FC = () => {
   const taxesTotal = Math.round((baseRentTotal * taxesRate) / 100);
   const totalRent = baseRentTotal + petFee + cleaningFee + taxesTotal;
 
+  const isDateBookedStatus = (year: number, month: number, day: number) => {
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+    // First check the explicit calendarBlockedDates map from the admin
+    if (blockedDatesMap[formattedDate] && blockedDatesMap[formattedDate] !== 'available') {
+      return blockedDatesMap[formattedDate];
+    }
+
+    // Fallback to checking active bookings array
+    const bookingRecord = bookings.find((b: any) => {
+      const bDate = new Date(b.theDate);
+      return bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === day;
+    });
+
+    if (bookingRecord && bookingRecord.status && bookingRecord.status !== 'available') {
+      return 'booked';
+    }
+
+    return null;
+  };
+
   // Comparison comparison values
   const competitorFeeMarkup = Math.round(totalRent * 0.15); // typical 15% markup
+
+  const isRangeAvailable = () => {
+    if (!checkIn || !checkOut) return false;
+
+    // Support YYYY-MM-DD and MM/DD/YYYY cleanly
+    const start = new Date(checkIn.includes('-') ? checkIn.replace(/-/g, '\/') : checkIn);
+    const end = new Date(checkOut.includes('-') ? checkOut.replace(/-/g, '\/') : checkOut);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+    if (start >= end) return false;
+
+    for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+      if (isDateBookedStatus(d.getFullYear(), d.getMonth(), d.getDate())) return false;
+    }
+    return true;
+  };
+
+  const available = isRangeAvailable();
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,12 +414,13 @@ const PropertyDetail: React.FC = () => {
       return;
     }
 
+    if (!available) {
+      setBookingErrors({ submit: 'Selected dates are not available.' });
+      return;
+    }
+
     setBookingErrors({});
-    setBookingLoading(true);
-    setTimeout(() => {
-      setBookingLoading(false);
-      setBookingSuccess(true);
-    }, 1500);
+    navigate(`/checkout/${id}?checkIn=${checkIn}&checkOut=${checkOut}&guestsCount=${guestsCount}&childrenCount=${bookingChildrenCount}`);
   };
 
   const handleEnquirySubmit = async (e: React.FormEvent) => {
@@ -426,37 +504,6 @@ const PropertyDetail: React.FC = () => {
   const calendarMonths = [0, 1, 2, 3].map(offset =>
     generateMonthDays(calendarBaseYear, calendarBaseMonth, offset)
   );
-
-  // Parse blocked dates from the JSON string stored in property.calendarBlockedDates
-  let blockedDatesMap: Record<string, string> = {};
-  try {
-    if (property.calendarBlockedDates) {
-      if (typeof property.calendarBlockedDates === 'string') {
-        blockedDatesMap = JSON.parse(property.calendarBlockedDates);
-      } else if (typeof property.calendarBlockedDates === 'object') {
-        blockedDatesMap = property.calendarBlockedDates;
-      }
-    }
-  } catch (e) {
-    console.error("Failed to parse calendar blocked dates", e);
-  }
-
-  const isDateBookedStatus = (year: number, month: number, day: number) => {
-    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-    // First check the explicit calendarBlockedDates map from the admin
-    if (blockedDatesMap[formattedDate]) {
-      return blockedDatesMap[formattedDate];
-    }
-
-    // Fallback to checking active bookings array
-    const hasBooking = bookings.some((b: any) => {
-      const bDate = new Date(b.theDate);
-      return bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === day;
-    });
-
-    return hasBooking ? 'booked' : null;
-  };
 
   // const calendarMonths = [generateMonthDays(0), generateMonthDays(1), generateMonthDays(2), generateMonthDays(3)];
 
@@ -704,7 +751,7 @@ const PropertyDetail: React.FC = () => {
                       amenities?.otherSuitability
                     ].filter(Boolean).join(' , ') || 'Not specified'}
                   </p>
-                  
+
                   {/* Nearby Places */}
                   {nearbyItems.length > 0 && (
                     <div style={{ marginTop: '2rem' }}>
@@ -717,20 +764,20 @@ const PropertyDetail: React.FC = () => {
                           const distanceParts = item.distance ? item.distance.split(',') : ['0.00', 'MILES'];
                           const distVal = distanceParts[0];
                           const distUnit = distanceParts[1] || 'MILES';
-                          
+
                           return (
-                            <div 
-                              key={idx} 
+                            <div
+                              key={idx}
                               className="group transition-all duration-300 hover:shadow-md hover:-translate-y-1"
-                              style={{ 
-                                background: '#fff', 
-                                border: '1px solid #e2e8f0', 
-                                borderRadius: '12px', 
-                                padding: '16px 20px', 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
-                                alignItems: 'center', 
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)' 
+                              style={{
+                                background: '#fff',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '12px',
+                                padding: '16px 20px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                               }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -865,13 +912,14 @@ const PropertyDetail: React.FC = () => {
                           {/* Current month days */}
                           {m.days.map((day, i) => {
                             const status = isDateBookedStatus(m.year, m.month, day);
+
                             const totalIdx = m.ghostDays.length + i;
                             const colIdx = totalIdx % 7; // 0=Mon … 5=Sat, 6=Sun
                             const isWeekend = colIdx === 5 || colIdx === 6;
                             const isLastCol = colIdx === 6;
                             const isBooked = status === 'booked';
-                            const isAM = status === 'am';
-                            const isPM = status === 'pm';
+                            const isAM = status === 'am' || status === 'booked-am';
+                            const isPM = status === 'pm' || status === 'booked-pm';
 
                             const cellDate = new Date(m.year, m.month, day);
                             const today = new Date();
@@ -883,8 +931,8 @@ const PropertyDetail: React.FC = () => {
                             if (rates && rates.length > 0) {
                               for (const r of rates) {
                                 if (r.startDate && r.endDate) {
-                                  const s = new Date(r.startDate); s.setHours(0,0,0,0);
-                                  const e = new Date(r.endDate); e.setHours(23,59,59,999);
+                                  const s = new Date(r.startDate); s.setHours(0, 0, 0, 0);
+                                  const e = new Date(r.endDate); e.setHours(23, 59, 59, 999);
                                   if (cellDate >= s && cellDate <= e) {
                                     matchedRate = r;
                                     break;
@@ -912,8 +960,8 @@ const PropertyDetail: React.FC = () => {
                             let gradientBg: string | undefined;
 
                             if (isBooked) { bgColor = '#132742'; numColor = '#fff'; }
-                            else if (isAM) { gradientBg = 'linear-gradient(to bottom right, #132742 50%, #ffffff 50%)'; numColor = '#fff'; }
-                            else if (isPM) { gradientBg = 'linear-gradient(to bottom right, #ffffff 50%, #132742 50%)'; numColor = '#132742'; }
+                            else if (isAM) { gradientBg = 'linear-gradient(135deg, #132742 50%, #ffffff 50%)'; numColor = '#132742'; }
+                            else if (isPM) { gradientBg = 'linear-gradient(135deg, #ffffff 50%, #132742 50%)'; numColor = '#132742'; }
 
                             const isAvailable = !isBooked && !isAM && !isPM && !isPast;
 
@@ -965,11 +1013,11 @@ const PropertyDetail: React.FC = () => {
                       <span>Booked</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, #132742 50%, #ffffff 50%)' }}></span>
+                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(135deg, #132742 50%, #ffffff 50%)' }}></span>
                       <span>Booked am</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(to bottom right, #ffffff 50%, #132742 50%)' }}></span>
+                      <span style={{ width: '36px', height: '36px', display: 'inline-block', background: 'linear-gradient(135deg, #ffffff 50%, #132742 50%)' }}></span>
                       <span>Booked pm</span>
                     </div>
                   </div>
@@ -1435,14 +1483,41 @@ const PropertyDetail: React.FC = () => {
 
               {/* Book Now Section */}
               <div style={{ marginBottom: '2.5rem' }}>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Check In" value={checkIn} onChange={(e) => { setCheckIn(e.target.value); setBookingErrors(prev => ({ ...prev, checkIn: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkIn ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
-                    {bookingErrors.checkIn && <span className="field-error-msg">{bookingErrors.checkIn}</span>}
+                {available && (
+                  <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '4px', textAlign: 'left', fontWeight: 600, marginBottom: '1rem', border: '1px solid #bbf7d0' }}>
+                    Your dates are available
                   </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', width: '100%' }}>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Check Out" value={checkOut} onChange={(e) => { setCheckOut(e.target.value); setBookingErrors(prev => ({ ...prev, checkOut: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkOut ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
-                    {bookingErrors.checkOut && <span className="field-error-msg">{bookingErrors.checkOut}</span>}
+                    <DatePicker
+                      selectsRange={true}
+                      startDate={checkIn ? new Date(checkIn) : undefined}
+                      endDate={checkOut ? new Date(checkOut) : undefined}
+                      onChange={(update: [Date | null, Date | null]) => {
+                        const [start, end] = update;
+                        const formatDate = (d: Date | null) => d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : '';
+                        setCheckIn(formatDate(start));
+                        setCheckOut(formatDate(end));
+                        setBookingErrors(prev => ({ ...prev, checkIn: '', checkOut: '' }));
+                      }}
+                      minDate={new Date()}
+                      monthsShown={1}
+                      wrapperClassName="pd-date-picker-wrapper"
+                      customInput={
+                        <div style={{ display: 'flex', width: '100%', gap: '8px' }}>
+                          <div style={{ flex: 1, position: 'relative' }}>
+                            <input type="text" placeholder="Check In" value={checkIn} readOnly style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkIn ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', cursor: 'pointer', background: '#fff' }} />
+                            {bookingErrors.checkIn && <span className="field-error-msg">{bookingErrors.checkIn}</span>}
+                          </div>
+                          <div style={{ flex: 1, position: 'relative' }}>
+                            <input type="text" placeholder="Check Out" value={checkOut} readOnly style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.checkOut ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', cursor: 'pointer', background: '#fff' }} />
+                            {bookingErrors.checkOut && <span className="field-error-msg">{bookingErrors.checkOut}</span>}
+                          </div>
+                        </div>
+                      }
+                    />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
@@ -1454,21 +1529,32 @@ const PropertyDetail: React.FC = () => {
                     {bookingErrors.guestsCount && <span className="field-error-msg">{bookingErrors.guestsCount}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <select style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
+                    <select value={bookingChildrenCount} onChange={(e) => setBookingChildrenCount(parseInt(e.target.value))} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.9rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
                       <option value="">Select Children</option>
                       {[0, 1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </div>
                 </div>
-                {bookingSuccess ? (
-                  <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '4px', textAlign: 'center', fontWeight: 600 }}>
-                    Booking request sent successfully!
+
+                {bookingErrors.submit && <div style={{ color: '#dc2626', fontSize: '0.875rem', marginBottom: '1rem' }}>{bookingErrors.submit}</div>}
+
+                {available && (
+                  <div style={{ marginBottom: '1.5rem', display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>
+                        Total <span style={{ marginLeft: '1rem', color: '#fe9d3d' }}>{formatPrice(totalRent)}</span>
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Includes taxes and fees</div>
+                    </div>
+                    <button type="button" onClick={() => setShowBookingModal(true)} style={{ background: 'transparent', border: 'none', color: '#3b82f6', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', fontSize: '0.95rem' }}>
+                      View Details
+                    </button>
                   </div>
-                ) : (
-                  <button style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '12px', borderRadius: '24px', fontSize: '1rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s', opacity: bookingLoading ? 0.7 : 1 }} disabled={bookingLoading} onMouseEnter={(e) => !bookingLoading && (e.currentTarget.style.background = '#436b8a')} onMouseLeave={(e) => !bookingLoading && (e.currentTarget.style.background = '#557f9f')} onClick={handleBookingSubmit}>
-                    {bookingLoading ? 'Processing...' : 'Book Now'}
-                  </button>
                 )}
+
+                <button style={{ width: '100%', background: '#557f9f', color: '#fff', fontWeight: 600, padding: '12px', borderRadius: '24px', fontSize: '1rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s', opacity: bookingLoading ? 0.7 : 1 }} disabled={bookingLoading} onMouseEnter={(e) => !bookingLoading && (e.currentTarget.style.background = '#436b8a')} onMouseLeave={(e) => !bookingLoading && (e.currentTarget.style.background = '#557f9f')} onClick={handleBookingSubmit}>
+                  {bookingLoading ? 'Processing...' : 'Book Now'}
+                </button>
               </div>
 
               {/* Contact the Owner Section */}
@@ -1489,18 +1575,35 @@ const PropertyDetail: React.FC = () => {
                   {enquiryErrors.email && <span className="field-error-msg">{enquiryErrors.email}</span>}
                 </div>
                 <select value={enquiryCountry} onChange={(e) => setEnquiryCountry(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', color: '#334155' }}>
-                  <option value="United States">United States</option>
-                  <option value="Canada">Canada</option>
-                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="">Select a Country</option>
+                  {countries.map((c: any) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
                 </select>
                 <input type="tel" placeholder="Phone No" value={enquiryPhone} onChange={(e) => setEnquiryPhone(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} />
 
-                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px', width: '100%' }}>
                   <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Arrival" value={enquiryArrival} onChange={(e) => setEnquiryArrival(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <input type="text" placeholder="Departure" value={enquiryDeparture} onChange={(e) => setEnquiryDeparture(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', color: '#334155' }} onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+                    <DatePicker
+                      selectsRange={true}
+                      startDate={enquiryArrival ? new Date(enquiryArrival) : undefined}
+                      endDate={enquiryDeparture ? new Date(enquiryDeparture) : undefined}
+                      onChange={(update: [Date | null, Date | null]) => {
+                        const [start, end] = update;
+                        const formatDate = (d: Date | null) => d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : '';
+                        setEnquiryArrival(formatDate(start));
+                        setEnquiryDeparture(formatDate(end));
+                      }}
+                      minDate={new Date()}
+                      monthsShown={1}
+                      wrapperClassName="pd-date-picker-wrapper"
+                      customInput={
+                        <div style={{ display: 'flex', width: '100%', gap: '8px' }}>
+                          <input type="text" placeholder="Arrival" value={enquiryArrival} readOnly style={{ flex: 1, width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', cursor: 'pointer', background: '#fff' }} />
+                          <input type="text" placeholder="Departure" value={enquiryDeparture} readOnly style={{ flex: 1, width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '8px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', cursor: 'pointer', background: '#fff' }} />
+                        </div>
+                      }
+                    />
                   </div>
                 </div>
 
@@ -1531,7 +1634,7 @@ const PropertyDetail: React.FC = () => {
                 </div>
 
                 <div style={{ fontSize: '1rem', color: '#64748b', textTransform: 'uppercase', lineHeight: 1.5, marginTop: '4px' }}>
-                  BY CLICKING 'SEND EMAIL' YOU ARE<br />AGREEING TO OUR <a href="#" style={{ color: '#557f9f', textDecoration: 'none' }}>TERMS AND<br />CONDITIONS</a>
+                  BY CLICKING 'SEND EMAIL' YOU ARE<br />AGREEING TO OUR <span className="hover-underline" onClick={() => setShowTermsModal(true)} style={{ color: '#557f9f', cursor: 'pointer', textDecoration: 'none' }}>TERMS AND<br />CONDITIONS</span>
                 </div>
 
                 {enquiryErrors.submit && <div style={{ color: '#dc2626', fontSize: '1rem', marginBottom: '8px', textAlign: 'center' }}>{enquiryErrors.submit}</div>}
@@ -1550,14 +1653,14 @@ const PropertyDetail: React.FC = () => {
               {/* Travel Guard Promo */}
               <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                 <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>Get Vacation Protection for Your Booking!</div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
+                <a href="https://www.travelguard.com/?cmpid=kac-CJ2018-QuoteReferral&PID=7751806&cjevent=9a7eef165e4711f1828000100a18ba73" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '8px', textDecoration: 'none' }}>
                   <div style={{ border: '2px solid #0284c7', padding: '0px 4px', borderRadius: '2px' }}>
                     <span style={{ color: '#0284c7', fontWeight: 900, fontSize: '1rem', letterSpacing: '0.5px' }}>AIG</span>
                   </div>
                   <div style={{ color: '#0284c7', fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.5px' }}>Travel Guard&reg;</div>
-                </div>
+                </a>
                 <div style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 600 }}>
-                  <a href="#" style={{ color: '#0284c7', textDecoration: 'none' }}>Get Protected Now</a> Travel with peace of mind
+                  <a className="hover-underline" href="https://www.travelguard.com/?cmpid=kac-CJ2018-QuoteReferral&PID=7751806&cjevent=9a7eef165e4711f1828000100a18ba73" target="_blank" rel="noopener noreferrer" style={{ color: '#0284c7', textDecoration: 'none' }}>Get Protected Now</a> Travel with peace of mind
                 </div>
               </div>
 
@@ -1566,6 +1669,138 @@ const PropertyDetail: React.FC = () => {
 
         </div>
       </div>
+      {/* Booking Summary Modal */}
+      <AnimatePresence>
+        {showBookingModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}
+            >
+              <button
+                onClick={() => setShowBookingModal(false)}
+                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <LucideIcons.X size={24} />
+              </button>
+
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginBottom: '1.5rem' }}>Booking Summary</h2>
+
+              <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '4px', textAlign: 'left', fontWeight: 600, marginBottom: '1.5rem', border: '1px solid #bbf7d0' }}>
+                Your dates are available
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '12px', color: '#334155', fontWeight: 600 }}>{checkIn}</div>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '12px', color: '#334155', fontWeight: 600 }}>{checkOut}</div>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '12px', color: '#334155', fontWeight: 600 }}>{guestsCount} Adults</div>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '12px', color: '#334155', fontWeight: 600 }}>{bookingChildrenCount} Children</div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
+                  <span>{formatPrice(nightlyBaseRate)} x {stayNights} nights</span>
+                  <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(baseRentTotal)}</span>
+                </div>
+                {petFee > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
+                    <span>Pet Fee</span>
+                    <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(petFee)}</span>
+                  </div>
+                )}
+                {cleaningFee > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
+                    <span>Cleaning Fee</span>
+                    <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(cleaningFee)}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
+                  <span>Refundable Damage Deposit</span>
+                  <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(taxesTotal)}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', padding: '1.5rem 0', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>Total</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>{formatPrice(totalRent)}</span>
+              </div>
+
+              <button
+                onClick={handleBookingSubmit}
+                style={{ width: '100%', background: '#0f172a', color: '#fff', fontWeight: 700, padding: '16px', borderRadius: '8px', fontSize: '1.125rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#1e293b'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#0f172a'}
+              >
+                Continue Booking
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Terms & Conditions Modal */}
+      <AnimatePresence>
+        {showTermsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+            >
+              <div style={{ background: 'linear-gradient(to right, #0f172a, #1e293b)', padding: '1.5rem 2rem', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTopLeftRadius: '16px', borderTopRightRadius: '16px', flexShrink: 0 }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <LucideIcons.ShieldCheck size={28} style={{ color: '#38bdf8' }} />
+                  Terms & Conditions
+                </h2>
+                <button
+                  onClick={() => setShowTermsModal(false)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                >
+                  <LucideIcons.X size={20} />
+                </button>
+              </div>
+
+              <div style={{ padding: '2rem', overflowY: 'auto', flex: 1, background: '#f8fafc' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#475569', fontSize: '1rem', lineHeight: 1.7, background: '#fff', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' }}>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>1. COLLECTION OF INFORMATION AND IT'S PROTECTION</strong>We collect information like email addresses or other personal information required for authentication of property owners. This information is either collected through email communication or a direct phone call. This information is strictly used for owner identification and future correspondences only. We do not get involved in any information selling processes. Privacy of the information is our first priority.<br /><br />Entire property details, photos and other information is provided by the property owners. holidayhavenhomes.com is not responsible for any data duplicacy or authenticity as it is owners copyright and their responsibilty.</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>2. EMAIL MARKETING & MESSAGES</strong>We do not entertain spamming and are strictly against it. All our email messages and promotions are either to our registered owners or travelers that inquire on a property and those who have subscribed for our newsletter to receive such promotions. If you do not wish to receive emails or promotions from us, please contact SUPPORT</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>3. TELEPHONE CALLS</strong>In addition to collecting data online, we may also speak to our users on phone. This can either be for customer support or any promotional marketing which we want to explain to our users. If you wish to unsubscribe from these calls, please contact us at SUPPORT or inform the telephone representative about the same. We follow strict DNC rules.</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>4. SURVEYS</strong>We do feedback surveys from time to time and we request users to input their valuable comments on our services or their experience with us. The decision to answer the survey is solely with the user. User may or may not fill in the details depending on their discretion.</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>5. RENTAL INQUIRIES</strong>Travelers send inquiries through email contact forms on listing pages. Once a traveler choose to send an inquiry, he/she should understand that the personal information filled in the form, like email, phone and other information, will be shared with the property owner. We request users not to enter any financial information like credit card numbers or bank account information in our email contact forms.</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>6. SECURITY OF INFORMATION</strong>Guarantee valid for new listings from first time advertisers purchased from 16th March 2015 at 9 a.m. GMT (Greenwich Mean Time).</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>7. PHISHING OR FALSE EMAILS</strong>If you receive an unsolicited email requesting personal information like credit card, bank account, date of birth or even your account credentials with us, please be informed that this must be from someone trying to gain access to your information unlawfully. We do not request for such information in emails. Please contact SUPPORT if you receive something like this.</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>8. OPTING OUT OF RECEIVING MARKETING MESSAGES</strong>As a part of marketing, we may contact you through email or phone.<br />You can opt out of these marketing communications by following ways -: Contact us at SUPPORT</div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+                  <div><strong style={{ color: '#0f172a', fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>9. CONTACT US</strong>If you have any questions about our Terms & Conditions, Privacy Policy, Process of marketing etc, you may contact us at SUPPORT.</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Lightbox Modal */}
       <AnimatePresence>
         {lightboxOpen && (
@@ -1638,6 +1873,12 @@ const PropertyDetail: React.FC = () => {
       </AnimatePresence>
 
       <Footer />
+      <style>{`
+        .pd-date-picker-wrapper { width: 100%; display: block; }
+        .pd-date-picker-wrapper .react-datepicker-wrapper { width: 100%; }
+        .pd-date-picker-wrapper .react-datepicker__input-container { width: 100%; display: flex; }
+        .hover-underline:hover { text-decoration: underline !important; }
+      `}</style>
     </div>
   );
 };

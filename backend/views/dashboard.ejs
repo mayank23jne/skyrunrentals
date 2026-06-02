@@ -72,18 +72,24 @@
                 <div class="card">
                     <h3 style="margin-bottom: 2rem">Recent Activity</h3>
                     <div class="activity-list">
-                        <% recentActivity.forEach(activity => { %>
-                        <div class="activity-item">
-                            <div class="activity-info">
-                                <div class="activity-dot"></div>
-                                <div>
-                                    <p class="activity-title"><%= activity.action %></p>
-                                    <p class="activity-time"><%= activity.time %></p>
+                        <% if (recentActivity && recentActivity.length > 0) { %>
+                            <% recentActivity.forEach(activity => { %>
+                            <div class="activity-item">
+                                <div class="activity-info">
+                                    <div class="activity-dot"></div>
+                                    <div>
+                                        <p class="activity-title"><%= activity.action %></p>
+                                        <p class="activity-time"><%= activity.time %></p>
+                                    </div>
                                 </div>
+                                <i data-lucide="more-horizontal" style="color: var(--text-muted); cursor: pointer"></i>
                             </div>
-                            <i data-lucide="more-horizontal" style="color: var(--text-muted); cursor: pointer"></i>
-                        </div>
-                        <% }) %>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="activity-item" style="justify-content: center; padding: 2rem;">
+                                <p style="color: var(--text-muted); font-weight: 500;">There is no recent activity</p>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
                 <% if (admin && admin.usertype === '1') { %>

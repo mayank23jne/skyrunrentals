@@ -76,7 +76,7 @@ const PropertyDetail: React.FC = () => {
 
   // Sticky Navigation State
   const [activeSection, setActiveSection] = useState<string>('overview');
-  const { formatPrice } = useCurrency();
+  // const { formatPrice } = useCurrency();
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -343,23 +343,6 @@ const PropertyDetail: React.FC = () => {
   if (nearby.nearestGolf) nearbyItems.push({ type: 'golf', label: 'Nearest Golf', name: nearby.nearestGolf, distance: nearby.golfDistance });
   if (nearby.nearestRestaurant) nearbyItems.push({ type: 'restaurant', label: 'Nearest Restaurant', name: nearby.nearestRestaurant, distance: nearby.restaurantDistance });
 
-  // Calculate reservation details
-  const nightlyBaseRate = parseFloat(property.rates?.[0]?.nightly || '0') || 250;
-  const petFee = parseFloat(extras?.petFee || '0') || 0;
-  const cleaningFee = parseFloat(extras?.cleaningFee || '0') || 75;
-  const taxesRate = parseFloat(extras?.taxes || '0') || 10; // percentage
-
-  let stayNights = 0;
-  if (checkIn && checkOut) {
-    const d1 = new Date(checkIn);
-    const d2 = new Date(checkOut);
-    stayNights = Math.max(0, Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)));
-  }
-
-  const baseRentTotal = stayNights * nightlyBaseRate;
-  const taxesTotal = Math.round((baseRentTotal * taxesRate) / 100);
-  const totalRent = baseRentTotal + petFee + cleaningFee + taxesTotal;
-
   const isDateBookedStatus = (year: number, month: number, day: number) => {
     const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
@@ -380,6 +363,118 @@ const PropertyDetail: React.FC = () => {
 
     return null;
   };
+
+  console.log('property', property.rates);
+
+
+  // Calculate reservation details using legacy booking rates logic
+  const nightlyBaseRate = parseFloat(property.rates?.[0]?.nightly || '0') || 0;
+
+  const calculateLegacyRates = () => {
+    let selectedDates: string[] = [];
+    if (checkIn && checkOut) {
+      // Support YYYY-MM-DD and MM/DD/YYYY cleanly
+      const start = new Date(checkIn.includes('-') ? checkIn.replace(/-/g, '\/') : checkIn);
+      const end = new Date(checkOut.includes('-') ? checkOut.replace(/-/g, '\/') : checkOut);
+
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          selectedDates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+        }
+      }
+    }
+
+    if (!selectedDates || selectedDates.length === 0) {
+      return {
+        totalNightlyRate: 0, petFee: 0, cleaningFee: 0, subtotal: 0,
+        taxPercentage: 0, taxAmount: 0, damageProtection: 0, grandTotal: 0, numberOfNights: 0
+      };
+    }
+
+    const halfBookedDates: string[] = [];
+    selectedDates.forEach(dateStr => {
+      const parts = dateStr.split('-');
+      const status = isDateBookedStatus(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      if (status === 'am' || status === 'pm') {
+        halfBookedDates.push(dateStr);
+      }
+    });
+
+    const rates = {
+      nightly: parseFloat(property.rates?.[0]?.nightly || '0') || 0,
+      weekend_night: parseFloat(property.rates?.[0]?.weekendNight || property.rates?.[0]?.weekend || '0') || null
+    };
+
+    let totalNightlyRate = 0;
+    const datesToProcess = [...selectedDates];
+
+    // 1. Calculate Checkout Day (Always 50%)
+    if (datesToProcess.length > 1) {
+      const checkoutDateStr = datesToProcess.pop();
+      if (checkoutDateStr) {
+        // Fix timezone issue when parsing 'YYYY-MM-DD'
+        const parts = checkoutDateStr.split('-');
+        const checkoutDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        const dayOfWeek = checkoutDate.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        const rate = (isWeekend && rates.weekend_night) ? rates.weekend_night : rates.nightly;
+        totalNightlyRate += (rate / 2);
+      }
+    }
+
+    // 2. Calculate Remaining Days
+    for (const dateStr of datesToProcess) {
+      const parts = dateStr.split('-');
+      const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      const dayOfWeek = date.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      const rate = (isWeekend && rates.weekend_night) ? rates.weekend_night : rates.nightly;
+
+      if (halfBookedDates.includes(dateStr)) {
+        totalNightlyRate += (rate / 2);
+      } else {
+        totalNightlyRate += rate;
+      }
+    }
+
+    const parseFee = (fee?: string | null) => {
+      if (!fee) return 0;
+      const numericStr = fee.replace(/[^0-9.]/g, '');
+      return parseFloat(numericStr) || 0;
+    };
+
+    const petFeeVal = parseFee(extras?.petFee);
+    const cleaningFeeVal = parseFee(extras?.cleaningFee);
+    const damageProtectionVal = parseFee(extras?.damageProtection);
+    const taxPercentageVal = parseFee(extras?.taxes);
+
+    const subtotalVal = totalNightlyRate + petFeeVal + cleaningFeeVal;
+    const taxAmountVal = (subtotalVal * taxPercentageVal) / 100;
+    const grandTotalVal = Math.round(subtotalVal + taxAmountVal + damageProtectionVal);
+
+    return {
+      totalNightlyRate,
+      petFee: petFeeVal,
+      cleaningFee: cleaningFeeVal,
+      subtotal: subtotalVal,
+      taxPercentage: taxPercentageVal,
+      taxAmount: Math.round(taxAmountVal),
+      damageProtection: damageProtectionVal,
+      grandTotal: grandTotalVal,
+      numberOfNights: selectedDates.length > 1 ? selectedDates.length - 1 : 0
+    };
+  };
+
+  const bookingResult = calculateLegacyRates();
+  const stayNights = bookingResult.numberOfNights;
+  const baseRentTotal = bookingResult.totalNightlyRate;
+  const petFee = bookingResult.petFee;
+  const cleaningFee = bookingResult.cleaningFee;
+  const taxesTotal = bookingResult.taxAmount;
+  const damageProtection = bookingResult.damageProtection;
+  const totalRent = bookingResult.grandTotal;
 
   // Comparison comparison values
   const competitorFeeMarkup = Math.round(totalRent * 0.15); // typical 15% markup
@@ -952,7 +1047,7 @@ const PropertyDetail: React.FC = () => {
                             const dynamicWeekend = matchedRate ? (parseFloat(matchedRate.weekendNight || matchedRate.weekend || '0') || dynamicNightly) : weekendRate;
 
                             const displayRate = isWeekend && dynamicWeekend !== dynamicNightly ? dynamicWeekend : dynamicNightly;
-                            const priceLabel = displayRate > 0 ? formatPrice(displayRate) : null;
+                            const priceLabel = displayRate > 0 ? '$' + displayRate : null;
                             const priceColor = isWeekend && dynamicWeekend !== dynamicNightly ? '#e07b1a' : '#fe9d3d';
 
                             let bgColor = '#fff';
@@ -1054,19 +1149,19 @@ const PropertyDetail: React.FC = () => {
                               </div>
                             </td>
                             <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                              {rate.nightly ? formatPrice(rate.nightly) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                              {rate.nightly ? '$' + (rate.nightly) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
                             <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                              {rate.weekendNight || rate.weekend ? formatPrice(rate.weekendNight || rate.weekend) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                              {rate.weekendNight || rate.weekend ? '$' + (rate.weekendNight || rate.weekend) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
                             <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                              {rate.weekly ? formatPrice(rate.weekly) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                              {rate.weekly ? '$' + (rate.weekly) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
                             <td style={{ padding: '20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                              {rate.monthly ? formatPrice(rate.monthly) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                              {rate.monthly ? '$' + (rate.monthly) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
                             <td style={{ padding: '20px 24px 20px 12px', color: '#475569', fontWeight: 600, textAlign: 'center', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                              {rate.event ? formatPrice(rate.event) : <span style={{ color: '#cbd5e1' }}>-</span>}
+                              {rate.event ? '$' + (rate.event) : <span style={{ color: '#cbd5e1' }}>-</span>}
                             </td>
                           </tr>
                         ))}
@@ -1092,19 +1187,19 @@ const PropertyDetail: React.FC = () => {
                     {extras?.refundableDamageDeposit && (
                       <tr style={{ background: '#f3f4f6' }}>
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', width: '40%', borderBottom: '1px solid #e2e8f0' }}>Refundable Damage Deposit</td>
-                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(extras.refundableDamageDeposit)}</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{extras.refundableDamageDeposit}</td>
                       </tr>
                     )}
                     {extras?.petFee && (
                       <tr style={{ background: '#fff' }}>
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0' }}>Pet Fee</td>
-                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(extras.petFee)}</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{extras.petFee}</td>
                       </tr>
                     )}
                     {extras?.cleaningFee && (
                       <tr style={{ background: '#f3f4f6' }}>
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0' }}>Cleaning Fee</td>
-                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(extras.cleaningFee)}</td>
+                        <td style={{ padding: '10px 14px', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>{extras.cleaningFee}</td>
                       </tr>
                     )}
                     {extras?.taxes && (
@@ -1542,7 +1637,7 @@ const PropertyDetail: React.FC = () => {
                   <div style={{ marginBottom: '1.5rem', display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
                       <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>
-                        Total <span style={{ marginLeft: '1rem', color: '#fe9d3d' }}>{formatPrice(totalRent)}</span>
+                        Total <span style={{ marginLeft: '1rem', color: '#fe9d3d' }}>${totalRent}</span>
                       </div>
                       <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Includes taxes and fees</div>
                     </div>
@@ -1559,7 +1654,7 @@ const PropertyDetail: React.FC = () => {
 
               {/* Contact the Owner Section */}
               <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem' }}>Contact the owner</div>
-              <div style={{ fontSize: '1rem', color: '#64748b', marginBottom: '1.5rem' }}>Name : {host?.firstname ? `${host.firstname} ${host.lastname || ''}` : 'Property Owner'}</div>
+              <div style={{ fontSize: '1rem', color: '#64748b', marginBottom: '1.5rem' }}>Name : {assignedUser?.firstname ? `${assignedUser.firstname} ${assignedUser.lastname || ''}` : 'Property Owner'}</div>
 
               <form onSubmit={handleEnquirySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
@@ -1682,7 +1777,7 @@ const PropertyDetail: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}
+              style={{ background: '#fff', padding: '1rem', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '95vh', overflowY: 'auto', position: 'relative' }}
             >
               <button
                 onClick={() => setShowBookingModal(false)}
@@ -1706,35 +1801,43 @@ const PropertyDetail: React.FC = () => {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
-                  <span>{formatPrice(nightlyBaseRate)} x {stayNights} nights</span>
-                  <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(baseRentTotal)}</span>
+                  <span>${nightlyBaseRate} x {stayNights} nights</span>
+                  <span style={{ color: '#1e293b', fontWeight: 600 }}>${baseRentTotal}</span>
                 </div>
                 {petFee > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
                     <span>Pet Fee</span>
-                    <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(petFee)}</span>
+                    <span style={{ color: '#1e293b', fontWeight: 600 }}>${petFee}</span>
                   </div>
                 )}
                 {cleaningFee > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
                     <span>Cleaning Fee</span>
-                    <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(cleaningFee)}</span>
+                    <span style={{ color: '#1e293b', fontWeight: 600 }}>${cleaningFee}</span>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
-                  <span>Refundable Damage Deposit</span>
-                  <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatPrice(taxesTotal)}</span>
-                </div>
+                {taxesTotal > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
+                    <span>Taxes</span>
+                    <span style={{ color: '#1e293b', fontWeight: 600 }}>${taxesTotal}</span>
+                  </div>
+                )}
+                {damageProtection > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: 500 }}>
+                    <span>Refundable Deposit</span>
+                    <span style={{ color: '#1e293b', fontWeight: 600 }}>${damageProtection}</span>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', padding: '1.5rem 0', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
                 <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>Total</span>
-                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>{formatPrice(totalRent)}</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>${totalRent}</span>
               </div>
 
               <button
                 onClick={handleBookingSubmit}
-                style={{ width: '100%', background: '#0f172a', color: '#fff', fontWeight: 700, padding: '16px', borderRadius: '8px', fontSize: '1.125rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}
+                style={{ width: '100%', background: '#0f172a', color: '#fff', fontWeight: 700, padding: '8px', borderRadius: '8px', fontSize: '1.125rem', border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = '#1e293b'}
                 onMouseLeave={(e) => e.currentTarget.style.background = '#0f172a'}
               >

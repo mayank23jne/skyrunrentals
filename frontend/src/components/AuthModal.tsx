@@ -55,9 +55,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
       const response = await api.post('/admin/register', data);
       return response.data;
     },
-    onSuccess: () => {
-      setSuccess('Registration successful! Redirecting to sign in...');
-      setTimeout(() => { setSuccess(null); setActiveTab('signin'); }, 3000);
+    onSuccess: async () => {
+      setSuccess('Registration successful! Logging you in...');
+      try {
+        const loginData = await api.post('/auth/login', {
+          username: registerForm.email,
+          password: registerForm.password
+        }, { withCredentials: true });
+        
+        const userData = loginData.data.user;
+        setUser(userData, loginData.data.access_token);
+        
+        setTimeout(() => {
+          onClose();
+          window.location.href = '/list-property?scrollToPlans=true';
+        }, 1000);
+      } catch (err: any) {
+        setSuccess(null);
+        setError('Login failed after registration. Please sign in manually.');
+        setTimeout(() => { setActiveTab('signin'); }, 2000);
+      }
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Registration failed. Please check your details.');

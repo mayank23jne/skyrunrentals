@@ -60,6 +60,18 @@ const ListProperty: React.FC = () => {
     return Array.from(new Set(all)).filter(f => f && f !== '-----');
   }, [plans]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('scrollToPlans') === 'true') {
+      const el = document.getElementById('pricing-plans');
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }, 500);
+      }
+    }
+  }, []);
+
   return (
     <div className="list-property-page">
       <Navbar />
@@ -114,7 +126,7 @@ const ListProperty: React.FC = () => {
               className="guarantee-glass-card"
             >
               <div className="guarantee-badge">OUR PROMISE</div>
-              <h3>THE 15-30 BOOKING GUARANTEE</h3>
+              <h3>THE 3-5 BOOKING GUARANTEE</h3>
               <div className="guarantee-icon-pulse">
                 <ShieldCheck size={80} />
               </div>
@@ -279,7 +291,7 @@ const ListProperty: React.FC = () => {
         </section>
 
         {/* Pricing Plans */}
-        <section className="lp-pricing">
+        <section className="lp-pricing" id="pricing-plans">
           <div className="container">
             <div className="section-header">
               <h2 className="lp-title">Choose Your <span>Growth Plan</span></h2>

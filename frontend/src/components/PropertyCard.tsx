@@ -48,7 +48,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       whileHover={{ y: -10 }}
       className="bg-white rounded-[2rem] overflow-hidden shadow-lg border border-border group"
     >
-      <div className="relative h-64 overflow-hidden card-image-box cursor-pointer" onClick={() => id && window.open(`/property/${id}`, '_blank')}>
+      <div className="relative h-64 overflow-hidden card-image-box">
         <img
           src={currentImage}
           alt={title}

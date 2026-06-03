@@ -116,7 +116,7 @@ export class BookingService {
       ];
     }
 
-    return this.prisma.paymentDetail.findMany({
+    const transactions = await this.prisma.paymentDetail.findMany({
       where,
       skip,
       take,
@@ -125,6 +125,14 @@ export class BookingService {
       },
       orderBy: { createdDate: 'desc' },
     });
+
+    const plans = await this.prisma.plan.findMany();
+    const planMap = new Map(plans.map(p => [p.id, p.planName]));
+
+    return transactions.map(tx => ({
+      ...tx,
+      planName: (tx.planType ? planMap.get(tx.planType) : null) || null,
+    }));
   }
 
   async countTransactions(search?: string, ownerId?: number) {

@@ -84,7 +84,7 @@ const Contact: React.FC = () => {
                 <Headphones size={28} />
               </div>
               <h3>Phone Number</h3>
-              <p>+1 855-430-6273</p>
+              <p>(+1) - 603-333-8490</p>
             </div>
           </div>
         </div>

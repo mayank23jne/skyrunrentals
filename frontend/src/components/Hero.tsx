@@ -135,7 +135,7 @@ const Hero: React.FC = () => {
         .carousel-arrow.right { right: 40px; }
         
         /* Search Filter Styling */
-        .hero-search-wrapper { position: absolute; bottom: -59%; left: 50%; transform: translate(-50%, 45px) !important; width: 95%; max-width: 1100px; z-index: 100; }
+        .hero-search-wrapper { position: absolute; bottom: -59%; left: 50%; transform: translate(-50%, 45px) !important; width: 95%; max-width: 1100px; z-index: 1005; }
         .hero-search-bar { border-radius: 12px; }
         
         @media (max-width: 1024px) {

@@ -104,7 +104,7 @@ export class PropertyController {
     if (req.user.usertype === '1') {
       const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
       if (!user || user.subscription_type === 0) {
-        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property`);
+        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property?scrollToPlans=true`);
       }
     }
 
@@ -153,7 +153,7 @@ export class PropertyController {
     if (req.user.usertype === '1') {
       const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
       if (!user || user.subscription_type === 0) {
-        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property`);
+        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property?scrollToPlans=true`);
       }
     }
 

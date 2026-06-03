@@ -9,6 +9,10 @@ const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1600596542815-ffad4c153
 
 
 const PopularPropertyCard = ({ property, fallbackImage, navigate, formatPrice }: any) => {
+  const [imgIndex, setImgIndex] = useState(0);
+  const candidates = property.imageCandidates || [property.image || fallbackImage];
+  const currentImage = candidates[imgIndex];
+
   return (
     <div
       className="property-card group"
@@ -17,11 +21,15 @@ const PopularPropertyCard = ({ property, fallbackImage, navigate, formatPrice }:
     >
       <div className="card-image-box">
         <img
-          src={property.image || fallbackImage}
+          src={currentImage}
           alt={property.title}
           className="property-img"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = fallbackImage;
+            if (imgIndex < candidates.length - 1) {
+              setImgIndex(imgIndex + 1);
+            } else {
+              (e.target as HTMLImageElement).src = fallbackImage;
+            }
           }}
         />
         <span className="card-badge featured">FEATURED</span>
@@ -29,11 +37,11 @@ const PopularPropertyCard = ({ property, fallbackImage, navigate, formatPrice }:
 
       <div className="card-content">
         {/* 5 Golden Stars */}
-        <div className="property-rating-stars">
+        {/* <div className="property-rating-stars">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star key={i} size={15} fill="#f97316" color="#f97316" />
           ))}
-        </div>
+        </div> */}
 
         <h3 className="property-title" title={property.title}>{property.title}</h3>
 
@@ -72,9 +80,27 @@ const PopularTours: React.FC = () => {
       const response = await api.get('/properties/listing?recommended=1');
       if (response.data && response.data.properties && response.data.properties.length > 0) {
         return response.data.properties.map((p: any, index: number) => {
+          const originalUrl = p.photos?.find((photo: any) => photo.defaultImage === 1)?.imageName || p.photos?.[0]?.imageName || '';
+          const fileName = originalUrl.split('/').pop();
+          const match = originalUrl.match(/^(.*\/images\/)/);
+          const baseUrl = match ? match[1] : '';
+
+          let imageCandidates = [DEFAULT_IMAGE];
+          if (fileName && baseUrl) {
+            imageCandidates = [
+              `${baseUrl}uploaded_filesT/${fileName}`,
+              `${baseUrl}uploaded_files/${fileName}`,
+              `${baseUrl}uploads/property/thumbnail/${fileName}`,
+              DEFAULT_IMAGE
+            ];
+          } else if (originalUrl) {
+            imageCandidates = [originalUrl, DEFAULT_IMAGE];
+          }
+
           return {
             id: p.id,
-            image: p.photos?.find((photo: any) => photo.defaultImage === 1)?.imageName || p.photos?.[0]?.imageName || DEFAULT_IMAGE,
+            image: originalUrl || DEFAULT_IMAGE,
+            imageCandidates: imageCandidates,
             images: p.photos?.map((photo: any) => photo.imageName) || [],
             title: p.propertyHeadline || 'Premium Retreat',
             location: `${p.city || ''}, ${p.country || ''}`.replace(/^, | , $/g, '') || 'Global Escape',

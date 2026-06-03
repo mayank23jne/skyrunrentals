@@ -378,14 +378,16 @@ model PaymentDetail {
   response      String   @db.Text
   status        String   @db.VarChar(255)
   amount        String   @db.VarChar(255)
-  planType      Int      @map("plan_type")
+  planType      Int?     @map("plan_type")
   noOfProperty  Int      @map("no_of_property")
   description   String   @db.Text
   createdDate   DateTime @map("created_date") @db.DateTime(0)
   data          String?  @db.VarChar(50)
   user          User     @relation(fields: [userId], references: [id])
+  plan          Plan?    @relation(fields: [planType], references: [id])
 
   @@index([userId], map: "payment_detail_user_id_fkey")
+  @@index([planType], map: "payment_detail_plan_type_fkey")
   @@map("payment_detail")
 }
 
@@ -418,6 +420,7 @@ model Plan {
   description11 String @db.VarChar(255)
   description12 String @db.VarChar(255)
   description13 String @db.VarChar(255)
+  payments      PaymentDetail[]
 
   @@map("plan")
 }

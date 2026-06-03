@@ -99,7 +99,7 @@ export class PropertyService {
       ...p,
       photos: p.photos.map(photo => ({
         ...photo,
-        imageName: process.env.IMG_PATH + 'uploads/property/' + photo.imageName
+        imageName: process.env.IMG_PATH + (photo.defaultImage === 1 ? 'uploads/property/' : 'uploaded_filesT/') + photo.imageName
       }))
     }));
   }
@@ -432,7 +432,7 @@ export class PropertyService {
       }
       if (property.photos) {
         property.photos.forEach(photo => {
-          photo.imageName = process.env.IMG_PATH + 'uploads/property/' + photo.imageName;
+          photo.imageName = process.env.IMG_PATH + (photo.defaultImage === 1 ? 'uploads/property/' : 'uploaded_filesT/') + photo.imageName;
         });
       }
     }
@@ -917,7 +917,7 @@ export class PropertyService {
       defaultPhoto.imageName = process.env.IMG_PATH + 'uploads/property/' + defaultPhoto.imageName;
     }
     otherPhotos.forEach(p => {
-      if (p.imageName) p.imageName = process.env.IMG_PATH + 'uploads/property/' + p.imageName;
+      if (p.imageName) p.imageName = process.env.IMG_PATH + 'uploaded_filesT/' + p.imageName;
     });
 
     return {
@@ -1131,7 +1131,7 @@ export class PropertyService {
       city: p.city && !isNaN(parseInt(p.city as string, 10)) ? cityMap[parseInt(p.city as string, 10)] || p.city : p.city,
       photos: p.photos.map(photo => ({
         ...photo,
-        imageName: process.env.IMG_PATH + 'uploads/property/' + photo.imageName
+        imageName: process.env.IMG_PATH + (photo.defaultImage === 1 ? 'uploads/property/' : 'uploaded_filesT/') + photo.imageName
       }))
     }));
 
@@ -1393,7 +1393,7 @@ export class PropertyService {
       city: p.city && !isNaN(parseInt(p.city as string, 10)) ? cityMap[parseInt(p.city as string, 10)] || p.city : p.city,
       photos: p.photos.map(photo => ({
         ...photo,
-        imageName: process.env.IMG_PATH + 'uploads/property/' + photo.imageName
+        imageName: process.env.IMG_PATH + (photo.defaultImage === 1 ? 'uploads/property/' : 'uploaded_filesT/') + photo.imageName
       }))
     }));
 

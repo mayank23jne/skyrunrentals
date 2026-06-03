@@ -51,8 +51,8 @@ const Navbar: React.FC = () => {
   };
 
   const displayName = user
-    ? (user.firstname
-      ? `${user.firstname}${user.lastname ? ' ' + user.lastname : ''}`
+    ? ((user.firstname || user.lastname)
+      ? `${user.firstname || ''} ${user.lastname || ''}`.trim()
       : user.email)
     : '';
 
@@ -69,7 +69,7 @@ const Navbar: React.FC = () => {
             <span className="separator">|</span>
             <div className="info-item">
               <Phone size={14} />
-              <span>(+1) - 855-430-6273</span>
+              <span>(+1) - 603-333-8490</span>
             </div>
           </div>
           <div className="top-bar-right">

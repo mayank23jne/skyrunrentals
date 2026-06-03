@@ -43,7 +43,7 @@
                 <div class="profile-header">
                     <div class="profile-avatar-large"><%= admin.firstname.charAt(0) %></div>
                     <div class="profile-info">
-                        <h2><%= admin.firstname %> <%= admin.lastname %></h2>
+                        <h2><%= (admin.firstname || admin.lastname) ? `${admin.firstname || ''} ${admin.lastname || ''}`.trim() : admin.email %></h2>
                         <p><%= admin.email %> • <span style="text-transform: capitalize;"><%= admin.usertype %></span></p>
                     </div>
                 </div>

@@ -149,11 +149,18 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>User ID</th>
-                                <th>User Name</th>
-                                <th>Transaction By</th>
-                                <th>Amount</th>
-                                <th>Transaction Date</th>
+                                <% if (admin.usertype === '1') { %>
+                                    <th>Plan Name</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                <% } else { %>
+                                    <th>User ID</th>
+                                    <th>User Name</th>
+                                    <th>Transaction By</th>
+                                    <th>Amount</th>
+                                    <th>Transaction Date</th>
+                                <% } %>
                             </tr>
                         </thead>
                         <tbody id="transactions-table-body">

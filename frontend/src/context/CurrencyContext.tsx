@@ -36,13 +36,15 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const activeCurrency = useMemo(() => {
-    const fallbackUSD: Currency = { id: 0, code: 'USD', name: 'US Dollar', currency: '$', conversionRate: 1 };
-    if (!currencies.length) return fallbackUSD;
+    // const fallbackUSD: Currency = { id: 0, code: 'USD', name: 'US Dollar', currency: '$', conversionRate: 1 };
+    // if (!currencies.length) return fallbackUSD;
+    if (!currencies.length) return null;
     if (activeCurrencyId) {
       const found = currencies.find((c: Currency) => c.id.toString() === activeCurrencyId);
       if (found) return found;
     }
-    return currencies.find((c: Currency) => c.code?.trim() === 'USD' || c.name?.includes('US Dollar')) || currencies[0] || fallbackUSD;
+    return currencies.find((c: Currency) => c.code === 'USD') || currencies[0] || null;
+    // return currencies.find((c: Currency) => c.code?.trim() === 'USD' || c.name?.includes('US Dollar')) || currencies[0] || fallbackUSD;
   }, [currencies, activeCurrencyId]);
 
   const setCurrency = (currency: Currency) => {
@@ -54,8 +56,10 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (amount === null || amount === undefined || amount === '') return '';
     const num = Number(amount);
     if (isNaN(num)) return amount.toString();
-    const converted = num; // Do not apply conversion rate as requested
-    
+    const rate = activeCurrency?.conversionRate ? Number(activeCurrency.conversionRate) : 1;
+    const converted = num * rate;
+    // const converted = num; // Do not apply conversion rate as requested
+
     // Decode HTML entities like &pound;
     const rawSymbol = activeCurrency?.currency || '$';
     const textArea = document.createElement('textarea');

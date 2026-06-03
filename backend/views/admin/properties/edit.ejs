@@ -73,11 +73,13 @@
                 -webkit-overflow-scrolling: touch;
                 padding-bottom: 0.5rem;
             }
+
             .form-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 1rem;
             }
+
             .form-header-meta {
                 flex-direction: column;
                 gap: 0.5rem;
@@ -138,12 +140,13 @@
             align-items: flex-start;
             gap: 1.5rem;
         }
-        
+
         @media (max-width: 768px) {
             .field-row {
                 flex-direction: column;
                 gap: 0.5rem;
             }
+
             .form-group label {
                 text-align: left;
                 padding-top: 0;
@@ -354,6 +357,7 @@
             .months-container {
                 grid-template-columns: 1fr;
             }
+
             .calendar-banner {
                 flex-direction: column;
                 text-align: center;
@@ -747,7 +751,7 @@
                                         <div>PROPERTY ID -> <span>
                                                 <%=property.id%>
                                             </span></div>
-                                        <div>OWNER ID -> <span>
+                                        <div>CUSTOMER ID -> <span>
                                                 <%=property.createdBy%>
                                             </span></div>
                                     </div>
@@ -772,12 +776,28 @@
 
                                 <form id="edit-property-form">
 
-                                <style>
-                                    .alert { padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; display: none; font-weight: 500; }
-                                    .alert-success { background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-                                    .alert-error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-                                </style>
-                                <div id="alert" class="alert"></div>
+                                    <style>
+                                        .alert {
+                                            padding: 1rem;
+                                            border-radius: 0.75rem;
+                                            margin-bottom: 1.5rem;
+                                            display: none;
+                                            font-weight: 500;
+                                        }
+
+                                        .alert-success {
+                                            background-color: #ecfdf5;
+                                            color: #065f46;
+                                            border: 1px solid #a7f3d0;
+                                        }
+
+                                        .alert-error {
+                                            background-color: #fef2f2;
+                                            color: #991b1b;
+                                            border: 1px solid #fecaca;
+                                        }
+                                    </style>
+                                    <div id="alert" class="alert"></div>
 
                                     <!-- TAB 1: General Info -->
                                     <div class="tab-content active" id="tab-1">
@@ -797,7 +817,8 @@
                                                 <div class="field-row">
                                                     <label>Country</label>
                                                     <div class="field-input-wrapper">
-                                                        <select name="country" class="form-control" id="country-select" required>
+                                                        <select name="country" class="form-control" id="country-select"
+                                                            required>
                                                             <option value="">Select Country</option>
                                                             <% countries.forEach(function(c) { %>
                                                                 <option value="<%= c.id %>" data-name="<%= c.name %>"
@@ -815,12 +836,13 @@
                                                 <div class="field-row">
                                                     <label>State / Region</label>
                                                     <div class="field-input-wrapper">
-                                                        <select name="state" class="form-control" id="state-select" required>
+                                                        <select name="state" class="form-control" id="state-select"
+                                                            required>
                                                             <option value="">Select State</option>
                                                             <% states.forEach(function(s) { %>
                                                                 <option value="<%= s.id %>" data-name="<%= s.name %>"
-                                                                    <%=property && property.state===s.id.toString() ? 'selected'
-                                                                    : '' %>>
+                                                                    <%=property && property.state===s.id.toString()
+                                                                    ? 'selected' : '' %>>
                                                                     <%= s.name %>
                                                                 </option>
                                                                 <% }) %>
@@ -833,12 +855,13 @@
                                                 <div class="field-row">
                                                     <label>City</label>
                                                     <div class="field-input-wrapper">
-                                                        <select name="city" class="form-control" id="city-select" required>
+                                                        <select name="city" class="form-control" id="city-select"
+                                                            required>
                                                             <option value="">Select City</option>
                                                             <% cities.forEach(function(c) { %>
                                                                 <option value="<%= c.id %>" data-name="<%= c.name %>"
-                                                                    <%=property && property.city===c.id.toString() ? 'selected'
-                                                                    : '' %>>
+                                                                    <%=property && property.city===c.id.toString()
+                                                                    ? 'selected' : '' %>>
                                                                     <%= c.name %>
                                                                 </option>
                                                                 <% }) %>
@@ -936,8 +959,8 @@
                                                             <option value="">Select View</option>
                                                             <% propertyViews.forEach(v=> { %>
                                                                 <option value="<%=v.id%>"
-                                                                    <%=Number(property.propertyViewId) === Number(v.id) ? 'selected' : ''
-                                                                    %>><%=v.name%>
+                                                                    <%=Number(property.propertyViewId)===Number(v.id)
+                                                                    ? 'selected' : '' %>><%=v.name%>
                                                                 </option>
                                                                 <% }) %>
                                                         </select>
@@ -1031,11 +1054,16 @@
                                                 <div class="field-row">
                                                     <label>Country</label>
                                                     <div class="field-input-wrapper">
-                                                        <select name="contactCountry" class="form-control" id="contact-country-select"
+                                                        <select name="contactCountry" class="form-control"
+                                                            id="contact-country-select"
                                                             style="max-width: 400px; border-radius: 4px;">
                                                             <option value="">Select Country</option>
                                                             <% countries.forEach(function(c) { %>
-                                                                <option value="<%= c.id %>" data-name="<%= c.name %>" <%=(property && property.contacts && property.contacts[0] && property.contacts[0].country===c.id.toString()) ? 'selected' : '' %>>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>"
+                                                                    <%=(property && property.contacts &&
+                                                                    property.contacts[0] &&
+                                                                    property.contacts[0].country===c.id.toString())
+                                                                    ? 'selected' : '' %>>
                                                                     <%= c.name %>
                                                                 </option>
                                                                 <% }) %>
@@ -1047,11 +1075,16 @@
                                                 <div class="field-row">
                                                     <label>State</label>
                                                     <div class="field-input-wrapper">
-                                                        <select name="contactState" class="form-control" id="contact-state-select"
+                                                        <select name="contactState" class="form-control"
+                                                            id="contact-state-select"
                                                             style="max-width: 400px; border-radius: 4px;">
                                                             <option value="">Select State</option>
                                                             <% contactStates.forEach(function(s) { %>
-                                                                <option value="<%= s.id %>" data-name="<%= s.name %>" <%=(property && property.contacts && property.contacts[0] && property.contacts[0].state===s.id.toString()) ? 'selected' : '' %>>
+                                                                <option value="<%= s.id %>" data-name="<%= s.name %>"
+                                                                    <%=(property && property.contacts &&
+                                                                    property.contacts[0] &&
+                                                                    property.contacts[0].state===s.id.toString())
+                                                                    ? 'selected' : '' %>>
                                                                     <%= s.name %>
                                                                 </option>
                                                                 <% }) %>
@@ -1063,13 +1096,16 @@
                                                 <div class="field-row">
                                                     <label>City</label>
                                                     <div class="field-input-wrapper">
-                                                        <select name="contactCity" class="form-control" id="contact-city-select"
+                                                        <select name="contactCity" class="form-control"
+                                                            id="contact-city-select"
                                                             style="max-width: 400px; border-radius: 4px;">
                                                             <option value="">Select City</option>
                                                             <% contactCities.forEach(function(c) { %>
-                                                                <option value="<%= c.id %>" data-name="<%= c.name %>" <%=(property &&
-                                                                    property.contacts && property.contacts[0] &&
-                                                                    property.contacts[0].city===c.name) ? 'selected' : '' %>>
+                                                                <option value="<%= c.id %>" data-name="<%= c.name %>"
+                                                                    <%=(property && property.contacts &&
+                                                                    property.contacts[0] &&
+                                                                    property.contacts[0].city===c.name) ? 'selected'
+                                                                    : '' %>>
                                                                     <%= c.name %>
                                                                 </option>
                                                                 <% }) %>
@@ -1201,18 +1237,19 @@
                                         </div>
 
                                         <input type="hidden" name="removedPhotos" id="removedPhotosInput">
-                                        <input type="hidden" name="mainPhotoId" id="mainPhotoIdInput"
-                                            <% const defaultPhoto = property.photos ? property.photos.find(p => p.defaultImage === 1) : null; %>
-                                            value="<%= defaultPhoto ? defaultPhoto.id : '' %>">
+                                        <input type="hidden" name="mainPhotoId" id="mainPhotoIdInput" <% const
+                                            defaultPhoto=property.photos ? property.photos.find(p=> p.defaultImage ===
+                                        1) : null; %>
+                                        value="<%= defaultPhoto ? defaultPhoto.id : '' %>">
 
-                                        <div class="form-footer"
-                                            style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
-                                            <button type="button" class="btn-back" onclick="prevTab(2)">
-                                                < Back</button>
-                                                    <button type="button" class="btn-continue-outline"
-                                                        onclick="nextTab(4)">Continue ></button>
-                                                    <button type="submit" class="btn-continue">Save</button>
-                                        </div>
+                                            <div class="form-footer"
+                                                style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                                <button type="button" class="btn-back" onclick="prevTab(2)">
+                                                    < Back</button>
+                                                        <button type="button" class="btn-continue-outline"
+                                                            onclick="nextTab(4)">Continue ></button>
+                                                        <button type="submit" class="btn-continue">Save</button>
+                                            </div>
                                     </div>
 
                                     <!-- TAB 4: Amenities -->
@@ -1409,14 +1446,30 @@
 
                                                 <div class="checkbox-grid"
                                                     style="grid-template-columns: repeat(2, 1fr); gap: 1rem; padding-left: 110px;">
-                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Minimum Age Limit for Renters" <%=(amenity.otherSuitability||'').includes('Minimum Age Limit for Renters') ? 'checked' : '' %>> <span>Minimum Age Limit for Renters</span></label>
-                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Senior Adults Only Community" <%=(amenity.otherSuitability||'').includes('Senior Adults Only Community') ? 'checked' : '' %>> <span>Senior Adults Only Community</span></label>
-                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Long-term Renters" <%=(amenity.otherSuitability||'').includes('Long-term Renters') ? 'checked' : '' %>> <span>Long-term Renters Welcome</span></label>
-                                                    <label class="checkbox-item"><input type="checkbox" name="otherSuitability" value="Events Allowed" <%=(amenity.otherSuitability||'').includes('Events Allowed') ? 'checked' : '' %>> <span>Events Allowed</span></label>
+                                                    <label class="checkbox-item"><input type="checkbox"
+                                                            name="otherSuitability"
+                                                            value="Minimum Age Limit for Renters"
+                                                            <%=(amenity.otherSuitability||'').includes('Minimum Age
+                                                            Limit for Renters') ? 'checked' : '' %>> <span>Minimum Age
+                                                            Limit for Renters</span></label>
+                                                    <label class="checkbox-item"><input type="checkbox"
+                                                            name="otherSuitability" value="Senior Adults Only Community"
+                                                            <%=(amenity.otherSuitability||'').includes('Senior Adults
+                                                            Only Community') ? 'checked' : '' %>> <span>Senior Adults
+                                                            Only Community</span></label>
+                                                    <label class="checkbox-item"><input type="checkbox"
+                                                            name="otherSuitability" value="Long-term Renters"
+                                                            <%=(amenity.otherSuitability||'').includes('Long-term
+                                                            Renters') ? 'checked' : '' %>> <span>Long-term Renters
+                                                            Welcome</span></label>
+                                                    <label class="checkbox-item"><input type="checkbox"
+                                                            name="otherSuitability" value="Events Allowed"
+                                                            <%=(amenity.otherSuitability||'').includes('Events Allowed')
+                                                            ? 'checked' : '' %>> <span>Events Allowed</span></label>
                                                 </div>
 
                                             </div>
-                                            
+
                                             <div class="amenity-section">
                                                 <div class="amenity-section-title">
                                                     <i data-lucide="home"></i> Accommodations
@@ -1565,85 +1618,102 @@
                                                 <div class="form-group full-width">
                                                     <div class="field-input-wrapper">
                                                         <div id="additional-info-editor"
-                                                            style="height: 200px; background: white;"><%-
-                                                                amenity.additionalInfo || '' %></div>
+                                                            style="height: 200px; background: white;"><%- amenity.additionalInfo || '' %></div>
                                                         <input type="hidden" name="additionalInfo"
                                                             id="additionalInfoInput">
                                                     </div>
                                                 </div>
                                             </div>
                                             <!-- Dynamic Amenities -->
-                                            <% const propertyAmenityIds = (property.propertyAmenities || []).map(pa => pa.amenityItemId); %>
-                                            <% if (typeof amenityCategories !== 'undefined' && amenityCategories.length > 0) { %>
-                                                <div class="amenity-category-filter" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                                    <button type="button" class="btn-filter active" data-filter="all" style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: var(--primary); color: white; cursor: pointer; transition: all 0.2s;">All</button>
-                                                    <% amenityCategories.forEach(category => { %>
-                                                        <% if (category.items && category.items.length > 0) { %>
-                                                            <button type="button" class="btn-filter" data-filter="cat-<%= category.id %>" style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: white; color: var(--text-main); cursor: pointer; transition: all 0.2s;"><%= category.name %></button>
-                                                        <% } %>
-                                                    <% }) %>
-                                                </div>
-                                                <div class="dynamic-amenities-container">
-                                                    <% amenityCategories.forEach(category => { %>
-                                                        <% if (category.items && category.items.length > 0) { %>
-                                                            <div class="amenity-section dynamic-cat-section" id="cat-<%= category.id %>">
-                                                                <div class="amenity-section-title">
-                                                                    <i data-lucide="check-square"></i> <%= category.name %>
-                                                                </div>
-                                                                <div class="checkbox-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; padding-left: 110px;">
-                                                                    <% category.items.forEach(item => { %>
-                                                                        <label class="checkbox-item">
-                                                                            <input type="checkbox" name="dynamicAmenities" value="<%= item.id %>" <%= propertyAmenityIds.includes(item.id) ? 'checked' : '' %>>
-                                                                            <span>
-                                                                                <% if (item.icon) { %>
-                                                                                    <i data-lucide="<%= item.icon %>" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></i>
-                                                                                <% } %>
-                                                                                <%= item.name %>
-                                                                            </span>
-                                                                        </label>
+                                            <% const propertyAmenityIds=(property.propertyAmenities || []).map(pa=>
+                                                pa.amenityItemId); %>
+                                                <% if (typeof amenityCategories !=='undefined' &&
+                                                    amenityCategories.length> 0) { %>
+                                                    <div class="amenity-category-filter"
+                                                        style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                                        <button type="button" class="btn-filter active"
+                                                            data-filter="all"
+                                                            style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: var(--primary); color: white; cursor: pointer; transition: all 0.2s;">All</button>
+                                                        <% amenityCategories.forEach(category=> { %>
+                                                            <% if (category.items && category.items.length> 0) { %>
+                                                                <button type="button" class="btn-filter"
+                                                                    data-filter="cat-<%= category.id %>"
+                                                                    style="padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); background: white; color: var(--text-main); cursor: pointer; transition: all 0.2s;">
+                                                                    <%= category.name %>
+                                                                </button>
+                                                                <% } %>
                                                                     <% }) %>
+                                                    </div>
+                                                    <div class="dynamic-amenities-container">
+                                                        <% amenityCategories.forEach(category=> { %>
+                                                            <% if (category.items && category.items.length> 0) { %>
+                                                                <div class="amenity-section dynamic-cat-section"
+                                                                    id="cat-<%= category.id %>">
+                                                                    <div class="amenity-section-title">
+                                                                        <i data-lucide="check-square"></i>
+                                                                        <%= category.name %>
+                                                                    </div>
+                                                                    <div class="checkbox-grid"
+                                                                        style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; padding-left: 110px;">
+                                                                        <% category.items.forEach(item=> { %>
+                                                                            <label class="checkbox-item">
+                                                                                <input type="checkbox"
+                                                                                    name="dynamicAmenities"
+                                                                                    value="<%= item.id %>"
+                                                                                    <%=propertyAmenityIds.includes(item.id)
+                                                                                    ? 'checked' : '' %>>
+                                                                                <span>
+                                                                                    <% if (item.icon) { %>
+                                                                                        <i data-lucide="<%= item.icon %>"
+                                                                                            style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></i>
+                                                                                        <% } %>
+                                                                                            <%= item.name %>
+                                                                                </span>
+                                                                            </label>
+                                                                            <% }) %>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        <% } %>
-                                                    <% }) %>
-                                                </div>
-                                                <script>
-                                                    document.addEventListener('DOMContentLoaded', () => {
-                                                        const filterBtns = document.querySelectorAll('.btn-filter');
-                                                        const sections = document.querySelectorAll('.dynamic-cat-section');
-                                                        
-                                                        filterBtns.forEach(btn => {
-                                                            btn.addEventListener('click', (e) => {
-                                                                filterBtns.forEach(b => {
-                                                                    b.style.background = 'white';
-                                                                    b.style.color = 'var(--text-main)';
-                                                                    b.classList.remove('active');
-                                                                });
-                                                                e.target.style.background = 'var(--primary)';
-                                                                e.target.style.color = 'white';
-                                                                e.target.classList.add('active');
-                                                                
-                                                                const filter = e.target.dataset.filter;
-                                                                sections.forEach(sec => {
-                                                                    if (filter === 'all' || sec.id === filter) {
-                                                                        sec.style.display = 'block';
-                                                                    } else {
-                                                                        sec.style.display = 'none';
-                                                                    }
+                                                                <% } %>
+                                                                    <% }) %>
+                                                    </div>
+                                                    <script>
+                                                        document.addEventListener('DOMContentLoaded', () => {
+                                                            const filterBtns = document.querySelectorAll('.btn-filter');
+                                                            const sections = document.querySelectorAll('.dynamic-cat-section');
+
+                                                            filterBtns.forEach(btn => {
+                                                                btn.addEventListener('click', (e) => {
+                                                                    filterBtns.forEach(b => {
+                                                                        b.style.background = 'white';
+                                                                        b.style.color = 'var(--text-main)';
+                                                                        b.classList.remove('active');
+                                                                    });
+                                                                    e.target.style.background = 'var(--primary)';
+                                                                    e.target.style.color = 'white';
+                                                                    e.target.classList.add('active');
+
+                                                                    const filter = e.target.dataset.filter;
+                                                                    sections.forEach(sec => {
+                                                                        if (filter === 'all' || sec.id === filter) {
+                                                                            sec.style.display = 'block';
+                                                                        } else {
+                                                                            sec.style.display = 'none';
+                                                                        }
+                                                                    });
                                                                 });
                                                             });
                                                         });
-                                                    });
-                                                </script>
-                                            <% } %>
-                                            <div class="form-footer"
-                                                style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
-                                                <button type="button" class="btn-back" onclick="prevTab(3)">
-                                                    < Back</button>
-                                                        <button type="button" class="btn-continue-outline"
-                                                            onclick="nextTab(5)">Continue ></button>
-                                                        <button type="submit" class="btn-continue">Save</button>
-                                            </div>
+                                                    </script>
+                                                    <% } %>
+                                                        <div class="form-footer"
+                                                            style="justify-content: flex-start; margin-left: 140px; padding-left: 1.5rem; gap: 0.5rem; margin-top: 2rem;">
+                                                            <button type="button" class="btn-back" onclick="prevTab(3)">
+                                                                < Back</button>
+                                                                    <button type="button" class="btn-continue-outline"
+                                                                        onclick="nextTab(5)">Continue ></button>
+                                                                    <button type="submit"
+                                                                        class="btn-continue">Save</button>
+                                                        </div>
                                     </div>
 
                                     <!-- TAB 5: Rates -->
@@ -1962,10 +2032,10 @@
                         countryEl.addEventListener('change', async () => {
                             const selectedOption = countryEl.options[countryEl.selectedIndex];
                             const countryId = countryEl.value;
-                            
+
                             stateEl.innerHTML = '<option value="">Select State</option>';
                             cityEl.innerHTML = '<option value="">Select City</option>';
-                            
+
                             if (!countryId) return;
 
                             try {
@@ -1985,9 +2055,9 @@
                         stateEl.addEventListener('change', async () => {
                             const selectedOption = stateEl.options[stateEl.selectedIndex];
                             const stateId = stateEl.value;
-                            
+
                             cityEl.innerHTML = '<option value="">Select City</option>';
-                            
+
                             if (!stateId) return;
 
                             try {
@@ -2361,7 +2431,7 @@
                     });
 
                     if (response.ok) {
-                        
+
                         const alertBox = document.getElementById('alert');
                         alertBox.textContent = 'Property updated successfully!';
                         alertBox.className = 'alert alert-success';
@@ -2369,7 +2439,7 @@
                         setTimeout(() => { window.location.href = '/api/admin/properties'; }, 1500);
                     } else {
                         const err = await response.json();
-                        
+
                         const alertBox = document.getElementById('alert');
                         alertBox.textContent = 'Error: ' + err.message;
                         alertBox.className = 'alert alert-error';
@@ -2377,11 +2447,11 @@
                     }
                 } catch (error) {
                     console.error('Update error:', error);
-                    
-                        const alertBox = document.getElementById('alert');
-                        alertBox.textContent = 'An error occurred during update.';
-                        alertBox.className = 'alert alert-error';
-                        alertBox.style.display = 'block';
+
+                    const alertBox = document.getElementById('alert');
+                    alertBox.textContent = 'An error occurred during update.';
+                    alertBox.className = 'alert alert-error';
+                    alertBox.style.display = 'block';
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;

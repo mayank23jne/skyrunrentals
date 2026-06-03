@@ -50,6 +50,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
     }
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (showDestDropdown) checkDropdownDirection(destRef);
+      if (showGuestDropdown) checkDropdownDirection(guestRef);
+    };
+    
+    // Listen to scroll events on the window and any scrollable parent
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [showDestDropdown, showGuestDropdown]);
+
   const destRef = useRef<HTMLDivElement>(null);
   const guestRef = useRef<HTMLDivElement>(null);
 
@@ -69,13 +83,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
   const locations = searchLocations || [];
 
   useEffect(() => {
-    setSearchData({
-      destination: searchParams.get('venue') || '',
-      arrive: searchParams.get('check_in') || '',
-      depart: searchParams.get('check_out') || '',
-      guests: searchParams.get('guest') || '1 Guest'
-    });
-  }, [searchParams]);
+    setSearchData(prev => ({
+      ...prev,
+      destination: searchParams.get('venue') || initialData?.destination || prev.destination,
+      arrive: searchParams.get('check_in') || initialData?.arrive || prev.arrive,
+      depart: searchParams.get('check_out') || initialData?.depart || prev.depart,
+      guests: searchParams.get('guest') || initialData?.guests || prev.guests
+    }));
+  }, [searchParams, initialData?.destination, initialData?.arrive, initialData?.depart, initialData?.guests]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -291,7 +306,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
       </div>
 
       <style>{`
-        .search-bar-container { background: white; border-radius: 12px; padding: 0; box-shadow: 0 30px 60px rgba(0,0,0,0.25); overflow: visible; z-index: 100; position: relative; }
+        .search-bar-container { background: white; border-radius: 12px; padding: 0; box-shadow: 0 30px 60px rgba(0,0,0,0.25); overflow: visible; z-index: 1005; position: relative; }
         .search-bar-content { display: flex; align-items: center; height: 90px; }
         .search-item { flex: 1; display: flex; align-items: center; gap: 15px; padding: 0 30px; transition: background 0.3s ease; cursor: pointer; height: 100%; position: relative; }
         .search-item:hover { background: #fcfcfc; }

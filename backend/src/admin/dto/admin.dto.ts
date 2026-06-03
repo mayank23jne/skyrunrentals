@@ -23,10 +23,10 @@ export class UpdateProfileDto {
   @IsString()
   contact_number: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  address: string;
+  address?: string;
 }
 
 export class ChangePasswordDto {

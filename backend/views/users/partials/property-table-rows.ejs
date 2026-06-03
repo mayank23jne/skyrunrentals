@@ -1,0 +1,56 @@
+<% if (properties && properties.length> 0) { %>
+    <% properties.forEach((p, index)=> { %>
+        <tr>
+            <td>
+                <span style="font-weight: 500; color: var(--text-muted);">
+                    <%= (currentPage - 1) * 10 + index + 1 %>
+                </span>
+            </td>
+            <td>
+                <% if (p.photos && p.photos.length> 0) { %>
+                    <img src="<%= p.photos[0].imageName %>" class="property-thumb" alt="thumbnail"
+                        onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=150&q=80'">
+                    <% } else { %>
+                        <div class="property-thumb"
+                            style="display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 0.5rem; width: 64px; height: 64px;">
+                            <i data-lucide="image" style="width: 20px; height: 20px; color: #cbd5e1;"></i>
+                        </div>
+                        <% } %>
+            </td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-main); line-height: 1.4; font-size: 0.9rem;">
+                    <%= p.propertyHeadline || 'No Title' %>
+                </div>
+            </td>
+            <td>
+                <div style="color: var(--text-muted); font-size: 0.9rem;">
+                    <%= p.propertyType || 'N/A' %>
+                </div>
+            </td>
+            <td style="text-align: right;">
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <a href="/api/admin/properties/<%= p.id %>/edit" class="action-btn" title="Edit Property"
+                        style="color: var(--primary); text-decoration: none;">
+                        <i data-lucide="edit-3" size="16"></i>
+                    </a>
+                    <button class="action-btn" style="color: #ef4444;" title="Delete Property"
+                        onclick="deleteProperty(<%= p.id %>)">
+                        <i data-lucide="trash-2" size="16"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    <% }); %>
+<% } else { %>
+    <tr>
+        <td colspan="5" style="text-align: center; padding: 4rem 1rem;">
+            <div style="display: inline-flex; flex-direction: column; align-items: center; gap: 1rem;">
+                <div style="width: 48px; height: 48px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="search" style="width: 24px; height: 24px; color: #94a3b8;"></i>
+                </div>
+                <div style="color: var(--text-muted); font-weight: 500;">No properties found for this user</div>
+            </div>
+        </td>
+    </tr>
+<% } %>
+<tr id="pagination-data" data-current-page="<%= currentPage %>" data-total-pages="<%= totalPages %>" data-total-count="<%= totalCount %>" style="display: none;"></tr>

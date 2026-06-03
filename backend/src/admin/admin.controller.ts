@@ -187,11 +187,45 @@ export class AdminController {
 
   @Roles('0')
   @Get('users/:id/view')
-  @Render('users/view')
   @ApiOperation({ summary: 'View user detail' })
-  async viewUser(@Req() req, @Param('id', ParseIntPipe) id: number) {
+  async viewUser(@Req() req, @Res() res, @Param('id', ParseIntPipe) id: number, @Query('page') page: string = '1', @Query('ajax') ajax?: string) {
     const user = await this.adminService.getUserById(id);
-    return { admin: req.user, user, activePage: 'users', pageTitle: 'View User' };
+    
+    const pageSize = 10;
+    const currentPage = parseInt(page, 10) || 1;
+    const skippedItems = (currentPage - 1) * pageSize;
+
+    const [properties, totalCount, countries] = await Promise.all([
+      this.prisma.property.findMany({
+        where: { createdBy: id },
+        skip: skippedItems,
+        take: pageSize,
+        include: { photos: { where: { defaultImage: 1 } }, propertyDescriptions: true },
+        orderBy: { id: 'desc' }
+      }),
+      this.prisma.property.count({ where: { createdBy: id } }),
+      this.prisma.country.findMany()
+    ]);
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    const data = {
+      admin: req.user,
+      user,
+      activePage: 'users',
+      pageTitle: 'View User',
+      properties,
+      totalCount,
+      totalPages,
+      currentPage,
+      countries
+    };
+
+    if (ajax === 'true') {
+      return res.render('users/partials/property-table-rows', data);
+    }
+
+    return res.render('users/view', data);
   }
 
   @Roles('0')

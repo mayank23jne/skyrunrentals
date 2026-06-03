@@ -233,12 +233,23 @@
             tableContainer.addEventListener('click', async (e) => {
                 const statusBtn = e.target.closest('.status-btn');
                 if (statusBtn) {
-                    const userId = statusBtn.dataset.id;
-                    const response = await fetch(`/api/admin/users/${userId}/toggle-status`, { method: 'POST' });
-                    if (response.ok) {
-                        const user = await response.json();
-                        statusBtn.className = `status-btn ${user.status === 0 ? 'status-active' : 'status-inactive'}`;
-                        statusBtn.textContent = user.status === 0 ? 'Active' : 'Deactivated';
+                    const currentStatus = statusBtn.textContent.trim();
+                    const actionName = currentStatus === 'Active' ? 'deactivate' : 'activate';
+                    
+                    const confirmed = await openDeleteModal(
+                        'Change Status', 
+                        `Are you sure you want to ${actionName} this user?`,
+                        'Confirm'
+                    );
+
+                    if (confirmed) {
+                        const userId = statusBtn.dataset.id;
+                        const response = await fetch(`/api/admin/users/${userId}/toggle-status`, { method: 'POST' });
+                        if (response.ok) {
+                            const user = await response.json();
+                            statusBtn.className = `status-btn ${user.status === 0 ? 'status-active' : 'status-inactive'}`;
+                            statusBtn.textContent = user.status === 0 ? 'Active' : 'Deactivated';
+                        }
                     }
                 }
 

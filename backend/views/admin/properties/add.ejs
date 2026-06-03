@@ -817,8 +817,8 @@
                                 <div class="form-header">
                                     <div class="form-header-title">+ ADD PROPERTIES</div>
                                     <div class="form-header-meta">
-                                        <div>PROPERTY ID -> <span>NEW</span></div>
-                                        <div>CUSTOMER ID -> <span>1</span></div>
+                                        <div>PROPERTY ID -> <span><%= nextPropertyId %></span></div>
+                                        <div>CUSTOMER ID -> <span><%= selectedUserId || 1 %></span></div>
                                     </div>
                                 </div>
 
@@ -846,6 +846,28 @@
                                 </div>
 
                                 <form id="property-form">
+                                    <style>
+                                        .alert {
+                                            padding: 1rem;
+                                            border-radius: 0.75rem;
+                                            margin-bottom: 1.5rem;
+                                            display: none;
+                                            font-weight: 500;
+                                        }
+
+                                        .alert-success {
+                                            background-color: #ecfdf5;
+                                            color: #065f46;
+                                            border: 1px solid #a7f3d0;
+                                        }
+
+                                        .alert-error {
+                                            background-color: #fef2f2;
+                                            color: #991b1b;
+                                            border: 1px solid #fecaca;
+                                        }
+                                    </style>
+                                    <div id="alert" class="alert"></div>
                                     <!-- Tab 1: Description & Location -->
                                     <div class="tab-content active" id="tab-1">
                                         <h2 class="form-section-title">Provide location details</h2>
@@ -898,7 +920,8 @@
                                                 <div class="field-row">
                                                     <label>City</label>
                                                     <div class="field-input-wrapper">
-                                                        <select name="city" id="city-select" class="form-control" required>
+                                                        <select name="city" id="city-select" class="form-control"
+                                                            required>
                                                             <option value="">Select City</option>
                                                         </select>
                                                     </div>
@@ -1042,6 +1065,7 @@
                                             </div>
 
                                             <!-- Assign Property -->
+                                            <% if (admin.usertype === '0' || admin.usertype === '2') { %>
                                             <div class="form-group full-width">
                                                 <div class="field-row">
                                                     <label>Assign Property</label>
@@ -1049,15 +1073,17 @@
                                                         <select name="assignTo" class="form-control">
                                                             <option value="">Select</option>
                                                             <% users.forEach(u=> { %>
-                                                                <option value="<%= u.id %>">
-                                                                    <%= u.firstname %>
-                                                                        <%= u.lastname %> (<%= u.email %>)
+                                                                <option value="<%= u.id %>" <%= selectedUserId === u.id ? 'selected' : '' %>>
+                                                                    Customer ID - <%= u.id %> (<%= u.firstname %> <%= u.lastname %>)
                                                                 </option>
                                                                 <% }) %>
                                                         </select>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <% } else if (selectedUserId) { %>
+                                                <input type="hidden" name="assignTo" value="<%= selectedUserId %>">
+                                            <% } %>
                                         </div>
 
                                         <div class="form-footer">
@@ -1460,198 +1486,193 @@
                                             </div>
                                         </div>
 
-                                        
-                                                <!-- Accommodations -->
-                                                <div class="amenity-section">
-                                                    <div class="amenity-section-title">
-                                                        <i data-lucide="home"></i> Accommodations
-                                                    </div>
-                                                    <div class="bedding-grid"
-                                                        style="grid-template-columns: 200px 1fr; gap: 2rem 1rem;">
-                                                        <span class="bed-label" style="font-weight: 500;">Accommodation
-                                                            Type</span>
-                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
-                                                            <span
-                                                                style="font-size: 0.8rem; color: #64748b; margin-right: 0.5rem;">This
-                                                                property operates as a:</span>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="accommodationType"
-                                                                    value="Vacation Rental" checked>
-                                                                <span>Vacation Rental</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="accommodationType"
-                                                                    value="Bed & Breakfast">
-                                                                <span>Bed & Breakfast</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="accommodationType"
-                                                                    value="Hotel">
-                                                                <span>Hotel</span>
-                                                            </label>
-                                                        </div>
 
-                                                        <span class="bed-label" style="font-weight: 500;">Meals</span>
-                                                        <div style="max-width: 300px;">
-                                                            <select name="mealsPolicy" class="form-control">
-                                                                <option value="Guests provide their own meals">Guests
-                                                                    provide
-                                                                    their own meals</option>
-                                                                <option value="Meals provided">Meals provided</option>
-                                                                <option value="Negotiable">Negotiable</option>
-                                                            </select>
-                                                        </div>
-
-                                                        <span class="bed-label" style="font-weight: 500;">Break
-                                                            Fast</span>
-                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="breakfastPolicy"
-                                                                    value="Not Available" checked>
-                                                                <span>Not Available</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="breakfastPolicy"
-                                                                    value="Booking Possible">
-                                                                <span>Booking Possible</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="breakfastPolicy"
-                                                                    value="Included In Price">
-                                                                <span>Included In Price</span>
-                                                            </label>
-                                                        </div>
-
-                                                        <span class="bed-label" style="font-weight: 500;">Lunch</span>
-                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="lunchPolicy"
-                                                                    value="Not Available" checked>
-                                                                <span>Not Available</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="lunchPolicy"
-                                                                    value="Booking Possible">
-                                                                <span>Booking Possible</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="lunchPolicy"
-                                                                    value="Included In Price">
-                                                                <span>Included In Price</span>
-                                                            </label>
-                                                        </div>
-
-                                                        <span class="bed-label" style="font-weight: 500;">Dinner</span>
-                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="dinnerPolicy"
-                                                                    value="Not Available" checked>
-                                                                <span>Not Available</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="dinnerPolicy"
-                                                                    value="Booking Possible">
-                                                                <span>Booking Possible</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="dinnerPolicy"
-                                                                    value="Included In Price">
-                                                                <span>Included In Price</span>
-                                                            </label>
-                                                        </div>
-
-                                                        <span class="bed-label"
-                                                            style="font-weight: 500;">Housekeeping</span>
-                                                        <div style="display: flex; gap: 1.5rem; align-items: center;">
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="housekeepingPolicy"
-                                                                    value="Ask Owner" checked>
-                                                                <span>Ask Owner</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="housekeepingPolicy"
-                                                                    value="Housekeeper Included">
-                                                                <span>Housekeeper Included</span>
-                                                            </label>
-                                                            <label class="checkbox-item" style="margin: 0;">
-                                                                <input type="radio" name="housekeepingPolicy"
-                                                                    value="Housekeeper Optional">
-                                                                <span>Housekeeper Optional</span>
-                                                            </label>
-                                                        </div>
-                                                    </div>
+                                        <!-- Accommodations -->
+                                        <div class="amenity-section">
+                                            <div class="amenity-section-title">
+                                                <i data-lucide="home"></i> Accommodations
+                                            </div>
+                                            <div class="bedding-grid"
+                                                style="grid-template-columns: 200px 1fr; gap: 2rem 1rem;">
+                                                <span class="bed-label" style="font-weight: 500;">Accommodation
+                                                    Type</span>
+                                                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                    <span
+                                                        style="font-size: 0.8rem; color: #64748b; margin-right: 0.5rem;">This
+                                                        property operates as a:</span>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="accommodationType"
+                                                            value="Vacation Rental" checked>
+                                                        <span>Vacation Rental</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="accommodationType"
+                                                            value="Bed & Breakfast">
+                                                        <span>Bed & Breakfast</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="accommodationType" value="Hotel">
+                                                        <span>Hotel</span>
+                                                    </label>
                                                 </div>
 
-                                                <!-- Other Services -->
-                                                <div class="amenity-section">
-                                                    <div class="amenity-section-title">
-                                                        <i data-lucide="map"></i> Other Services
-                                                    </div>
-                                                    <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
-                                                        <% const otherSvcItems=[['Car Available', 'Chauffeur' ],
-                                                            ['Concierge', 'Massage' ], ['Private Chef', 'Staff' ]] %>
-                                                            <% otherSvcItems.forEach(row=> { %>
-                                                                <label class="checkbox-item">
-                                                                    <input type="checkbox" name="otherServices"
-                                                                        value="<%= row[0] %>">
-                                                                    <span>
-                                                                        <%= row[0] %>
-                                                                    </span>
-                                                                </label>
-                                                                <label class="checkbox-item">
-                                                                    <input type="checkbox" name="otherServices"
-                                                                        value="<%= row[1] %>">
-                                                                    <span>
-                                                                        <%= row[1] %>
-                                                                    </span>
-                                                                </label>
+                                                <span class="bed-label" style="font-weight: 500;">Meals</span>
+                                                <div style="max-width: 300px;">
+                                                    <select name="mealsPolicy" class="form-control">
+                                                        <option value="Guests provide their own meals">Guests
+                                                            provide
+                                                            their own meals</option>
+                                                        <option value="Meals provided">Meals provided</option>
+                                                        <option value="Negotiable">Negotiable</option>
+                                                    </select>
+                                                </div>
+
+                                                <span class="bed-label" style="font-weight: 500;">Break
+                                                    Fast</span>
+                                                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="breakfastPolicy" value="Not Available"
+                                                            checked>
+                                                        <span>Not Available</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="breakfastPolicy"
+                                                            value="Booking Possible">
+                                                        <span>Booking Possible</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="breakfastPolicy"
+                                                            value="Included In Price">
+                                                        <span>Included In Price</span>
+                                                    </label>
+                                                </div>
+
+                                                <span class="bed-label" style="font-weight: 500;">Lunch</span>
+                                                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="lunchPolicy" value="Not Available"
+                                                            checked>
+                                                        <span>Not Available</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="lunchPolicy" value="Booking Possible">
+                                                        <span>Booking Possible</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="lunchPolicy"
+                                                            value="Included In Price">
+                                                        <span>Included In Price</span>
+                                                    </label>
+                                                </div>
+
+                                                <span class="bed-label" style="font-weight: 500;">Dinner</span>
+                                                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="dinnerPolicy" value="Not Available"
+                                                            checked>
+                                                        <span>Not Available</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="dinnerPolicy"
+                                                            value="Booking Possible">
+                                                        <span>Booking Possible</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="dinnerPolicy"
+                                                            value="Included In Price">
+                                                        <span>Included In Price</span>
+                                                    </label>
+                                                </div>
+
+                                                <span class="bed-label" style="font-weight: 500;">Housekeeping</span>
+                                                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="housekeepingPolicy" value="Ask Owner"
+                                                            checked>
+                                                        <span>Ask Owner</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="housekeepingPolicy"
+                                                            value="Housekeeper Included">
+                                                        <span>Housekeeper Included</span>
+                                                    </label>
+                                                    <label class="checkbox-item" style="margin: 0;">
+                                                        <input type="radio" name="housekeepingPolicy"
+                                                            value="Housekeeper Optional">
+                                                        <span>Housekeeper Optional</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Other Services -->
+                                        <div class="amenity-section">
+                                            <div class="amenity-section-title">
+                                                <i data-lucide="map"></i> Other Services
+                                            </div>
+                                            <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
+                                                <% const otherSvcItems=[['Car Available', 'Chauffeur' ],
+                                                    ['Concierge', 'Massage' ], ['Private Chef', 'Staff' ]] %>
+                                                    <% otherSvcItems.forEach(row=> { %>
+                                                        <label class="checkbox-item">
+                                                            <input type="checkbox" name="otherServices"
+                                                                value="<%= row[0] %>">
+                                                            <span>
+                                                                <%= row[0] %>
+                                                            </span>
+                                                        </label>
+                                                        <label class="checkbox-item">
+                                                            <input type="checkbox" name="otherServices"
+                                                                value="<%= row[1] %>">
+                                                            <span>
+                                                                <%= row[1] %>
+                                                            </span>
+                                                        </label>
+                                                        <% }) %>
+                                            </div>
+                                        </div>
+
+                                        <!-- Themes -->
+                                        <div class="amenity-section">
+                                            <div class="amenity-section-title">
+                                                <i data-lucide="sparkles"></i> Themes
+                                            </div>
+                                            <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
+                                                <% const themeItems=[['Adventure', 'Away From It All' ],
+                                                    ['Budget', 'Family' ], ['Historic', 'Romantic' ],
+                                                    ['Spa', 'Sports & Activities' ], ['Tourist Attractions', '' ]] %>
+                                                    <% themeItems.forEach(row=> { %>
+                                                        <label class="checkbox-item">
+                                                            <input type="checkbox" name="themes" value="<%= row[0] %>">
+                                                            <span>
+                                                                <%= row[0] %>
+                                                            </span>
+                                                        </label>
+                                                        <% if(row[1]) { %>
+                                                            <label class="checkbox-item">
+                                                                <input type="checkbox" name="themes"
+                                                                    value="<%= row[1] %>">
+                                                                <span>
+                                                                    <%= row[1] %>
+                                                                </span>
+                                                            </label>
+                                                            <% } %>
                                                                 <% }) %>
-                                                    </div>
-                                                </div>
+                                            </div>
+                                        </div>
 
-                                                <!-- Themes -->
-                                                <div class="amenity-section">
-                                                    <div class="amenity-section-title">
-                                                        <i data-lucide="sparkles"></i> Themes
-                                                    </div>
-                                                    <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
-                                                        <% const themeItems=[['Adventure', 'Away From It All' ],
-                                                            ['Budget', 'Family' ], ['Historic', 'Romantic' ],
-                                                            ['Spa', 'Sports & Activities' ], ['Tourist Attractions', ''
-                                                            ]] %>
-                                                            <% themeItems.forEach(row=> { %>
-                                                                <label class="checkbox-item">
-                                                                    <input type="checkbox" name="themes"
-                                                                        value="<%= row[0] %>">
-                                                                    <span>
-                                                                        <%= row[0] %>
-                                                                    </span>
-                                                                </label>
-                                                                <% if(row[1]) { %>
-                                                                    <label class="checkbox-item">
-                                                                        <input type="checkbox" name="themes"
-                                                                            value="<%= row[1] %>">
-                                                                        <span>
-                                                                            <%= row[1] %>
-                                                                        </span>
-                                                                    </label>
-                                                                    <% } %>
-                                                                        <% }) %>
-                                                    </div>
-                                                </div>
+                                        <!-- Additional Info -->
+                                        <div class="amenity-section">
+                                            <div class="amenity-section-title">
+                                                <i data-lucide="info"></i> Additional Info
+                                            </div>
+                                            <div class="field-input-wrapper">
+                                                <div id="amenity-editor"></div>
+                                                <input type="hidden" name="additionalInfo" id="additionalInfo">
+                                            </div>
+                                        </div>
 
-                                                <!-- Additional Info -->
-                                                <div class="amenity-section">
-                                                    <div class="amenity-section-title">
-                                                        <i data-lucide="info"></i> Additional Info
-                                                    </div>
-                                                    <div class="field-input-wrapper">
-                                                        <div id="amenity-editor"></div>
-                                                        <input type="hidden" name="additionalInfo" id="additionalInfo">
-                                                    </div>
-                                                </div>
-
-                                                <!-- Dynamic Amenities -->
+                                        <!-- Dynamic Amenities -->
                                         <% if (typeof amenityCategories !=='undefined' && amenityCategories.length> 0) {
                                             %>
                                             <div class="amenity-category-filter"
@@ -1886,8 +1907,10 @@
                                             </div>
                                             <select class="click-method-select">
                                                 <option value="cycle">click-through (cycle through all states)</option>
-                                                <option value="booked">Directly set to Booked</option>
-                                                <option value="available">Directly set to Available</option>
+                                                <option value="booked">Booked</option>
+                                                <option value="booked">Booked am</option>
+                                                <option value="booked">Booked pm</option>
+                                                <option value="booked">Available</option>
                                             </select>
                                         </div>
 
@@ -2476,14 +2499,14 @@
                     const result = await response.json();
 
                     if (response.ok) {
-                        
+
                         const alertBox = document.getElementById('alert');
                         alertBox.textContent = 'Property saved successfully!';
                         alertBox.className = 'alert alert-success';
                         alertBox.style.display = 'block';
                         setTimeout(() => { window.location.href = '/api/admin/properties'; }, 1500);
                     } else {
-                        
+
                         const alertBox = document.getElementById('alert');
                         alertBox.textContent = 'Error saving property: ' + (result.message || 'Unknown error');
                         alertBox.className = 'alert alert-error';
@@ -2491,11 +2514,11 @@
                     }
                 } catch (error) {
                     console.error('Submission error:', error);
-                    
-                        const alertBox = document.getElementById('alert');
-                        alertBox.textContent = 'An unexpected error occurred. Please check the console.';
-                        alertBox.className = 'alert alert-error';
-                        alertBox.style.display = 'block';
+
+                    const alertBox = document.getElementById('alert');
+                    alertBox.textContent = 'An unexpected error occurred. Please check the console.';
+                    alertBox.className = 'alert alert-error';
+                    alertBox.style.display = 'block';
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;

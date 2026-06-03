@@ -22,7 +22,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
   const [searchParams] = useSearchParams();
 
   const [searchData, setSearchData] = useState({
-    destination: initialData?.destination || searchParams.get('venue') || '',
+    destination: searchParams.get('venueName') || initialData?.destination || searchParams.get('venue') || '',
     arrive: initialData?.arrive || searchParams.get('check_in') || '',
     depart: initialData?.depart || searchParams.get('check_out') || '',
     guests: initialData?.guests || searchParams.get('guest') || '1 Guest'
@@ -55,10 +55,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
       if (showDestDropdown) checkDropdownDirection(destRef);
       if (showGuestDropdown) checkDropdownDirection(guestRef);
     };
-    
+
     // Listen to scroll events on the window and any scrollable parent
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll, true);
     };
@@ -85,7 +85,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
   useEffect(() => {
     setSearchData(prev => ({
       ...prev,
-      destination: searchParams.get('venue') || initialData?.destination || prev.destination,
+      destination: searchParams.get('venueName') || searchParams.get('venue') || initialData?.destination || prev.destination,
       arrive: searchParams.get('check_in') || initialData?.arrive || prev.arrive,
       depart: searchParams.get('check_out') || initialData?.depart || prev.depart,
       guests: searchParams.get('guest') || initialData?.guests || prev.guests
@@ -116,6 +116,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
     if (searchData.arrive) params.set('check_in', searchData.arrive);
     if (searchData.depart) params.set('check_out', searchData.depart);
     if (searchData.guests) params.set('guest', searchData.guests);
+    
+    // Pass the actual display name to persist in the input
+    if (searchData.destination) params.set('venueName', searchData.destination);
 
     if (selectedLocation) {
       if (selectedLocation.type === 'country') {
@@ -306,7 +309,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
       </div>
 
       <style>{`
-        .search-bar-container { background: white; border-radius: 12px; padding: 0; box-shadow: 0 30px 60px rgba(0,0,0,0.25); overflow: visible; z-index: 1005; position: relative; }
+        .search-bar-container { background: white; border-radius: 12px; padding: 0; box-shadow: 0 30px 60px rgba(0,0,0,0.25); overflow: visible; z-index: 999; position: relative; }
         .search-bar-content { display: flex; align-items: center; height: 90px; }
         .search-item { flex: 1; display: flex; align-items: center; gap: 15px; padding: 0 30px; transition: background 0.3s ease; cursor: pointer; height: 100%; position: relative; }
         .search-item:hover { background: #fcfcfc; }

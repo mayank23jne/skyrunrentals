@@ -138,9 +138,16 @@ const Listing: React.FC = () => {
   const hasMore = isFilteringActive ? hasFilteredNextPage : hasInitialNextPage;
   const loadMore = isFilteringActive ? fetchFilteredNextPage : fetchInitialNextPage;
 
-  const displayDestination = venue || displayData?.properties?.[0]?.[
+  const venueName = searchParams.get('venueName') || '';
+  let displayDestination = venueName || venue || displayData?.properties?.[0]?.[
     venue_type === 'countries' ? 'country' : venue_type === 'cities' ? 'city' : 'state'
   ] || displayData?.properties?.[0]?.state || displayData?.properties?.[0]?.country || '';
+
+  const isPropertyIdSearch = displayDestination && (displayDestination.startsWith('ID:') || /^\d+$/.test(displayDestination));
+
+  if (isPropertyIdSearch && displayDestination.includes(' - ')) {
+    displayDestination = displayDestination.split(' - ')[0];
+  }
 
   return (
     <div className="listing-page">
@@ -149,7 +156,7 @@ const Listing: React.FC = () => {
         <div className="container listing-container">
           <div className="listing-header" style={{ marginBottom: '40px' }}>
             <h1 style={{ fontSize: '32px', fontWeight: 900 }}>
-              Search Results {venue && <span>for "{venue}"</span>}
+              Search Results {displayDestination && <span>for "{displayDestination}"</span>}
             </h1>
           </div>
 
@@ -158,7 +165,9 @@ const Listing: React.FC = () => {
             {displayDestination && (
               <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '50px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Destination:</span>
+                  <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {isPropertyIdSearch ? 'Property ID:' : 'Destination:'}
+                  </span>
                   <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>{displayDestination}</span>
                 </div>
               </div>
@@ -239,7 +248,7 @@ const Listing: React.FC = () => {
                           <PropertyCard
                             id={property.id}
                             image={property.photos?.[0]?.imageName || ''}
-                            images={property.photos?.map((p: any) => p.imageName) || []}
+                            photos={property.photos?.slice(0, 3) || []}
                             title={property.propertyHeadline || 'Property Name'}
                             location={`${property.city || ''}, ${property.country || ''}`.replace(/^, | , $/g, '') || 'Location'}
                             price={formatPrice(property.rates?.[0]?.nightly || 0)}

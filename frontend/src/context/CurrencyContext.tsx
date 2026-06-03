@@ -57,7 +57,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const num = Number(amount);
     if (isNaN(num)) return amount.toString();
     const rate = activeCurrency?.conversionRate ? Number(activeCurrency.conversionRate) : 1;
-    const converted = num * rate;
+    const converted = Math.floor(num * rate);
     // const converted = num; // Do not apply conversion rate as requested
 
     // Decode HTML entities like &pound;

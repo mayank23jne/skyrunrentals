@@ -100,7 +100,7 @@ export class PropertyController {
   @UseGuards(AuthGuard('jwt'))
   @Get('add')
   @ApiOperation({ summary: 'Get the add property page' })
-  async getAddPropertyPage(@Req() req, @Res() res) {
+  async getAddPropertyPage(@Req() req, @Res() res, @Query('userId') userId?: string) {
     if (req.user.usertype === '1') {
       const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
       if (!user || user.subscription_type === 0) {
@@ -108,14 +108,18 @@ export class PropertyController {
       }
     }
 
-    const [countries, propertyTypes, propertyViews, users, currencies, amenityCategories] = await Promise.all([
+    const [countries, propertyTypes, propertyViews, users, currencies, amenityCategories, lastProperty] = await Promise.all([
       this.prisma.country.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.propertyType.findMany({ orderBy: { propertyName: 'asc' } }),
       this.prisma.propertyView.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.user.findMany({ where: { usertype: '1' }, orderBy: { firstname: 'asc' } }),
       this.prisma.currency.findMany({ orderBy: { name: 'asc' } }),
-      this.prisma.amenityCategory.findMany({ include: { items: true }, orderBy: { name: 'asc' } }).catch(() => [])
+      this.prisma.amenityCategory.findMany({ include: { items: true }, orderBy: { name: 'asc' } }).catch(() => []),
+      this.prisma.property.findFirst({ orderBy: { id: 'desc' }, select: { id: true } })
     ]);
+
+    const nextPropertyId = lastProperty ? lastProperty.id + 1 : 1;
+    const selectedUserId = userId ? parseInt(userId, 10) : '';
 
     return res.render('admin/properties/add', {
       admin: { ...req.user, username: req.user.username || req.user.email },
@@ -127,6 +131,8 @@ export class PropertyController {
       users,
       currencies,
       amenityCategories,
+      nextPropertyId,
+      selectedUserId,
     });
   }
 

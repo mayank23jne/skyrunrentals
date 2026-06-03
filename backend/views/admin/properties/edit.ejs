@@ -1449,18 +1449,15 @@
                                                     <label class="checkbox-item"><input type="checkbox"
                                                             name="otherSuitability"
                                                             value="Minimum Age Limit for Renters"
-                                                            <%=(amenity.otherSuitability||'').includes('Minimum Age
-                                                            Limit for Renters') ? 'checked' : '' %>> <span>Minimum Age
+                                                            <%=(amenity.otherSuitability||'').includes('Minimum Age Limit for Renters') ? 'checked' : '' %>> <span>Minimum Age
                                                             Limit for Renters</span></label>
                                                     <label class="checkbox-item"><input type="checkbox"
                                                             name="otherSuitability" value="Senior Adults Only Community"
-                                                            <%=(amenity.otherSuitability||'').includes('Senior Adults
-                                                            Only Community') ? 'checked' : '' %>> <span>Senior Adults
+                                                            <%=(amenity.otherSuitability||'').includes('Senior Adults Only Community') ? 'checked' : '' %>> <span>Senior Adults
                                                             Only Community</span></label>
                                                     <label class="checkbox-item"><input type="checkbox"
                                                             name="otherSuitability" value="Long-term Renters"
-                                                            <%=(amenity.otherSuitability||'').includes('Long-term
-                                                            Renters') ? 'checked' : '' %>> <span>Long-term Renters
+                                                            <%=(amenity.otherSuitability||'').includes('Long-term Renters') ? 'checked' : '' %>> <span>Long-term Renters
                                                             Welcome</span></label>
                                                     <label class="checkbox-item"><input type="checkbox"
                                                             name="otherSuitability" value="Events Allowed"
@@ -1618,7 +1615,8 @@
                                                 <div class="form-group full-width">
                                                     <div class="field-input-wrapper">
                                                         <div id="additional-info-editor"
-                                                            style="height: 200px; background: white;"><%- amenity.additionalInfo || '' %></div>
+                                                            style="height: 200px; background: white;"><%-
+                                                                amenity.additionalInfo || '' %></div>
                                                         <input type="hidden" name="additionalInfo"
                                                             id="additionalInfoInput">
                                                     </div>
@@ -2185,13 +2183,13 @@
             }
 
             // let paymentTermsQuill = new Quill('#payment-terms-editor', quillConfig); // Moved to DOMContentLoaded
-            let seasonalRates = <%- JSON.stringify(property.rates || []) %>;
+            let seasonalRates = <% - JSON.stringify(property.rates || []) %>;
             let editingRateIndex = -1;
 
             // Calendar Logic
             let calendarYear = new Date().getFullYear();
             let calendarMonth = new Date().getMonth();
-            let blockedDates = <%- JSON.stringify(property.calendarBlockedDates || {}) %>;
+            let blockedDates = <% - JSON.stringify(property.calendarBlockedDates || {}) %>;
 
             function renderPropertiesCalendar() {
                 const container = document.getElementById('calendar-render-area');

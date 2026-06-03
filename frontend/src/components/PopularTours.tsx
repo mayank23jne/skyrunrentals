@@ -37,11 +37,11 @@ const PopularPropertyCard = ({ property, fallbackImage, navigate, formatPrice }:
 
       <div className="card-content">
         {/* 5 Golden Stars */}
-        {/* <div className="property-rating-stars">
+        <div className="property-rating-stars">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star key={i} size={15} fill="#f97316" color="#f97316" />
           ))}
-        </div> */}
+        </div>
 
         <h3 className="property-title" title={property.title}>{property.title}</h3>
 

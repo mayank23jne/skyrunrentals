@@ -196,16 +196,22 @@
                                         and manage your property portfolio</p>
                                 </div>
 
-                                <div style="display: flex; gap: 1rem; align-items: center;">
-                                    <div class="search-box">
-                                        <i data-lucide="search"></i>
-                                        <input type="text" id="property-search"
-                                            placeholder="Search headline, city, type..." value="<%= searchQuery %>">
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
+                                    <div style="display: flex; gap: 1.5rem; font-size: 0.875rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase;">
+                                        <div>CUSTOMER NAME -> <span style="color: var(--primary); font-weight: 600;"><%= admin.firstname %> <%= admin.lastname %></span></div>
+                                        <div>CUSTOMER ID -> <span style="color: var(--primary); font-weight: 600;"><%= admin.id %></span></div>
                                     </div>
-                                    <a href="/api/admin/properties/add" class="btn-primary"
-                                        style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
-                                        <i data-lucide="plus-circle" size="18"></i> Add Property
-                                    </a>
+                                    <div style="display: flex; gap: 1rem; align-items: center;">
+                                        <div class="search-box">
+                                            <i data-lucide="search"></i>
+                                            <input type="text" id="property-search"
+                                                placeholder="Search headline, city, type..." value="<%= searchQuery %>">
+                                        </div>
+                                        <a href="/api/admin/properties/add" class="btn-primary"
+                                            style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                                            <i data-lucide="plus-circle" size="18"></i> Add Property
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
 

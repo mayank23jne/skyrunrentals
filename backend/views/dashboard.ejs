@@ -124,7 +124,7 @@
                         </div>
 
                         <!-- Content Grid -->
-                        <div class="content-grid">
+                        <div class="content-grid" style="<%= (admin && admin.usertype === '1') ? '' : 'grid-template-columns: 1fr;' %>">
                             <style>
                                 .content-grid {
                                     display: grid;

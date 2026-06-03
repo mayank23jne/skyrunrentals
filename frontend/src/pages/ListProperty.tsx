@@ -130,7 +130,7 @@ const ListProperty: React.FC = () => {
               <div className="guarantee-icon-pulse">
                 <ShieldCheck size={80} />
               </div>
-              <p>We guarantee you at least <strong>15-30 bookings</strong> in your first 12 months. If you don't succeed, we extend your listing for free plus valuable extras. The power is in your hands.</p>
+              <p>We guarantee you at least <strong>3-5 bookings</strong> in your first 12 months. If you don't succeed, we extend your listing for free plus valuable extras. The power is in your hands.</p>
               <div className="guarantee-shine"></div>
             </motion.div>
           </div>

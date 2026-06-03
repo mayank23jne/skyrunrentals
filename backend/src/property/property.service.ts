@@ -67,12 +67,16 @@ export class PropertyService {
     }
 
     if (search) {
+      const searchNum = parseInt(search, 10);
       where.OR = [
         { propertyHeadline: { contains: search } },
         { city: { contains: search } },
         { state: { contains: search } },
         { propertyType: { contains: search } }
       ];
+      if (!isNaN(searchNum)) {
+        where.OR.push({ id: searchNum });
+      }
     }
 
     const properties = await this.prisma.property.findMany({
@@ -121,12 +125,16 @@ export class PropertyService {
     }
 
     if (search) {
+      const searchNum = parseInt(search, 10);
       where.OR = [
         { propertyHeadline: { contains: search } },
         { city: { contains: search } },
         { state: { contains: search } },
         { propertyType: { contains: search } }
       ];
+      if (!isNaN(searchNum)) {
+        where.OR.push({ id: searchNum });
+      }
     }
     return this.prisma.property.count({ where });
   }
@@ -831,7 +839,12 @@ export class PropertyService {
           nearbyPlaces: true,
           rates: true,
           propertyExtras: true,
-          photos: true,
+          photos: {
+            orderBy: [
+              { defaultImage: 'desc' },
+              { imageOrder: 'asc' }
+            ]
+          },
         },
       });
     } catch (e) {
@@ -846,7 +859,12 @@ export class PropertyService {
           nearbyPlaces: true,
           rates: true,
           propertyExtras: true,
-          photos: true,
+          photos: {
+            orderBy: [
+              { defaultImage: 'desc' },
+              { imageOrder: 'asc' }
+            ]
+          },
         },
       });
       if (property) {
@@ -913,11 +931,38 @@ export class PropertyService {
     const defaultPhoto = property.photos.find(p => p.defaultImage === 1);
     const otherPhotos = property.photos.filter(p => p.defaultImage !== 1);
 
+    const generateCandidates = (fileName: string, isDefault: boolean) => {
+      const base = process.env.IMG_PATH || '';
+      if (isDefault) {
+        return [
+          base + 'uploaded_files/' + fileName,
+          base + 'uploads/property/' + fileName
+        ];
+      }
+      
+      const ext = fileName.split('.').pop()?.toLowerCase();
+      const candidates = [
+        base + 'uploaded_filesT/' + fileName,
+        base + 'uploaded_files/' + fileName,
+      ];
+      if (ext === 'avif') {
+        candidates.push(base + 'uploads/property/' + fileName);
+      } else {
+        candidates.push(base + 'uploads/property/thumbnail/' + fileName);
+      }
+      candidates.push(base + 'uploads/property/' + fileName); // Absolute fallback
+      return candidates;
+    };
+
     if (defaultPhoto && defaultPhoto.imageName) {
+      (defaultPhoto as any).imageCandidates = generateCandidates(defaultPhoto.imageName, true);
       defaultPhoto.imageName = process.env.IMG_PATH + 'uploads/property/' + defaultPhoto.imageName;
     }
     otherPhotos.forEach(p => {
-      if (p.imageName) p.imageName = process.env.IMG_PATH + 'uploaded_filesT/' + p.imageName;
+      if (p.imageName) {
+        (p as any).imageCandidates = generateCandidates(p.imageName, false);
+        p.imageName = process.env.IMG_PATH + 'uploaded_filesT/' + p.imageName;
+      }
     });
 
     return {
@@ -1213,7 +1258,14 @@ export class PropertyService {
     const where: any = {};
 
     if (query.recommended !== undefined) {
-      where.recommended = query.recommended;
+      where.recommended = Number(query.recommended);
+      if (where.recommended === 1) {
+        const activeUsers = await this.prisma.user.findMany({
+          where: { status: 0, deleted: 0 },
+          select: { id: true }
+        });
+        where.assignTo = { in: activeUsers.map(u => u.id) };
+      }
     }
 
     // 2. Location Handling
@@ -1272,7 +1324,10 @@ export class PropertyService {
       const cleanGuest = guest.replace(/^Guests\s*/i, '');
       const guestCount = parseInt(cleanGuest, 10) || 0;
       if (guestCount > 0) {
-        where.sleeps = { gte: String(guestCount) };
+        // Since sleeps is a VarChar in the database, string 'gte' will fail for '10' >= '2'.
+        // We generate an array of valid sleep numbers from guestCount to a reasonable max (e.g. 100)
+        const validSleeps = Array.from({ length: 100 - guestCount + 1 }, (_, i) => String(guestCount + i));
+        where.sleeps = { in: validSleeps };
       }
     }
 
@@ -1359,7 +1414,9 @@ export class PropertyService {
             orderBy: { nightly: 'asc' }
           }
         },
-        orderBy: { id: 'asc' }
+        orderBy: query.recommended !== undefined && Number(query.recommended) === 1
+          ? [ { priority: { sort: 'asc', nulls: 'last' } }, { id: 'asc' } ]
+          : { id: 'asc' }
       }),
       this.prisma.currency.findMany({ orderBy: { id: 'asc' } }),
       this.prisma.propertyType.findMany({
@@ -1386,6 +1443,29 @@ export class PropertyService {
     const stateMap = Object.fromEntries(states.map(s => [s.id, s.name]));
     const cityMap = Object.fromEntries(propertyCities.map(c => [c.id, c.name]));
 
+    const generateCandidates = (fileName: string, isDefault: boolean) => {
+      const base = process.env.IMG_PATH || '';
+      if (isDefault) {
+        return [
+          base + 'uploaded_files/' + fileName,
+          base + 'uploads/property/' + fileName
+        ];
+      }
+      
+      const ext = fileName.split('.').pop()?.toLowerCase();
+      const candidates = [
+        base + 'uploaded_filesT/' + fileName,
+        base + 'uploaded_files/' + fileName,
+      ];
+      if (ext === 'avif') {
+        candidates.push(base + 'uploads/property/' + fileName);
+      } else {
+        candidates.push(base + 'uploads/property/thumbnail/' + fileName);
+      }
+      candidates.push(base + 'uploads/property/' + fileName); // Absolute fallback
+      return candidates;
+    };
+
     const properties = propertiesRaw.map(p => ({
       ...p,
       country: p.country && !isNaN(parseInt(p.country as string, 10)) ? countryMap[parseInt(p.country as string, 10)] || p.country : p.country,
@@ -1393,7 +1473,8 @@ export class PropertyService {
       city: p.city && !isNaN(parseInt(p.city as string, 10)) ? cityMap[parseInt(p.city as string, 10)] || p.city : p.city,
       photos: p.photos.map(photo => ({
         ...photo,
-        imageName: process.env.IMG_PATH + (photo.defaultImage === 1 ? 'uploads/property/' : 'uploaded_filesT/') + photo.imageName
+        imageName: process.env.IMG_PATH + (photo.defaultImage === 1 ? 'uploads/property/' : 'uploaded_filesT/') + (photo.imageName || ''),
+        imageCandidates: generateCandidates(photo.imageName || '', photo.defaultImage === 1)
       }))
     }));
 

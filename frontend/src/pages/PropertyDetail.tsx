@@ -35,6 +35,54 @@ import Footer from '../components/Footer';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
+const PropertyImage = ({ photo, idx, fallbackImages, alt, className, style, onClick }: any) => {
+  const [candidateIdx, setCandidateIdx] = useState(0);
+  const candidates = photo?.imageCandidates || [photo?.imageName || fallbackImages[idx % fallbackImages.length]];
+  const currentSrc = candidates[candidateIdx] || fallbackImages[idx % fallbackImages.length];
+
+  return (
+    <img
+      src={currentSrc}
+      alt={alt}
+      className={className}
+      style={style}
+      onClick={onClick}
+      onError={(e) => {
+        if (candidateIdx < candidates.length - 1) {
+          setCandidateIdx(prev => prev + 1);
+        } else {
+          (e.target as HTMLImageElement).src = fallbackImages[idx % fallbackImages.length];
+        }
+      }}
+    />
+  );
+};
+
+const MotionPropertyImage = ({ photo, idx, fallbackImages, alt, initial, animate, exit, transition, style }: any) => {
+  const [candidateIdx, setCandidateIdx] = useState(0);
+  const candidates = photo?.imageCandidates || [photo?.imageName || fallbackImages[idx % fallbackImages.length]];
+  const currentSrc = candidates[candidateIdx] || fallbackImages[idx % fallbackImages.length];
+
+  return (
+    <motion.img
+      src={currentSrc}
+      alt={alt}
+      initial={initial}
+      animate={animate}
+      exit={exit}
+      transition={transition}
+      style={style}
+      onError={(e) => {
+        if (candidateIdx < candidates.length - 1) {
+          setCandidateIdx(prev => prev + 1);
+        } else {
+          (e.target as HTMLImageElement).src = fallbackImages[idx % fallbackImages.length];
+        }
+      }}
+    />
+  );
+};
+
 const PropertyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -776,11 +824,12 @@ const PropertyDetail: React.FC = () => {
               <div className="w-full">
                 {allPhotos.length > 0 && (
                   <div className="relative w-full h-[500px] md:h-[700px] overflow-hidden shadow-2xl hero-image-container">
-                    <img
-                      src={getPhotoUrl(allPhotos[0], 0)}
+                    <PropertyImage
+                      photo={allPhotos[0]}
+                      idx={0}
+                      fallbackImages={fallbackImages}
                       alt="Main Property View"
                       className="w-full h-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[0]; }}
                     />
                   </div>
                 )}
@@ -916,7 +965,14 @@ const PropertyDetail: React.FC = () => {
                       style={{ gridColumn: 'span 2', gridRow: 'span 2', borderRadius: '20px', overflow: 'hidden' }}
                       onClick={() => { setActiveImageIndex(0); setLightboxOpen(true); }}
                     >
-                      <img src={getPhotoUrl(allPhotos[0], 0)} alt="Main Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} className="transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[0]; }} />
+                      <PropertyImage 
+                        photo={allPhotos[0]} 
+                        idx={0} 
+                        fallbackImages={fallbackImages} 
+                        alt="Main Gallery" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                        className="transition-transform duration-500 group-hover:scale-105" 
+                      />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
                     </div>
 
@@ -930,7 +986,14 @@ const PropertyDetail: React.FC = () => {
                           style={{ gridColumn: 'span 1', gridRow: 'span 1', borderRadius: '16px', overflow: 'hidden' }}
                           onClick={() => { setActiveImageIndex(actualIdx); setLightboxOpen(true); }}
                         >
-                          <img src={getPhotoUrl(photo, actualIdx)} alt={`Gallery ${actualIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} className="transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[actualIdx % fallbackImages.length]; }} />
+                          <PropertyImage 
+                            photo={photo} 
+                            idx={actualIdx} 
+                            fallbackImages={fallbackImages} 
+                            alt={`Gallery ${actualIdx + 1}`} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                            className="transition-transform duration-500 group-hover:scale-105" 
+                          />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" style={{ zIndex: 5 }}></div>
 
                           {/* Overlay for the 5th photo if there are more */}
@@ -1938,16 +2001,17 @@ const PropertyDetail: React.FC = () => {
 
               <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <AnimatePresence mode="wait">
-                  <motion.img
+                  <MotionPropertyImage
                     key={activeImageIndex}
-                    src={getPhotoUrl(allPhotos[activeImageIndex], activeImageIndex)}
+                    photo={allPhotos[activeImageIndex]}
+                    idx={activeImageIndex}
+                    fallbackImages={fallbackImages}
                     alt={`Property Photo Full ${activeImageIndex + 1}`}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.25, ease: 'easeOut' }}
                     style={{ maxHeight: '85vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
-                    onError={(e) => { (e.target as HTMLImageElement).src = fallbackImages[activeImageIndex % fallbackImages.length]; }}
                   />
                 </AnimatePresence>
               </div>

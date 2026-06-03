@@ -7,6 +7,7 @@ interface PropertyCardProps {
   id?: number;
   image?: string;
   images?: string[];
+  photos?: any[];
   title: string;
   location: string;
   price: string;
@@ -18,10 +19,12 @@ interface PropertyCardProps {
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({
-  id, image, images = [], title, location, price, rating, beds, baths, guests, propertyDescription
+  id, image, images = [], photos = [], title, location, price, rating, beds, baths, guests, propertyDescription
 }) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  const [candidateIdx, setCandidateIdx] = React.useState(0);
+
   const fallbackImages = [
     "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800",
     "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
@@ -31,17 +34,29 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   const hash = title.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const fallbackImage = fallbackImages[hash % fallbackImages.length];
 
-  const displayImages = images.length > 0 ? images : (image ? [image] : [fallbackImage]);
-  const currentImage = displayImages[currentImageIndex] || fallbackImage;
+  // Map legacy string arrays to photo objects if needed
+  const mappedPhotos = photos.length > 0 ? photos : (
+    images.length > 0 ? images.map(img => ({ imageName: img, imageCandidates: [img] })) :
+      (image ? [{ imageName: image, imageCandidates: [image] }] : [{ imageName: fallbackImage, imageCandidates: [fallbackImage] }])
+  );
+
+  const displayImagesLength = mappedPhotos.length;
+  const currentPhoto = mappedPhotos[currentImageIndex];
+  const candidates = currentPhoto?.imageCandidates || [currentPhoto?.imageName || fallbackImage];
+  const currentImage = candidates[candidateIdx] || fallbackImage;
+
+  React.useEffect(() => {
+    setCandidateIdx(0);
+  }, [currentImageIndex]);
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+    setCurrentImageIndex((prev) => (prev === displayImagesLength - 1 ? 0 : prev + 1));
   };
 
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+    setCurrentImageIndex((prev) => (prev === 0 ? displayImagesLength - 1 : prev - 1));
   };
   return (
     <motion.div
@@ -54,10 +69,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           alt={title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = fallbackImage;
+            if (candidateIdx < candidates.length - 1) {
+              setCandidateIdx(prev => prev + 1);
+            } else {
+              (e.target as HTMLImageElement).src = fallbackImage;
+            }
           }}
         />
-        {displayImages.length > 1 && (
+        {displayImagesLength > 1 && (
           <>
             <button
               onClick={prevImage}
@@ -72,7 +91,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               <ChevronRight size={18} />
             </button>
             <div className="slider-dots">
-              {displayImages.map((_, idx) => (
+              {mappedPhotos.map((_, idx) => (
                 <div
                   key={idx}
                   className={`slider-dot ${idx === currentImageIndex ? 'active' : ''}`}
@@ -90,7 +109,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
       </div>
 
-      <div className="p-6 cursor-pointer" onClick={() => id && window.open(`/property/${id}`, '_blank')}>
+      <div className="p-6 cursor-pointer" style={{ cursor: 'pointer' }} onClick={() => id && window.open(`/property/${id}`, '_blank')}>
         <div className="flex items-center gap-1 text-accent mb-2">
           <MapPin size={14} />
           <span className="text-xs font-bold uppercase tracking-wider">{location}</span>

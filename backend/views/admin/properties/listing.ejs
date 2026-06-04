@@ -189,27 +189,35 @@
 
                         <div class="card">
                             <div class="controls-row"
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
-                                <div>
-                                    <h3 style="margin: 0">SkyRun Rentals</h3>
-                                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem">View
-                                        and manage your property portfolio</p>
-                                </div>
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1.5rem; background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                <!-- <div>
+                                    <h2 style="margin: 0; font-size: 1.25rem; color: var(--text-main); font-weight: 700;">SkyRun Rentals</h2>
+                                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.25rem 0 0 0;">View and manage your property portfolio</p>
+                                </div> -->
 
-                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
-                                    <div style="display: flex; gap: 1.5rem; font-size: 0.875rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase;">
-                                        <div>CUSTOMER NAME -> <span style="color: var(--primary); font-weight: 600;"><%= admin.firstname %> <%= admin.lastname %></span></div>
-                                        <div>CUSTOMER ID -> <span style="color: var(--primary); font-weight: 600;"><%= admin.id %></span></div>
+                                <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+                                    <div
+                                        style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase;">
+                                        <div>CUSTOMER NAME -> <span style="color: var(--primary); font-weight: 600;">
+                                                <%= admin.firstname %>
+                                                    <%= admin.lastname %>
+                                            </span></div>
+                                        <div>CUSTOMER ID -> <span style="color: var(--primary); font-weight: 600;">#<%=
+                                                    admin.id %></span></div>
                                     </div>
+
+                                    <div style="height: 32px; width: 1px; background: var(--border); display: block;">
+                                    </div>
+
                                     <div style="display: flex; gap: 1rem; align-items: center;">
                                         <div class="search-box">
                                             <i data-lucide="search"></i>
                                             <input type="text" id="property-search"
                                                 placeholder="Search headline, city, type..." value="<%= searchQuery %>">
                                         </div>
-                                        <a href="/api/admin/properties/add" class="btn-primary"
-                                            style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
-                                            <i data-lucide="plus-circle" size="18"></i> Add Property
+                                        <a href="/admin/properties/add" class="btn-primary"
+                                            style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; white-space: nowrap; padding: 0.75rem 1.25rem; border-radius: 0.75rem;">
+                                            <i data-lucide="plus" size="18"></i> Add Property
                                         </a>
                                     </div>
                                 </div>
@@ -226,11 +234,13 @@
                                         <% }) %>
                                 </select>
 
-                                <select id="state-filter" class="filter-select" onchange="handleStateChange()" onmousedown="checkStateClick(event)">
+                                <select id="state-filter" class="filter-select" onchange="handleStateChange()"
+                                    onmousedown="checkStateClick(event)">
                                     <option value="">All States</option>
                                 </select>
 
-                                <select id="city-filter" class="filter-select" onchange="updateTable(1)" onmousedown="checkCityClick(event)">
+                                <select id="city-filter" class="filter-select" onchange="updateTable(1)"
+                                    onmousedown="checkCityClick(event)">
                                     <option value="">All Cities</option>
                                 </select>
                             </div>
@@ -338,7 +348,7 @@
                 updateTable(1);
             }
 
-            window.showNotification = function(message, type = 'success') {
+            window.showNotification = function (message, type = 'success') {
                 const toast = document.createElement('div');
                 toast.style.cssText = `
                     position: fixed; top: 1.5rem; right: 1.5rem; padding: 1rem 1.5rem; 

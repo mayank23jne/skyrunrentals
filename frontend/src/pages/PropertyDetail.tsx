@@ -35,9 +35,17 @@ import Footer from '../components/Footer';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const PropertyImage = ({ photo, idx, fallbackImages, alt, className, style, onClick }: any) => {
+const PropertyImage = ({ photo, idx, fallbackImages, alt, className, style, onClick, lightbox }: any) => {
   const [candidateIdx, setCandidateIdx] = useState(0);
-  const candidates = photo?.imageCandidates || [photo?.imageName || fallbackImages[idx % fallbackImages.length]];
+  let candidates = photo?.imageCandidates || [photo?.imageName || fallbackImages[idx % fallbackImages.length]];
+
+  if (lightbox) {
+    const propertyVer = candidates.find((c: string) => c.includes('uploads/property/') && !c.includes('thumbnail'));
+    if (propertyVer) {
+      candidates = [propertyVer, ...candidates.filter((c: string) => c !== propertyVer)];
+    }
+  }
+
   const currentSrc = candidates[candidateIdx] || fallbackImages[idx % fallbackImages.length];
 
   return (
@@ -554,6 +562,12 @@ const PropertyDetail: React.FC = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setBookingErrors(newErrors);
+      return;
+    }
+
+    const maxSleeps = property?.sleeps ? parseInt(property.sleeps as any) : 8;
+    if (guestsCount + bookingChildrenCount > maxSleeps) {
+      setBookingErrors({ submit: `The maximum number of guests this property can accommodate is ${maxSleeps}.` });
       return;
     }
 
@@ -1682,17 +1696,24 @@ const PropertyDetail: React.FC = () => {
                   <div style={{ flex: 1 }}>
                     <select value={guestsCount} onChange={(e) => { setGuestsCount(parseInt(e.target.value)); setBookingErrors(prev => ({ ...prev, guestsCount: '' })); }} style={{ width: '100%', boxSizing: 'border-box', border: bookingErrors.guestsCount ? '1px solid #dc2626' : '1px solid #cbd5e1', padding: '10px 12px', fontSize: '1rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
                       <option value="">Select Adults</option>
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
+                      {Array.from({ length: property?.sleeps ? parseInt(property.sleeps as any) : 8 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                     {bookingErrors.guestsCount && <span className="field-error-msg">{bookingErrors.guestsCount}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
                     <select value={bookingChildrenCount} onChange={(e) => setBookingChildrenCount(parseInt(e.target.value))} style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.9rem', borderRadius: '2px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#334155' }}>
                       <option value="">Select Children</option>
-                      {[0, 1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
+                      {Array.from({ length: (property?.sleeps ? parseInt(property.sleeps as any) : 8) + 1 }, (_, i) => i).map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </div>
                 </div>
+
+                {(guestsCount + bookingChildrenCount > (property?.sleeps ? parseInt(property.sleeps as any) : 8)) && (
+                  <div style={{ color: '#dc2626', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 500 }}>
+                    The maximum number of guests this property can accommodate is {property?.sleeps ? parseInt(property.sleeps as any) : 8}.
+                  </div>
+                )}
+
 
                 {bookingErrors.submit && <div style={{ color: '#dc2626', fontSize: '0.875rem', marginBottom: '1rem' }}>{bookingErrors.submit}</div>}
 
@@ -1999,7 +2020,7 @@ const PropertyDetail: React.FC = () => {
                 <ChevronLeft size={56} />
               </button>
 
-              <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: '100%', height: '80vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <AnimatePresence mode="wait">
                   <MotionPropertyImage
                     key={activeImageIndex}
@@ -2007,11 +2028,12 @@ const PropertyDetail: React.FC = () => {
                     idx={activeImageIndex}
                     fallbackImages={fallbackImages}
                     alt={`Property Photo Full ${activeImageIndex + 1}`}
+                    lightbox={true}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.25, ease: 'easeOut' }}
-                    style={{ maxHeight: '85vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
                   />
                 </AnimatePresence>
               </div>

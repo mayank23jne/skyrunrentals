@@ -169,6 +169,8 @@ export class PropertyService {
           bathroom: body.bathroom,
           propertyType: body.propertyType,
           propertyViewId: body.propertyViewId ? parseInt(body.propertyViewId) : null,
+          onWhichFloor: body.onWhichFloor,
+          elevator: body.elevator || null,
           sleeps: body.sleeps,
           assignTo: body.assignTo ? parseInt(body.assignTo) : null,
           createdBy: adminId,
@@ -439,13 +441,34 @@ export class PropertyService {
         (property as any).calendarBlockedDates = calendarBlockedDates;
       }
       if (property.photos) {
-        property.photos.forEach(photo => {
-          photo.imageName = process.env.IMG_PATH + (photo.defaultImage === 1 ? 'uploads/property/' : 'uploaded_filesT/') + photo.imageName;
-        });
+        await Promise.all(property.photos.map(async (photo) => {
+          photo.imageName = await this.getValidImageUrl(photo.imageName, photo.defaultImage === 1);
+        }));
       }
     }
 
     return property;
+  }
+
+  private async getValidImageUrl(fileName: string, isDefault: boolean): Promise<string> {
+    const base = process.env.IMG_PATH || '';
+    if (isDefault) {
+      return base + 'uploads/property/' + fileName;
+    }
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const primaryUrl = base + 'uploaded_files/' + fileName;
+    try {
+      const res = await fetch(primaryUrl, { method: 'HEAD' });
+      if (res.ok) {
+        return primaryUrl;
+      }
+    } catch (e) {}
+
+    if (ext === 'avif') {
+      return base + 'uploads/property/' + fileName;
+    } else {
+      return base + 'uploads/property/thumbnail/' + fileName;
+    }
   }
 
   async update(id: number, body: any, files: Express.Multer.File[], adminId: number) {
@@ -469,6 +492,8 @@ export class PropertyService {
           bathroom: body.bathroom,
           propertyType: body.propertyType,
           propertyViewId: body.propertyViewId ? parseInt(body.propertyViewId) : null,
+          onWhichFloor: body.onWhichFloor,
+          elevator: body.elevator || null,
           sleeps: body.sleeps,
           assignTo: body.assignTo ? parseInt(body.assignTo) : null,
           yearPurchased: body.yearPurchased || null,

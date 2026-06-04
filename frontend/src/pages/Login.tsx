@@ -34,7 +34,7 @@ const Login: React.FC = () => {
     },
     onSuccess: (data) => {
       setUser(data.user, data.access_token);
-      window.location.href = `${API_BASE_URL}/api/admin/dashboard?token=${data.access_token}`;
+      window.location.href = `${API_BASE_URL}/admin/dashboard?token=${data.access_token}`;
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');

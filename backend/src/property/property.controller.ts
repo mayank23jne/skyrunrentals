@@ -152,7 +152,7 @@ export class PropertyController {
   @UseInterceptors(FilesInterceptor('photos', 20))
   async createProperty(
     @Req() req,
-    @Res() res,
+    @Res({ passthrough: true }) res,
     @Body() createPropertyDto: CreatePropertyDto,
     @UploadedFiles() files: Express.Multer.File[]
   ) {
@@ -190,7 +190,7 @@ export class PropertyController {
     ]);
 
     if (!property) {
-      return res.redirect('/api/admin/properties');
+      return res.redirect('/admin/properties');
     }
 
     // Look up the country record by name to get its ID

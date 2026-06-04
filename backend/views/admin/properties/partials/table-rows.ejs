@@ -8,7 +8,7 @@
             </td>
             <td>
                 <span style="font-family: monospace; font-weight: 700; color: var(--text-main);">
-                    <%= p.id %>
+                    #<%= p.id %>
                 </span>
             </td>
             <td>
@@ -38,14 +38,14 @@
                     onblur="updatePriority(<%= p.id %>, this.value)" onkeydown="if(event.key==='Enter') this.blur()">
             </td>
             <td style="text-align: center;">
-                <a href="/api/admin/properties/<%= p.id %>/edit?tab=6" class="action-btn" title="Calendar Availability"
+                <a href="/admin/properties/<%= p.id %>/edit?tab=6" class="action-btn" title="Calendar Availability"
                     style="color: var(--primary);">
                     <i data-lucide="calendar-days" size="18"></i>
                 </a>
             </td>
             <td style="text-align: right;">
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                    <a href="/api/admin/properties/<%= p.id %>/edit" class="action-btn" title="Edit Property"
+                    <a href="/admin/properties/<%= p.id %>/edit" class="action-btn" title="Edit Property"
                         style="color: var(--primary); text-decoration: none;">
                         <i data-lucide="edit-3" size="16"></i>
                     </a>

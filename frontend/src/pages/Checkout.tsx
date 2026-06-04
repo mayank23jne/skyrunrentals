@@ -5,7 +5,60 @@ import api from '../services/api';
 import { useCurrency } from '../context/CurrencyContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Phone, Check } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
+import StripePaymentModal from '../components/StripePaymentModal';
+const CheckoutImageSlider = ({ photos }: { photos: any[] }) => {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [candidateIdx, setCandidateIdx] = useState(0);
+
+  const fallbackImage = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800";
+  const photo = photos[currentIdx];
+
+  const candidates = photo?.imageCandidates || [photo?.imageName || fallbackImage];
+  const currentSrc = candidates[candidateIdx] || fallbackImage;
+
+  React.useEffect(() => {
+    setCandidateIdx(0);
+  }, [currentIdx]);
+
+  const handleNext = () => {
+    setCurrentIdx((prev) => (prev + 1) % photos.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIdx((prev) => (prev - 1 + photos.length) % photos.length);
+  };
+
+  return (
+    <div style={{ height: '192px', borderRadius: '12px', overflow: 'hidden', marginBottom: '1.5rem', position: 'relative' }}>
+      <img
+        src={currentSrc}
+        alt="Property"
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        onError={(e) => {
+          if (candidateIdx < candidates.length - 1) {
+            setCandidateIdx(prev => prev + 1);
+          } else {
+            (e.target as HTMLImageElement).src = fallbackImage;
+          }
+        }}
+      />
+      {photos.length > 1 && (
+        <>
+          <button type="button" onClick={handlePrev} style={{ position: 'absolute', top: '50%', left: '8px', transform: 'translateY(-50%)', backgroundColor: 'rgba(255,255,255,0.8)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, padding: 0 }}>
+            <ChevronLeft size={20} color="#1e293b" />
+          </button>
+          <button type="button" onClick={handleNext} style={{ position: 'absolute', top: '50%', right: '8px', transform: 'translateY(-50%)', backgroundColor: 'rgba(255,255,255,0.8)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, padding: 0 }}>
+            <ChevronRight size={20} color="#1e293b" />
+          </button>
+          <div style={{ position: 'absolute', bottom: '8px', right: '12px', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+            {currentIdx + 1} / {photos.length}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const Checkout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +86,7 @@ const Checkout: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['property-detail-checkout', id],
@@ -41,6 +95,14 @@ const Checkout: React.FC = () => {
       return response.data;
     },
     enabled: !!id,
+  });
+
+  const { data: countries = [] } = useQuery({
+    queryKey: ['countries'],
+    queryFn: async () => {
+      const response = await api.get('/properties/countries');
+      return response.data;
+    }
   });
 
   // Calculate pricing based on property data
@@ -66,20 +128,20 @@ const Checkout: React.FC = () => {
   };
 
   const nightlyBaseRate = parseFloat(property.rates?.[0]?.nightly || '0') || 0;
-  
+
   const calculateLegacyRates = () => {
     let selectedDates: string[] = [];
     if (checkIn && checkOut) {
       const start = new Date(checkIn.includes('-') ? checkIn.replace(/-/g, '\/') : checkIn);
       const end = new Date(checkOut.includes('-') ? checkOut.replace(/-/g, '\/') : checkOut);
-      
+
       if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
           selectedDates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
         }
       }
     }
-    
+
     if (!selectedDates || selectedDates.length === 0) {
       return {
         totalNightlyRate: 0, petFee: 0, cleaningFee: 0, subtotal: 0,
@@ -96,20 +158,20 @@ const Checkout: React.FC = () => {
       }
     });
 
-    const rates = { 
+    const rates = {
       nightly: parseFloat(property.rates?.[0]?.nightly || '0') || 0,
       weekend_night: parseFloat(property.rates?.[0]?.weekendNight || property.rates?.[0]?.weekend || '0') || null
     };
 
     let totalNightlyRate = 0;
     const datesToProcess = [...selectedDates];
-    
+
     if (datesToProcess.length > 1) {
       const checkoutDateStr = datesToProcess.pop();
       if (checkoutDateStr) {
         const parts = checkoutDateStr.split('-');
         const checkoutDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        const dayOfWeek = checkoutDate.getDay(); 
+        const dayOfWeek = checkoutDate.getDay();
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
         const rate = (isWeekend && rates.weekend_night) ? rates.weekend_night : rates.nightly;
         totalNightlyRate += (rate / 2);
@@ -167,17 +229,68 @@ const Checkout: React.FC = () => {
   const damageProtection = bookingResult.damageProtection;
   const totalRent = bookingResult.grandTotal;
 
-  // Get hero image
+  // Compile image list
   const defaultImage = data?.default_image;
-  const heroImageUrl = defaultImage?.imageName || "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800";
+  const otherImages = data?.image || [];
+  let allPhotos: any[] = [];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  if (defaultImage) {
+    allPhotos.push(defaultImage);
+  }
+  if (Array.isArray(otherImages)) {
+    allPhotos.push(...otherImages);
+  }
+
+  if (allPhotos.length === 0) {
+    allPhotos.push({ imageName: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800" });
+  }
+
+  // Limit to max 5 images for the checkout slider
+  allPhotos = allPhotos.slice(0, 5);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEmail(val);
+    if (!val.trim()) {
+      setErrors(prev => ({ ...prev, email: 'Email is required' }));
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+      setErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+    } else {
+      setErrors(prev => ({ ...prev, email: '' }));
+    }
+  };
+
+  const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Restrict input to digits, spaces, hyphens, plus, and parentheses
+    const val = e.target.value.replace(/[^\d\s\-\+()]/g, '');
+    setMobile(val);
+    
+    if (!val.trim()) {
+      setErrors(prev => ({ ...prev, mobile: 'Mobile is required' }));
+    } else if (!/^\+?[\d\s\-()]{10,}$/.test(val)) {
+      setErrors(prev => ({ ...prev, mobile: 'Please enter a valid mobile number (at least 10 digits)' }));
+    } else {
+      setErrors(prev => ({ ...prev, mobile: '' }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!firstName.trim()) newErrors.firstName = 'First name is required';
     if (!lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!email.trim()) newErrors.email = 'Email is required';
-    if (!mobile.trim()) newErrors.mobile = 'Mobile is required';
+    if (!email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!mobile.trim()) {
+      newErrors.mobile = 'Mobile is required';
+    } else if (!/^\+?[\d\s-]{10,}$/.test(mobile)) {
+      newErrors.mobile = 'Please enter a valid mobile number (at least 10 digits)';
+    }
+
     if (!agreed) newErrors.agreed = 'You must agree to the rental policies';
 
     if (Object.keys(newErrors).length > 0) {
@@ -186,6 +299,10 @@ const Checkout: React.FC = () => {
     }
 
     setErrors({});
+    setIsModalOpen(true);
+  };
+
+  const handlePayment = async () => {
     setLoading(true);
 
     try {
@@ -204,16 +321,19 @@ const Checkout: React.FC = () => {
         bookingDates: `${checkIn} to ${checkOut}`,
         amount: totalRent.toString(),
       });
+      setIsModalOpen(false);
       setSuccess(true);
       setTimeout(() => {
         navigate('/');
       }, 3000);
     } catch (err: any) {
       setErrors({ submit: err.response?.data?.message || 'Failed to submit booking' });
+      setIsModalOpen(false);
     } finally {
       setLoading(false);
     }
   };
+
 
   if (isLoading) {
     return (
@@ -294,11 +414,11 @@ const Checkout: React.FC = () => {
                         {errors.lastName && <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>{errors.lastName}</span>}
                       </div>
                       <div>
-                        <input type="email" placeholder="Email" value={email} onChange={e => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: '' })) }} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: errors.email ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
+                        <input type="email" placeholder="Email" value={email} onChange={handleEmailChange} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: errors.email ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
                         {errors.email && <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
                       </div>
                       <div>
-                        <input type="tel" placeholder="Mobile" value={mobile} onChange={e => { setMobile(e.target.value); setErrors(prev => ({ ...prev, mobile: '' })) }} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: errors.mobile ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
+                        <input type="tel" placeholder="Mobile" value={mobile} onChange={handleMobileChange} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: errors.mobile ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
                         {errors.mobile && <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>{errors.mobile}</span>}
                       </div>
                     </div>
@@ -315,7 +435,12 @@ const Checkout: React.FC = () => {
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e293b', marginBottom: '1rem' }}>Billing Address</h3>
                     <div className="form-grid">
                       <input type="text" placeholder="Street" value={street} onChange={e => setStreet(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
-                      <input type="text" placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
+                      <select value={country} onChange={e => setCountry(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', appearance: 'none', cursor: 'pointer' }}>
+                        <option value="">Select Country</option>
+                        {countries.map((c: any) => (
+                          <option key={c.id} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
                       <input type="text" placeholder="City" value={city} onChange={e => setCity(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
                       <input type="text" placeholder="Zipcode" value={zip} onChange={e => setZip(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} />
                     </div>
@@ -358,7 +483,7 @@ const Checkout: React.FC = () => {
           </div>
 
           {/* Right Column - Summary */}
-          <div className="checkout-right" style={{ position: 'sticky', top: '130px' }}>
+          <div className="checkout-right">
             <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '2rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 700 }}>
@@ -368,9 +493,7 @@ const Checkout: React.FC = () => {
                 Rental Number: {property.propertyId || property.id}
               </div>
 
-              <div style={{ height: '192px', borderRadius: '12px', overflow: 'hidden', marginBottom: '1.5rem' }}>
-                <img src={heroImageUrl} alt="Property" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
+              <CheckoutImageSlider photos={allPhotos} />
 
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b', lineHeight: '1.2', marginBottom: '0.5rem' }}>
                 {property.propertyHeadline}
@@ -465,6 +588,14 @@ const Checkout: React.FC = () => {
           }
         }
       `}</style>
+
+      <StripePaymentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onPay={handlePayment}
+        price={`$${totalRent}`}
+        isProcessing={loading}
+      />
     </div>
   );
 };

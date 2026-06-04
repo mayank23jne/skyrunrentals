@@ -7,7 +7,7 @@
         <main>
             <%- include('../partials/header', { pageTitle: 'User Details' }) %>
             <div style="margin-bottom: 2rem;">
-                <a href="/api/admin/users" class="action-btn" style="width: auto; padding: 0 1.5rem; height: 40px; border-radius: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; font-weight: 500;">
+                <a href="/admin/users" class="action-btn" style="width: auto; padding: 0 1.5rem; height: 40px; border-radius: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; font-weight: 500;">
                     <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> Back to Users
                 </a>
             </div>
@@ -73,7 +73,7 @@
                         <h3 style="margin: 0; font-size: 1.5rem; color: var(--primary);"><%= user.firstname %> <%= user.lastname %> Properties</h3>
                     </div>
                     <div style="display: flex; gap: 1rem; align-items: center;">
-                        <a href="/api/admin/properties/add?userId=<%= user.id %>" class="btn-primary" style="text-decoration: none;">Add Property</a>
+                        <a href="/admin/properties/add?userId=<%= user.id %>" class="btn-primary" style="text-decoration: none;">Add Property</a>
                     </div>
                 </div>
 

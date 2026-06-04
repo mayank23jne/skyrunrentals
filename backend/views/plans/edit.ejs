@@ -6,7 +6,7 @@
         <%- include('../partials/sidebar', { activePage: 'settings-plans' }) %>
         <main>
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-                <a href="/api/admin/settings/plans" class="action-btn" style="width: 40px; height: 40px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none;">
+                <a href="/admin/settings/plans" class="action-btn" style="width: 40px; height: 40px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none;">
                     <i data-lucide="arrow-left"></i>
                 </a>
                 <%- include('../partials/header', { pageTitle: 'Edit Plan' }) %>
@@ -49,7 +49,7 @@
 
                         <div class="form-group full-width" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
                             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                                <a href="/api/admin/settings/plans" class="btn-primary" style="background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; display: flex; align-items: center;">Cancel</a>
+                                <a href="/admin/settings/plans" class="btn-primary" style="background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; display: flex; align-items: center;">Cancel</a>
                                 <button type="submit" class="btn-primary">Update Plan</button>
                             </div>
                         </div>
@@ -71,7 +71,7 @@
             });
 
             if (response.ok) {
-                window.location.href = '/api/admin/settings/plans';
+                window.location.href = '/admin/settings/plans';
             }
         });
         lucide.createIcons();

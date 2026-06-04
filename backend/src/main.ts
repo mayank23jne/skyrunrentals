@@ -44,7 +44,7 @@ async function bootstrap() {
 
   // Rewrite /admin to /api/admin internally for page rendering
   app.use((req: any, res: any, next: any) => {
-    if (req.method === 'GET' && req.path.startsWith('/admin') && !req.path.startsWith('/api')) {
+    if (req.path.startsWith('/admin') && !req.path.startsWith('/api')) {
       req.url = '/api' + req.url;
     }
     next();

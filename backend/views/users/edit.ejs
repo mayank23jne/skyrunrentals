@@ -6,7 +6,7 @@
         <%- include('../partials/sidebar', { activePage: 'users' }) %>
         <main>
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-                <a href="/api/admin/users" class="action-btn" style="width: 40px; height: 40px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none;">
+                <a href="/admin/users" class="action-btn" style="width: 40px; height: 40px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none;">
                     <i data-lucide="arrow-left"></i>
                 </a>
                 <%- include('../partials/header', { pageTitle: 'Edit User' }) %>
@@ -70,7 +70,7 @@
                         <div class="form-group full-width" style="margin-top: 2rem;">
                             <div style="display: flex; gap: 1rem;">
                                 <button type="submit" class="btn-primary">Update User</button>
-                                <a href="/api/admin/users" class="btn-primary" style="background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; display: flex; align-items: center;">Cancel</a>
+                                <a href="/admin/users" class="btn-primary" style="background: white; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; display: flex; align-items: center;">Cancel</a>
                             </div>
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                 if (response.ok) {
                     const alert = document.getElementById('alert');
                     alert.style.display = 'block';
-                    setTimeout(() => { window.location.href = '/api/admin/users'; }, 1500);
+                    setTimeout(() => { window.location.href = '/admin/users'; }, 1500);
                 }
             } catch (err) {
                 console.error(err);

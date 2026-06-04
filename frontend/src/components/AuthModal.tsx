@@ -62,10 +62,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
           username: registerForm.email,
           password: registerForm.password
         }, { withCredentials: true });
-        
+
         const userData = loginData.data.user;
         setUser(userData, loginData.data.access_token);
-        
+
         setTimeout(() => {
           onClose();
           window.location.href = '/list-property?scrollToPlans=true';
@@ -143,7 +143,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
       setSuccess('Login successful! Redirecting...');
       setTimeout(() => {
         onClose();
-        window.location.href = `${API_BASE_URL}/api/admin/dashboard?token=${data.access_token}`;
+        window.location.href = `${API_BASE_URL}/admin/dashboard?token=${data.access_token}`;
       }, 800);
     },
     onError: (err: any) => {

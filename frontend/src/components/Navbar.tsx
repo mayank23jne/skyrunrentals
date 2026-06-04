@@ -76,7 +76,7 @@ const Navbar: React.FC = () => {
             {isLoggedIn ? (
               /* ── Logged-in state ── */
               <div className="auth-logged-in">
-                <a href={`${API_BASE_URL}/api/admin/dashboard${token ? `?token=${token}` : ''}`} className="user-greeting" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <a href={`${API_BASE_URL}/admin/dashboard${token ? `?token=${token}` : ''}`} className="user-greeting" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <User size={18} />
                   <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
                     <span style={{ fontSize: '14px', fontWeight: 600 }}>My Account</span>
@@ -205,7 +205,7 @@ const Navbar: React.FC = () => {
                 >
                   {isLoggedIn ? (
                     <div className="mobile-user-section">
-                      <a href={`${API_BASE_URL}/api/admin/dashboard${token ? `?token=${token}` : ''}`} className="mobile-greeting" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <a href={`${API_BASE_URL}/admin/dashboard${token ? `?token=${token}` : ''}`} className="mobile-greeting" style={{ textDecoration: 'none', color: 'inherit' }}>
                         <User size={20} />
                         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
                           <span style={{ fontSize: '15px', fontWeight: 700 }}>My Account</span>

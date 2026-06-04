@@ -55,6 +55,16 @@ export class CreatePropertyDto {
 
   @ApiProperty()
   @IsOptional()
+  @IsString()
+  onWhichFloor?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  elevator?: string;
+
+  @ApiProperty()
+  @IsOptional()
   @Transform(({ value }) => value ? parseInt(value, 10) : null)
   @IsNumber()
   propertyViewId?: number;

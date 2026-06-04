@@ -124,6 +124,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
       if (selectedLocation.type === 'country') {
         navigate(`/listing/countries/${selectedLocation.id}?${params.toString()}`);
       } else if (selectedLocation.type === 'state' || selectedLocation.type === 'city') {
+        if (selectedLocation.type === 'city') {
+          // Pass the city name specifically so the listing page can auto-filter by it
+          const cityName = selectedLocation.label.split(',')[0].trim();
+          params.set('searchedCity', cityName);
+        }
         navigate(`/listing/states/${selectedLocation.stateId}?${params.toString()}`);
       } else {
         if (searchData.destination) params.set('venue', selectedLocation.id);

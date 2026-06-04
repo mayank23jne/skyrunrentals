@@ -38,7 +38,7 @@ const Listing: React.FC = () => {
     sleeps: number[];
   }>({
     priceRange: [0, 1000],
-    cities: [],
+    cities: searchParams.get('searchedCity') ? [searchParams.get('searchedCity')!] : (venue_type === 'cities' && (searchParams.get('venueName') || venue) ? [searchParams.get('venueName') || venue] : []),
     propertyTypes: [],
     viewTypes: [],
     bedrooms: [],
@@ -46,6 +46,7 @@ const Listing: React.FC = () => {
   });
 
   const { formatPrice } = useCurrency();
+
 
   const {
     data: initialDataRaw,
@@ -186,7 +187,6 @@ const Listing: React.FC = () => {
                     propertyTypes: initialData.property_type || [],
                     viewTypes: initialData.property_view || [],
                   }}
-                  hideCityFilter={isCityRoute}
                 />
               )}
             </aside>

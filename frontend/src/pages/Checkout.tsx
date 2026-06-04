@@ -264,7 +264,7 @@ const Checkout: React.FC = () => {
     // Restrict input to digits, spaces, hyphens, plus, and parentheses
     const val = e.target.value.replace(/[^\d\s\-\+()]/g, '');
     setMobile(val);
-    
+
     if (!val.trim()) {
       setErrors(prev => ({ ...prev, mobile: 'Mobile is required' }));
     } else if (!/^\+?[\d\s\-()]{10,}$/.test(val)) {
@@ -487,7 +487,7 @@ const Checkout: React.FC = () => {
             <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '2rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 700 }}>
-                <Phone size={18} color="#2563eb" /> For booking assistance, call +1 408 520 9124
+                <Phone size={18} color="#2563eb" /> For booking assistance, call (+1) - 603-333-8490
               </div>
               <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
                 Rental Number: {property.propertyId || property.id}

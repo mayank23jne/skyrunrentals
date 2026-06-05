@@ -8,7 +8,9 @@ export class BookingService {
   // --- PROPERTY BOOKINGS ---
   async findPropertyBookings(options: { skip?: number; take?: number; search?: string; ownerId?: number }) {
     const { skip, take, search, ownerId } = options;
-    const where: any = {};
+    const where: any = {
+      response: { not: "" },
+    };
 
     if (ownerId !== undefined) {
       where.propertyOwner = ownerId;
@@ -21,18 +23,30 @@ export class BookingService {
         { email: { contains: search } },
         { transactionId: { contains: search } },
       ];
+
+      if (/^\d+$/.test(search)) {
+        const rawMatches = await this.prisma.$queryRawUnsafe<{id: number}[]>(
+          `SELECT id FROM property_bookings WHERE CAST(property_id AS CHAR) LIKE ? OR CAST(id AS CHAR) LIKE ?`,
+          `%${search}%`, `%${search}%`
+        );
+        if (rawMatches.length > 0) {
+          where.OR.push({ id: { in: rawMatches.map(r => r.id) } });
+        }
+      }
     }
 
     return this.prisma.propertyBooking.findMany({
       where,
       skip,
       take,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { id: 'desc' },
     });
   }
 
   async countPropertyBookings(search?: string, ownerId?: number) {
-    const where: any = {};
+    const where: any = {
+      response: { not: "" },
+    };
     
     if (ownerId !== undefined) {
       where.propertyOwner = ownerId;
@@ -44,6 +58,16 @@ export class BookingService {
         { email: { contains: search } },
         { transactionId: { contains: search } },
       ];
+
+      if (/^\d+$/.test(search)) {
+        const rawMatches = await this.prisma.$queryRawUnsafe<{id: number}[]>(
+          `SELECT id FROM property_bookings WHERE CAST(property_id AS CHAR) LIKE ? OR CAST(id AS CHAR) LIKE ?`,
+          `%${search}%`, `%${search}%`
+        );
+        if (rawMatches.length > 0) {
+          where.OR.push({ id: { in: rawMatches.map(r => r.id) } });
+        }
+      }
     }
     return this.prisma.propertyBooking.count({ where });
   }
@@ -100,7 +124,9 @@ export class BookingService {
   // --- PAYMENT HISTORY (Transactions) ---
   async findTransactions(options: { skip?: number; take?: number; search?: string; ownerId?: number }) {
     const { skip, take, search, ownerId } = options;
-    const where: any = {};
+    const where: any = {
+      response: { not: "" },
+    };
 
     if (ownerId !== undefined) {
       where.userId = ownerId;
@@ -114,6 +140,16 @@ export class BookingService {
         { user: { lastname: { contains: search } } },
         { user: { email: { contains: search } } },
       ];
+
+      if (/^\d+$/.test(search)) {
+        const rawMatches = await this.prisma.$queryRawUnsafe<{id: number}[]>(
+          `SELECT id FROM payment_detail WHERE CAST(user_id AS CHAR) LIKE ? OR CAST(id AS CHAR) LIKE ?`,
+          `%${search}%`, `%${search}%`
+        );
+        if (rawMatches.length > 0) {
+          where.OR.push({ id: { in: rawMatches.map(r => r.id) } });
+        }
+      }
     }
 
     const transactions = await this.prisma.paymentDetail.findMany({
@@ -123,7 +159,7 @@ export class BookingService {
       include: {
         user: true,
       },
-      orderBy: { createdDate: 'desc' },
+      orderBy: { id: 'desc' },
     });
 
     const plans = await this.prisma.plan.findMany();
@@ -136,7 +172,9 @@ export class BookingService {
   }
 
   async countTransactions(search?: string, ownerId?: number) {
-    const where: any = {};
+    const where: any = {
+      response: { not: "" },
+    };
     
     if (ownerId !== undefined) {
       where.userId = ownerId;
@@ -149,6 +187,16 @@ export class BookingService {
         { user: { lastname: { contains: search } } },
         { user: { email: { contains: search } } },
       ];
+
+      if (/^\d+$/.test(search)) {
+        const rawMatches = await this.prisma.$queryRawUnsafe<{id: number}[]>(
+          `SELECT id FROM payment_detail WHERE CAST(user_id AS CHAR) LIKE ? OR CAST(id AS CHAR) LIKE ?`,
+          `%${search}%`, `%${search}%`
+        );
+        if (rawMatches.length > 0) {
+          where.OR.push({ id: { in: rawMatches.map(r => r.id) } });
+        }
+      }
     }
     return this.prisma.paymentDetail.count({ where });
   }

@@ -73,10 +73,18 @@ export class PaymentService {
     } = body;
 
     // 1. Initial Insert into property_bookings
+
+    const parsedPropertyId = parseInt(propertyId, 10);
+    const property = await this.prisma.property.findUnique({
+      where: { id: parsedPropertyId },
+      select: { assignTo: true }
+    });
+    const propertyOwnerId = property?.assignTo || null;
+
     const propertyBooking = await this.prisma.propertyBooking.create({
       data: {
-        propertyId: parseInt(propertyId, 10),
-        propertyOwner: parseInt(property_owner, 10) || null,
+        propertyId: parsedPropertyId,
+        propertyOwner: propertyOwnerId,
         firstName: firstName || "",
         lastName: lastName || "",
         email: Email || "",
@@ -90,7 +98,7 @@ export class PaymentService {
         adults: parseInt(adults, 10) || 0,
         childs: parseInt(childs, 10) || 0,
         amount: amount.toString(),
-        status: 'pending',
+        status: 'success',
         response: "",
         bookingDates: booking_dates || "",
         createdAt: new Date(),
@@ -215,7 +223,7 @@ export class PaymentService {
         where: { id: parseInt(country, 10) || undefined, name: country }
       });
       const owner = await this.prisma.user.findUnique({
-        where: { id: parseInt(property_owner, 10) }
+        where: { id: propertyOwnerId || -1 }
       });
 
       const emailData = {
@@ -320,7 +328,6 @@ export class PaymentService {
   async paypalBookingDetails(body: any, currencyShortForm: string = 'USD') {
     const {
       property_id,
-      property_owner,
       adult,
       child,
       amount,
@@ -338,10 +345,16 @@ export class PaymentService {
       terms,
     } = body;
 
+    const parsedPropertyId = parseInt(property_id, 10);
+    const property = await this.prisma.property.findUnique({
+      where: { id: parsedPropertyId },
+      select: { assignTo: true }
+    });
+
     const insert = await this.prisma.propertyBooking.create({
       data: {
-        propertyId: parseInt(property_id, 10),
-        propertyOwner: parseInt(property_owner, 10) || null,
+        propertyId: parsedPropertyId,
+        propertyOwner: property?.assignTo || null,
         firstName: first_name || '',
         lastName: last_name || '',
         email: email || '',
@@ -648,7 +661,11 @@ export class PaymentService {
 
   async squarePayBooking(body: any) {
     const propertyId = parseInt(body.propertyId, 10);
-    const propertyOwner = parseInt(body.property_owner, 10) || null;
+    const property = await this.prisma.property.findUnique({
+      where: { id: propertyId },
+      select: { assignTo: true }
+    });
+    const propertyOwner = property?.assignTo || null;
     const amount = body.amount ? body.amount.toString() : '0';
     const amountCents = Math.round(parseFloat(amount) * 100);
 
@@ -1040,7 +1057,13 @@ export class PaymentService {
           const childs = str_des[10] || '0';
           const booking_message = str_des[13] || '';
           const propertyId = parseInt(str_des[14] || '0', 10);
-          const property_owner = parseInt(str_des[15] || '0', 10) || null;
+
+          const property = await this.prisma.property.findUnique({
+            where: { id: propertyId },
+            select: { assignTo: true }
+          });
+          const property_owner = property?.assignTo || null;
+
           const country = str_des[16] || '';
 
           const term = termsStr ? 1 : 0;

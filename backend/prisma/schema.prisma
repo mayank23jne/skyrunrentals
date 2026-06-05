@@ -169,7 +169,7 @@ model City {
   stunning Int?   @default(0)
   image    String @db.VarChar(100)
   stateId  Int    @map("state_id")
-  state    State  @relation(fields: [stateId], references: [id])
+  state    State?  @relation(fields: [stateId], references: [id])
 
   @@index([stateId], map: "cities_state_id_fkey")
   @@map("cities")
@@ -615,7 +615,7 @@ model State {
   stunning  Int?    @default(0)
   countryId Int     @default(1) @map("country_id")
   cities    City[]
-  country   Country @relation(fields: [countryId], references: [id])
+  country   Country? @relation(fields: [countryId], references: [id])
 
   @@index([countryId], map: "states_country_id_fkey")
   @@map("states")

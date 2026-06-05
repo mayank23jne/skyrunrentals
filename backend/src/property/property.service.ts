@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
@@ -16,20 +16,6 @@ export class PropertyService {
     private s3Service: S3Service
   ) { }
 
-  // async onModuleInit() {
-  //   try {
-  //     console.log('Running automatic database date cleanup...');
-  //     await this.prisma.$executeRawUnsafe(
-  //       `UPDATE rates SET start_date = NULL WHERE start_date = '0000-00-00' OR (start_date IS NOT NULL AND (MONTH(start_date) = 0 OR DAY(start_date) = 0))`
-  //     );
-  //     await this.prisma.$executeRawUnsafe(
-  //       `UPDATE rates SET end_date = NULL WHERE end_date = '0000-00-00' OR (end_date IS NOT NULL AND (MONTH(end_date) = 0 OR DAY(end_date) = 0))`
-  //     );
-  //     console.log('Database date cleanup completed successfully.');
-  //   } catch (error) {
-  //     console.error('Error running automatic database date cleanup:', error);
-  //   }
-  // }
 
 
 
@@ -462,7 +448,7 @@ export class PropertyService {
       if (res.ok) {
         return primaryUrl;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     if (ext === 'avif') {
       return base + 'uploads/property/' + fileName;
@@ -782,9 +768,15 @@ export class PropertyService {
   }
 
   async createPropertyBooking(propertyId: number, data: CreatePropertyBookingDto) {
+    const property = await this.prisma.property.findUnique({
+      where: { id: propertyId },
+      select: { assignTo: true }
+    });
+
     return this.prisma.propertyBooking.create({
       data: {
         propertyId: propertyId,
+        propertyOwner: property?.assignTo || null,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -964,7 +956,7 @@ export class PropertyService {
           base + 'uploads/property/' + fileName
         ];
       }
-      
+
       const ext = fileName.split('.').pop()?.toLowerCase();
       const candidates = [
         base + 'uploaded_filesT/' + fileName,
@@ -1440,7 +1432,7 @@ export class PropertyService {
           }
         },
         orderBy: query.recommended !== undefined && Number(query.recommended) === 1
-          ? [ { priority: { sort: 'asc', nulls: 'last' } }, { id: 'asc' } ]
+          ? [{ priority: { sort: 'asc', nulls: 'last' } }, { id: 'asc' }]
           : { id: 'asc' }
       }),
       this.prisma.currency.findMany({ orderBy: { id: 'asc' } }),
@@ -1476,7 +1468,7 @@ export class PropertyService {
           base + 'uploads/property/' + fileName
         ];
       }
-      
+
       const ext = fileName.split('.').pop()?.toLowerCase();
       const candidates = [
         base + 'uploaded_filesT/' + fileName,

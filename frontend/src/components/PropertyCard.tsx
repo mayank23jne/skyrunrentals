@@ -34,10 +34,31 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   const hash = title.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const fallbackImage = fallbackImages[hash % fallbackImages.length];
 
+  const getCandidates = (url: string) => {
+    if (!url) return [fallbackImage];
+    const fileName = url.split('/').pop();
+    const match = url.match(/^(.*\/images\/)/);
+    const baseUrl = match ? match[1] : '';
+
+    if (fileName && baseUrl) {
+      return [
+        `${baseUrl}uploaded_filesT/${fileName}`,
+        `${baseUrl}uploaded_files/${fileName}`,
+        `${baseUrl}uploads/property/thumbnail/${fileName}`,
+        url,
+        fallbackImage
+      ];
+    }
+    return [url, fallbackImage];
+  };
+
   // Map legacy string arrays to photo objects if needed
-  const mappedPhotos = photos.length > 0 ? photos : (
-    images.length > 0 ? images.map(img => ({ imageName: img, imageCandidates: [img] })) :
-      (image ? [{ imageName: image, imageCandidates: [image] }] : [{ imageName: fallbackImage, imageCandidates: [fallbackImage] }])
+  const mappedPhotos = photos.length > 0 ? photos.map(p => {
+    const url = p.imageName || p;
+    return { imageName: url, imageCandidates: getCandidates(typeof url === 'string' ? url : '') };
+  }) : (
+    images.length > 0 ? images.map(img => ({ imageName: img, imageCandidates: getCandidates(img) })) :
+      (image ? [{ imageName: image, imageCandidates: getCandidates(image) }] : [{ imageName: fallbackImage, imageCandidates: [fallbackImage] }])
   );
 
   const displayImagesLength = mappedPhotos.length;

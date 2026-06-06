@@ -366,7 +366,7 @@ const ListProperty: React.FC = () => {
                             </ul>
                             <button className="plan-btn-premium" onClick={() => {
                               if (isLoggedIn) navigate(`/payment?plan=${plan.name}`);
-                              else openAuthModal('register');
+                              else openAuthModal('register', '', `/payment?plan=${plan.name}`);
                             }} style={{ width: isLoggedIn ? 'auto' : '140px', padding: isLoggedIn ? '12px 20px' : '12px 24px' }}>
                               {isLoggedIn ? 'Continue with this package' : 'Sign Up'}
                             </button>
@@ -391,9 +391,9 @@ const ListProperty: React.FC = () => {
                               <th key={i} className="plan-column-header" style={{ '--plan-color': plan.color } as any}>
                                 <div className="th-plan-name">{plan.name}</div>
                                 <div className="th-plan-price">{plan.price}</div>
-                                <button className="th-plan-btn" onClick={() => {
+                                  <button className="th-plan-btn" onClick={() => {
                                   if (isLoggedIn) navigate(`/payment?plan=${plan.name}`);
-                                  else openAuthModal('register');
+                                  else openAuthModal('register', '', `/payment?plan=${plan.name}`);
                                 }} style={{ maxWidth: isLoggedIn ? '100%' : '130px' }}>
                                   {isLoggedIn ? 'Continue' : 'Sign Up'}
                                 </button>

@@ -45,6 +45,17 @@ const Listing: React.FC = () => {
     sleeps: [],
   });
 
+  React.useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      cities: searchParams.get('searchedCity') 
+        ? [searchParams.get('searchedCity')!] 
+        : (venue_type === 'cities' && (searchParams.get('venueName') || venue) 
+            ? [searchParams.get('venueName') || venue] 
+            : [])
+    }));
+  }, [searchParams.get('searchedCity'), searchParams.get('venueName'), venue, venue_type]);
+
   const { formatPrice } = useCurrency();
 
 
@@ -70,6 +81,12 @@ const Listing: React.FC = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
+
+  const isPriceDefault = filters.priceRange[0] === 0 && filters.priceRange[1] === 1000;
+  const noOtherFilters = filters.cities.length === 0 && filters.propertyTypes.length === 0 && filters.viewTypes.length === 0 && filters.bedrooms.length === 0 && filters.sleeps.length === 0;
+
+  const isExplicitFilter = searchParams.get('filter') === 'true';
+  const isFilteringActive = !(isPriceDefault && noOtherFilters) || isExplicitFilter;
 
   const {
     data: filteredDataRaw,
@@ -113,15 +130,10 @@ const Listing: React.FC = () => {
       if (!lastPage || !lastPage.currentPage || !lastPage.totalPages) return undefined;
       return lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined;
     },
-    enabled: !!initialDataRaw,
+    enabled: isFilteringActive,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
-
-  const isPriceDefault = filters.priceRange[0] === 0 && filters.priceRange[1] === 1000;
-  const noOtherFilters = filters.cities.length === 0 && filters.propertyTypes.length === 0 && filters.viewTypes.length === 0 && filters.bedrooms.length === 0 && filters.sleeps.length === 0;
-
-  const isFilteringActive = !(isPriceDefault && noOtherFilters);
 
   // Extract initialData metadata for sidebar
   const initialData = initialDataRaw?.pages?.[0];

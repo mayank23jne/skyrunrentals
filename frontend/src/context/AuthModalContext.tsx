@@ -6,7 +6,8 @@ interface AuthModalContextType {
   isAuthModalOpen: boolean;
   authModalTab: 'signin' | 'register';
   initialEmail?: string;
-  openAuthModal: (tab?: 'signin' | 'register', email?: string) => void;
+  redirectUrl?: string;
+  openAuthModal: (tab?: 'signin' | 'register', email?: string, redirectUrl?: string) => void;
   closeAuthModal: () => void;
 }
 
@@ -16,19 +17,22 @@ export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'register'>('signin');
   const [initialEmail, setInitialEmail] = useState<string>('');
+  const [redirectUrl, setRedirectUrl] = useState<string>('');
 
-  const openAuthModal = (tab: 'signin' | 'register' = 'signin', email: string = '') => {
+  const openAuthModal = (tab: 'signin' | 'register' = 'signin', email: string = '', url: string = '') => {
     setAuthModalTab(tab);
     setInitialEmail(email);
+    setRedirectUrl(url);
     setIsAuthModalOpen(true);
   };
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+    setRedirectUrl('');
   };
 
   return (
-    <AuthModalContext.Provider value={{ isAuthModalOpen, authModalTab, initialEmail, openAuthModal, closeAuthModal }}>
+    <AuthModalContext.Provider value={{ isAuthModalOpen, authModalTab, initialEmail, redirectUrl, openAuthModal, closeAuthModal }}>
       {children}
       <AnimatePresence>
         {isAuthModalOpen && (
@@ -37,6 +41,7 @@ export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             onClose={closeAuthModal}
             initialTab={authModalTab}
             initialEmail={initialEmail}
+            redirectUrl={redirectUrl}
           />
         )}
       </AnimatePresence>

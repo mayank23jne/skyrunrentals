@@ -72,6 +72,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   }, [setUser]);
 
+  // Handle cross-app logout via URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('logout') === 'true') {
+      logout().then(() => {
+        // Clean up URL without triggering a reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    }
+  }, [logout]);
+
   return (
     <AuthContext.Provider value={{ user, isLoggedIn: !!(user && token), token, setUser, logout }}>
       {children}

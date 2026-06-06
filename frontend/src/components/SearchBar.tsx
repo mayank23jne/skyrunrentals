@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Calendar as CalendarIcon, Users, ChevronDown } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 
@@ -20,6 +20,7 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   const [searchData, setSearchData] = useState({
     destination: searchParams.get('venueName') || initialData?.destination || searchParams.get('venue') || '',
@@ -68,15 +69,26 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
   const guestRef = useRef<HTMLDivElement>(null);
 
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [debouncedDestination, setDebouncedDestination] = useState(searchData.destination);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedDestination(searchData.destination);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchData.destination]);
 
   const { data: searchLocations, isFetching } = useQuery({
-    queryKey: ['searchLocations', searchData.destination],
+    queryKey: ['searchLocations', debouncedDestination],
     queryFn: async () => {
-      if (!searchData.destination.trim()) return [];
-      const response = await api.get(`/properties/search-locations?q=${encodeURIComponent(searchData.destination)}`);
+      if (!debouncedDestination.trim()) return [];
+      const response = await api.get(`/properties/search-locations?q=${encodeURIComponent(debouncedDestination)}`);
       return response.data;
     },
-    enabled: searchData.destination.trim().length > 0,
+    enabled: debouncedDestination.trim().length > 0,
     staleTime: 60000,
   });
 
@@ -119,6 +131,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
     
     // Pass the actual display name to persist in the input
     if (searchData.destination) params.set('venueName', searchData.destination);
+    
+    // Indicate that a search was explicitly triggered
+    params.set('filter', 'true');
 
     if (selectedLocation) {
       if (selectedLocation.type === 'country') {
@@ -135,8 +150,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialData, style, className }) 
         navigate(`/listing?${params.toString()}`);
       }
     } else {
-      if (searchData.destination) params.set('venue', searchData.destination);
-      navigate(`/listing?${params.toString()}`);
+      const currentPath = location.pathname;
+      const initialDest = searchParams.get('venueName') || searchParams.get('venue') || initialData?.destination || '';
+      
+      if (currentPath.includes('/listing/') && searchData.destination === initialDest) {
+        navigate(`${currentPath}?${params.toString()}`);
+      } else {
+        if (searchData.destination) params.set('venue', searchData.destination);
+        navigate(`/listing?${params.toString()}`);
+      }
     }
   };
 

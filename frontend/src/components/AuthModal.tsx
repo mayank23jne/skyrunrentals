@@ -10,9 +10,10 @@ interface AuthModalProps {
   onClose: () => void;
   initialTab?: 'signin' | 'register';
   initialEmail?: string;
+  redirectUrl?: string;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'signin', initialEmail = '' }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'signin', initialEmail = '', redirectUrl = '' }) => {
   const { setUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'signin' | 'register'>(initialTab);
   const [showPassword, setShowPassword] = useState(false);
@@ -68,7 +69,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'si
 
         setTimeout(() => {
           onClose();
-          window.location.href = '/list-property?scrollToPlans=true';
+          window.location.href = redirectUrl || '/list-property?scrollToPlans=true';
         }, 1000);
       } catch (err: any) {
         setSuccess(null);

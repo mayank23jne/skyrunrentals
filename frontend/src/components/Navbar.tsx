@@ -64,7 +64,7 @@ const Navbar: React.FC = () => {
           <div className="top-bar-left">
             <div className="info-item">
               <Phone size={14} />
-              <span>(+1) - 603-333-8490</span>
+              <span>+1 603-333-8490</span>
             </div>
           </div>
           <div className="top-bar-right">

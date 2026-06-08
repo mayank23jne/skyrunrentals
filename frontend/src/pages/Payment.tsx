@@ -26,7 +26,7 @@ const Payment: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const { data: plans = [], isLoading } = useQuery({
-    queryKey: ['subscription-plans'],
+    queryKey: ['subscription-plans-raw'],
     queryFn: async () => {
       const data = await planService.getPlans();
       return data;
@@ -41,15 +41,15 @@ const Payment: React.FC = () => {
     if (plans.length > 0 && !isInitialized) {
       const searchParams = new URLSearchParams(location.search);
       const planNameFromUrl = searchParams.get('plan');
-      
+
       let matchedPlanId = '';
       if (planNameFromUrl) {
         if (planNameFromUrl.toLowerCase() === 'special') {
           matchedPlanId = SPECIAL_PLAN_ID;
         } else {
-          const found = plans.find((p: any) => p?.planName?.toLowerCase() === planNameFromUrl.toLowerCase());
+          const found = plans.find((p: any) => (p?.planName || '').trim().toLowerCase() === (planNameFromUrl || '').trim().toLowerCase());
           if (found) {
-            matchedPlanId = found.id.toString();
+            matchedPlanId = String(found?.id || '');
           }
         }
       }
@@ -57,7 +57,7 @@ const Payment: React.FC = () => {
       if (matchedPlanId) {
         setSelectedPlanId(matchedPlanId);
       } else if (plans[0]?.id) {
-        setSelectedPlanId(plans[0].id.toString());
+        setSelectedPlanId(String(plans[0]?.id || ''));
       }
       setIsInitialized(true);
     }
@@ -65,6 +65,13 @@ const Payment: React.FC = () => {
 
   const selectedPlan = plans.find((p: any) => p?.id?.toString() === selectedPlanId) || null;
   const isSpecialPlan = selectedPlanId === SPECIAL_PLAN_ID;
+
+  const basePrice = isSpecialPlan
+    ? parseFloat(appliedCustomPrice || '0')
+    : parseFloat(selectedPlan?.price || '0');
+
+  const noOfProps = parseInt(selectedProperty, 10);
+  const totalPrice = (basePrice * noOfProps).toFixed(2).replace(/\.00$/, '');
 
   const handleAddCustomPrice = () => {
     if (customPrice && customDescription) {
@@ -78,8 +85,8 @@ const Payment: React.FC = () => {
     setSelectedPlanId(newId);
     setAppliedCustomPrice(null);
     setAppliedCustomDescription(null);
-    
-    const newPlan = plans.find((p: any) => p.id.toString() === newId);
+
+    const newPlan = plans.find((p: any) => String(p?.id || p?._id || '') === newId);
     const searchParams = new URLSearchParams(location.search);
     if (newPlan) {
       searchParams.set('plan', newPlan.planName);
@@ -93,7 +100,7 @@ const Payment: React.FC = () => {
     mutationFn: async () => {
       const payload = {
         planType: isSpecialPlan ? 999 : parseInt(selectedPlanId, 10),
-        amount: isSpecialPlan ? (appliedCustomPrice || '0') : (selectedPlan?.price || '0'),
+        amount: totalPrice,
         description: isSpecialPlan ? (appliedCustomDescription || 'Custom Plan') : `Subscribed to ${selectedPlan?.planName}`,
         noOfProperty: parseInt(selectedProperty, 10),
         userId: user?.id,
@@ -147,9 +154,7 @@ const Payment: React.FC = () => {
 
   const currentFeatures = getPlanFeatures(selectedPlan);
 
-  const displayPrice = isSpecialPlan
-    ? (appliedCustomPrice ? `$${appliedCustomPrice}` : '$0')
-    : `$${selectedPlan?.price || 0}`;
+  const displayPrice = `$${totalPrice}`;
 
   const displayDesc = isSpecialPlan
     ? (appliedCustomDescription || 'Custom Duration / Features')
@@ -201,175 +206,183 @@ const Payment: React.FC = () => {
           </div>
 
           <div className="payment-layout-grid">
+            {(!isInitialized || isLoading) ? (
+              <div style={{ gridColumn: '1 / -1', padding: '100px 0', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fe9d3d' }}>
+                <Loader2 size={40} className="spin-anim" />
+              </div>
+            ) : (
+              <>
+                {/* Left Side: Form & Table */}
+                <div className="payment-left-col">
 
-            {/* Left Side: Form & Table */}
-            <div className="payment-left-col">
-
-              <div className="payment-form-card">
-                <div className="form-card-header">
-                  <h3>Pay For Skyrunrentals</h3>
-                  <p>You are paying : <span>www.skyrunrentals.com</span></p>
-                </div>
-
-                <div className="form-selectors-grid">
-                  <div className="form-group">
-                    <label>Select Property</label>
-                    <div className="select-wrapper">
-                      <select
-                        value={selectedProperty}
-                        onChange={(e) => setSelectedProperty(e.target.value)}
-                        className="custom-select"
-                      >
-                        <option value="1">1 Property</option>
-                        <option value="2">2 Properties</option>
-                        <option value="3">3 Properties</option>
-                        <option value="4">4 Properties</option>
-                        <option value="5">5+ Properties</option>
-                      </select>
-                      <ChevronDown size={18} className="select-icon" />
+                  <div className="payment-form-card">
+                    <div className="form-card-header">
+                      <h3>Pay For Skyrunrentals</h3>
+                      <p>You are paying : <span>www.skyrunrentals.com</span></p>
                     </div>
-                  </div>
-                  <div className="form-group">
-                    <label>Choose Your Plan</label>
-                    <div className="select-wrapper">
-                      <select
-                        value={selectedPlanId}
-                        onChange={handlePlanChange}
-                        disabled={isLoading}
-                        className="custom-select"
-                      >
-                        {isLoading ? (
-                          <option value="">Loading plans...</option>
-                        ) : (
-                          <>
-                            {plans.map((p: any) => (
-                              <option key={p.id} value={p.id}>{p.planName}</option>
+
+                    <div className="form-selectors-grid">
+                      <div className="form-group">
+                        <label>Select Property</label>
+                        <div className="select-wrapper">
+                          <select
+                            value={selectedProperty}
+                            onChange={(e) => setSelectedProperty(e.target.value)}
+                            className="custom-select"
+                          >
+                            {Array.from({ length: 18 }, (_, i) => i + 1).map(num => (
+                              <option key={num} value={num.toString()}>
+                                {num} {num === 1 ? 'Property' : 'Properties'}
+                              </option>
                             ))}
-                            <option value={SPECIAL_PLAN_ID}>Skyrunrental Special Plan</option>
-                          </>
-                        )}
-                      </select>
-                      <ChevronDown size={18} className="select-icon" />
+                          </select>
+                          <ChevronDown size={18} className="select-icon" />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Choose Your Plan</label>
+                        <div className="select-wrapper">
+                          <select
+                            value={selectedPlanId}
+                            onChange={handlePlanChange}
+                            disabled={isLoading}
+                            className="custom-select"
+                          >
+                            {isLoading ? (
+                              <option value="">Loading plans...</option>
+                            ) : (
+                              <>
+                                {plans.map((p: any) => {
+                                  const planIdStr = String(p?.id || p?._id || Math.random());
+                                  return <option key={planIdStr} value={planIdStr}>{p.planName}</option>;
+                                })}
+                                <option value={SPECIAL_PLAN_ID}>Skyrunrental Special Plan</option>
+                              </>
+                            )}
+                          </select>
+                          <ChevronDown size={18} className="select-icon" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {isSpecialPlan && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="special-plan-container"
-                  >
-                    <h4>
-                      <ShieldCheck size={16} /> Custom Special Plan
-                    </h4>
-                    <div className="special-plan-inputs">
-                      <div className="input-group">
-                        <label>Other Price ($)</label>
-                        <input
-                          type="number"
-                          value={customPrice}
-                          onChange={(e) => setCustomPrice(e.target.value)}
-                          placeholder="e.g. 299"
-                        />
+                    {isSpecialPlan && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="special-plan-container"
+                      >
+                        <h4>
+                          <ShieldCheck size={16} /> Custom Special Plan
+                        </h4>
+                        <div className="special-plan-inputs">
+                          <div className="input-group">
+                            <label>Other Price ($)</label>
+                            <input
+                              type="number"
+                              value={customPrice}
+                              onChange={(e) => setCustomPrice(e.target.value)}
+                              placeholder="e.g. 299"
+                            />
+                          </div>
+                          <div className="input-group group-large">
+                            <label>Description / Months</label>
+                            <input
+                              type="text"
+                              value={customDescription}
+                              onChange={(e) => setCustomDescription(e.target.value)}
+                              placeholder="e.g. 6 Months Custom Promo"
+                            />
+                          </div>
+                          <button onClick={handleAddCustomPrice} className="btn-add-price">
+                            <Plus size={16} /> Add Price
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    <div className="payment-table-wrapper">
+                      <table className="payment-table">
+                        <thead>
+                          <tr>
+                            <th>Number Of Property</th>
+                            <th>Months / Description</th>
+                            <th>Price</th>
+                            <th>Total Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>{selectedProperty}</td>
+                            <td>{displayDesc}</td>
+                            <td>{basePrice}</td>
+                            <td className="total-price-cell">{displayPrice}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="payment-actions">
+                      <div className="mock-logos">
+                        <div className="mock-logo logo-visa">VISA</div>
+                        <div className="mock-logo logo-amex">AMEX</div>
+                        <div className="mock-logo logo-mc">MC</div>
+                        <div className="mock-logo logo-paypal">PAYPAL</div>
                       </div>
-                      <div className="input-group group-large">
-                        <label>Description / Months</label>
-                        <input
-                          type="text"
-                          value={customDescription}
-                          onChange={(e) => setCustomDescription(e.target.value)}
-                          placeholder="e.g. 6 Months Custom Promo"
-                        />
-                      </div>
-                      <button onClick={handleAddCustomPrice} className="btn-add-price">
-                        <Plus size={16} /> Add Price
+
+                      <button
+                        onClick={handleOpenModal}
+                        disabled={paymentMutation.isPending || (isSpecialPlan && !appliedCustomPrice)}
+                        className="btn-pay"
+                      >
+                        {paymentMutation.isPending ? <Loader2 size={20} className="spinner" /> : <CreditCard size={20} />}
+                        {paymentMutation.isPending ? 'Processing...' : 'Pay With Card'}
                       </button>
                     </div>
-                  </motion.div>
-                )}
 
-                <div className="payment-table-wrapper">
-                  <table className="payment-table">
-                    <thead>
-                      <tr>
-                        <th>Number Of Property</th>
-                        <th>Months / Description</th>
-                        <th>Price</th>
-                        <th>Total Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>{selectedProperty}</td>
-                        <td>{displayDesc}</td>
-                        <td>{displayPrice}</td>
-                        <td className="total-price-cell">{displayPrice}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="payment-actions">
-                  <div className="mock-logos">
-                    <div className="mock-logo logo-visa">VISA</div>
-                    <div className="mock-logo logo-amex">AMEX</div>
-                    <div className="mock-logo logo-mc">MC</div>
-                    <div className="mock-logo logo-paypal">PAYPAL</div>
                   </div>
-
-                  <button
-                    onClick={handleOpenModal}
-                    disabled={paymentMutation.isPending || (isSpecialPlan && !appliedCustomPrice)}
-                    className="btn-pay"
-                  >
-                    {paymentMutation.isPending ? <Loader2 size={20} className="spinner" /> : <CreditCard size={20} />}
-                    {paymentMutation.isPending ? 'Processing...' : 'Pay With Card'}
-                  </button>
                 </div>
 
-              </div>
-            </div>
+                {/* Right Side: Plan Preview Card */}
+                <div className="payment-right-col">
+                  <div className="sticky-preview-card">
+                    <div className="preview-card-inner">
 
-            {/* Right Side: Plan Preview Card */}
-            <div className="payment-right-col">
-              <div className="sticky-preview-card">
-                <div className="preview-card-inner">
+                      <div className="preview-card-header" style={{ backgroundImage: `url(${loginBg})` }}>
+                        <div className="preview-overlay" />
+                        <div className="preview-header-content">
+                          <h4 className="preview-plan-name">
+                            {isSpecialPlan ? 'Special Custom Plan' : selectedPlan?.planName || 'Select a Plan'}
+                          </h4>
+                          <div className="preview-plan-price">{basePrice}</div>
+                          <div className="preview-plan-desc">{displayDesc}</div>
+                        </div>
+                      </div>
 
-                  <div className="preview-card-header" style={{ backgroundImage: `url(${loginBg})` }}>
-                    <div className="preview-overlay" />
-                    <div className="preview-header-content">
-                      <h4 className="preview-plan-name">
-                        {isSpecialPlan ? 'Special Custom Plan' : selectedPlan?.planName || 'Select a Plan'}
-                      </h4>
-                      <div className="preview-plan-price">{displayPrice}</div>
-                      <div className="preview-plan-desc">{displayDesc}</div>
+                      <div className="preview-card-body">
+                        <h5 className="preview-features-title">Package Includes</h5>
+
+                        {isSpecialPlan ? (
+                          <div className="preview-custom-info">
+                            <ShieldCheck size={48} className="custom-icon" />
+                            <p>Custom features as negotiated with your account manager.</p>
+                          </div>
+                        ) : (
+                          <ul className="preview-features-list">
+                            {currentFeatures.map((feature, idx) => (
+                              <li key={idx}>
+                                <CheckCircle2 size={18} className="check-icon" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
                     </div>
                   </div>
-
-                  <div className="preview-card-body">
-                    <h5 className="preview-features-title">Package Includes</h5>
-
-                    {isSpecialPlan ? (
-                      <div className="preview-custom-info">
-                        <ShieldCheck size={48} className="custom-icon" />
-                        <p>Custom features as negotiated with your account manager.</p>
-                      </div>
-                    ) : (
-                      <ul className="preview-features-list">
-                        {currentFeatures.map((feature, idx) => (
-                          <li key={idx}>
-                            <CheckCircle2 size={18} className="check-icon" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
                 </div>
-              </div>
-            </div>
+              </>
+            )}
 
           </div>
         </div>
@@ -388,6 +401,9 @@ const Payment: React.FC = () => {
 
       <style>{`
         /* Payment Page Global Styles */
+        .spin-anim { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
         .payment-page-container {
           min-height: 100vh;
           background-color: #f8fafc;

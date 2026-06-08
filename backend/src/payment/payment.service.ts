@@ -646,10 +646,15 @@ export class PaymentService {
           amount: body.amountInDollars,
           totalProperty: body.no_of_property,
           date: new Date().toISOString(),
+          transactionBy: 'Square',
         };
 
-        const recipients = [user.email, 'buzzvacation@gmail.com'];
-        await this.mailService.sendSquarePaymentEmail(recipients, emailData);
+        const recipients = [
+          user.email,
+          'info@skyrunrentals.com',
+          'robin@skyrunrentals.com'
+        ];
+        await this.mailService.sendSubscriptionPaymentEmail(recipients, emailData);
       }
 
       return { status: 'success' };
@@ -975,8 +980,12 @@ export class PaymentService {
                 transactionBy: 'Stripe',
               };
 
-              const recipients = [user.email, process.env.SMTP_USER || 'noreply@skyrunrentals.com'];
-              await this.mailService.sendSquarePaymentEmail(recipients, emailData);
+              const recipients = [
+                user.email,
+                'info@skyrunrentals.com',
+                'robin@skyrunrentals.com'
+              ];
+              await this.mailService.sendSubscriptionPaymentEmail(recipients, emailData);
             }
           }
 

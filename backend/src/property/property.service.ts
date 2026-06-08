@@ -8,12 +8,14 @@ import { S3Service } from '../s3/s3.service';
 import { extname } from 'path';
 import { ListingPropertyDto } from './dto/listing-property.dto';
 import { CreatePropertyBookingDto } from './dto/create-property-booking.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class PropertyService {
   constructor(
     private prisma: PrismaService,
-    private s3Service: S3Service
+    private s3Service: S3Service,
+    private mailService: MailService
   ) { }
 
 
@@ -737,7 +739,7 @@ export class PropertyService {
   async createOwnerMessage(id: number, data: any) {
     const property = await this.prisma.property.findUnique({
       where: { id },
-      select: { createdBy: true }
+      select: { createdBy: true, assignTo: true }
     });
 
     // Find country ID if passed as name
@@ -749,7 +751,7 @@ export class PropertyService {
       if (country) countryId = country.id;
     }
 
-    return this.prisma.ownerMessage.create({
+    const ownerMsg = await this.prisma.ownerMessage.create({
       data: {
         propertyId: id,
         propertyOwner: property?.createdBy || 0,
@@ -765,15 +767,37 @@ export class PropertyService {
         message: data.message || '',
       }
     });
+
+    // Fetch owner email and dispatch Booking/Inquiry email
+    const ownerId = property?.assignTo || property?.createdBy;
+    let ownerEmail = '';
+    if (ownerId) {
+      const ownerUser = await this.prisma.user.findUnique({ where: { id: ownerId } });
+      if (ownerUser) ownerEmail = ownerUser.email;
+    }
+
+    const recipients = [
+      data.email,
+      'robin@skyrunrentals.com',
+      'info@skyrunrentals.com'
+    ];
+    if (ownerEmail && !recipients.includes(ownerEmail)) {
+      recipients.push(ownerEmail);
+    }
+
+    const emailData = { ...data, propertyId: id };
+    await this.mailService.sendBookingEmail(recipients, emailData);
+
+    return ownerMsg;
   }
 
   async createPropertyBooking(propertyId: number, data: CreatePropertyBookingDto) {
     const property = await this.prisma.property.findUnique({
       where: { id: propertyId },
-      select: { assignTo: true }
+      select: { assignTo: true, createdBy: true }
     });
 
-    return this.prisma.propertyBooking.create({
+    const booking = await this.prisma.propertyBooking.create({
       data: {
         propertyId: propertyId,
         propertyOwner: property?.assignTo || null,
@@ -796,6 +820,28 @@ export class PropertyService {
         createdAt: new Date(),
       }
     });
+
+    // Fetch owner email and dispatch Booking/Inquiry email
+    const ownerId = property?.assignTo || property?.createdBy;
+    let ownerEmail = '';
+    if (ownerId) {
+      const ownerUser = await this.prisma.user.findUnique({ where: { id: ownerId } });
+      if (ownerUser) ownerEmail = ownerUser.email;
+    }
+
+    const recipients = [
+      data.email,
+      'robin@skyrunrentals.com',
+      'info@skyrunrentals.com'
+    ];
+    if (ownerEmail && !recipients.includes(ownerEmail)) {
+      recipients.push(ownerEmail);
+    }
+
+    const emailData = { ...data, propertyId: propertyId };
+    await this.mailService.sendBookingEmail(recipients, emailData);
+
+    return booking;
   }
 
   async updatePriority(id: number, priority: number) {

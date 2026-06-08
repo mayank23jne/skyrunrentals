@@ -12,13 +12,13 @@ const slides = [
   {
     subtitle: "The Perfect Choice for Family",
     title: "Begin Your Next \n Adventure Today !",
-    description: "There are many variations of passages of Lorem Ipsum available, but the \n majority have suffered alteration in some form",
+    description: "",
     image: hero1
   },
   {
     subtitle: "Best Choice for Family",
     title: "Discover Your Next \n Adventure Today !",
-    description: "There are many variations of passages of Lorem Ipsum available, but the \n  majority have suffered alteration in some form",
+    description: "",
     image: hero2
   }
 ];

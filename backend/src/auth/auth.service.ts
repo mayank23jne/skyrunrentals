@@ -3,14 +3,27 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { MailService } from '../mail/mail.service';
+import * as puppeteer from 'puppeteer';
+import * as fs from 'fs';
+import * as path from 'path';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class AuthService {
+  private s3Client: S3Client;
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private mailService: MailService,
-  ) { }
+  ) {
+    this.s3Client = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY || '',
+        secretAccessKey: process.env.AWS_SECRET_KEY || '',
+      },
+    });
+  }
 
   async validateAdmin(email: string, pass: string): Promise<any> {
     console.log("email", email);
@@ -76,7 +89,7 @@ export class AuthService {
     const plainPassword = data.password;
     const hashedPassword = crypto.createHash('md5').update(plainPassword).digest('hex');
 
-    return this.prisma.user.create({
+    const newUser = await this.prisma.user.create({
       data: {
         ...data,
         password: hashedPassword,
@@ -87,6 +100,56 @@ export class AuthService {
         subscription_type: 0,
       },
     });
+
+    // Generate PDF and send Email
+    const policyData = await this.prisma.termCondition.findFirst({ orderBy: { id: 'asc' } });
+    const pdfPath = path.join(process.cwd(), 'public/uploads/policyDoc', `privacyPolicy_${newUser.id}.pdf`);
+
+    const dir = path.dirname(pdfPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    try {
+      const html = `
+        <div style="font-family: Arial, sans-serif; padding: 40px;">
+          <h1 style="text-align: center;">${policyData?.title || 'Our Policy'}</h1>
+          <div style="text-align: justify; margin: 20px 0;">
+            ${policyData?.detail || ''}
+          </div>
+          <h2 style="text-align: right;">${newUser.firstname || ''} ${newUser.lastname || ''}</h2>
+        </div>
+      `;
+
+      const browser = await puppeteer.launch({ headless: true });
+      const page = await browser.newPage();
+      await page.setContent(html);
+      await page.pdf({ path: pdfPath, format: 'A4', landscape: true });
+      await browser.close();
+
+      const bucket = process.env.AWS_BUCKET;
+      if (bucket) {
+        const pdfBuffer = fs.readFileSync(pdfPath);
+        await this.s3Client.send(new PutObjectCommand({
+          Bucket: bucket,
+          Key: `policyDoc/privacyPolicy_${newUser.id}.pdf`,
+          Body: pdfBuffer,
+          ContentType: 'application/pdf',
+          ACL: 'public-read',
+        }));
+      }
+    } catch (error) {
+      console.error('Error generating or uploading policy PDF:', error);
+    }
+
+    const recipientEmails = [newUser.email, 'robin@skyrunrentals.com', 'info@skyrunrentals.com'];
+    await this.mailService.sendRegistrationEmail(recipientEmails, newUser, pdfPath);
+
+    if (fs.existsSync(pdfPath)) {
+      fs.unlinkSync(pdfPath);
+    }
+
+    return newUser;
   }
 
   async forgotPassword(email: string) {

@@ -87,7 +87,7 @@ export class MailService {
     resetLink: string,
   ): Promise<boolean> {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
     const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
 
     const mailOptions: nodemailer.SendMailOptions = {
@@ -629,7 +629,7 @@ export class MailService {
     }
   }
 
-  async sendSquarePaymentEmail(
+  async sendSubscriptionPaymentEmail(
     toEmails: string | string[],
     data: any,
   ): Promise<boolean> {
@@ -679,7 +679,7 @@ export class MailService {
     </tr>
     <tr> 
       <td style='padding: 10px 0px 0px 0px;'>
-        <b>Transaction By</b> : <span style='margin-left: 35px;'>Square</span> 
+        <b>Transaction By</b> : <span style='margin-left: 35px;'>${data.transactionBy || 'Stripe'}</span> 
       </td> 
     </tr>
     <tr> 
@@ -695,11 +695,6 @@ export class MailService {
         <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Team Skyrunrentals</b></font></i></span></span>
       </td> 
     </tr>
-    <tr> 
-      <td style='padding: 7px 0;'>
-        <span style='color:rgb(191,144,0)'><b><font size='4'>(<span dir='ltr'><a href='tel:+18554306273' target='_blank'>+1 855-430-6273</a></span>)</font></b></span>
-      </td> 
-    </tr>
   </table>
 </div>`;
 
@@ -712,10 +707,112 @@ export class MailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Square payment email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+      this.logger.log(`Subscription payment email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send Square payment email:`, error.message);
+      this.logger.error(`Failed to send Subscription payment email:`, error.message);
+      return false;
+    }
+  }
+
+  async sendBookingEmail(toEmails: string | string[], data: any): Promise<boolean> {
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+
+    const htmlContent = `
+    <div style='width: 500px;margin: auto;border: solid 5px #132742;padding: 20px;border-radius: 10px;text-align:center;'>
+        <!-- Header Section -->
+        <table width='100%' cellspacing='0' cellpadding='0' border='0' bgcolor='#FFFFFF'>
+            <tr>
+                <td style='background-color: #1327422b; padding-top:20px; padding-bottom: 20px;' align='center'>
+                    <img src='${logoURL}' alt='logo' width='200'>
+                    <br><br>
+                    <span style='color:#fff;font-family:Century gothic,Arial,sans-serif;font-size:20px;font-weight:bold;line-height:36px'>
+                        Thank you for using skyrunrentals.com
+                    </span>
+                    <br>
+                    <span style='font-family:Open sans,Arial,sans-serif;font-size:18px;color:rgb(255,255,255);line-height:26.1px'>
+                        Open Communication | Direct Bookings | Zero Service Fees
+                    </span>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Details Section -->
+        <table style='width: 100%;padding: 25px;text-align: initial;'>
+            <tr>
+                <td style='font-family: Lato,sans-serif;font-size:30px;color:#132742;line-height:43.5px;font-weight:bold'>
+                    YOUR DETAILS 
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Name</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ${data.firstname || data.firstName || ''} ${data.lastname || data.lastName || ''} 
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Email</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style='color:#132742;'>${data.email || ''}</span> 
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Contact</b> : &nbsp; &nbsp; &nbsp; ${data.phone || data.mobile || data.contact || ''}
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Dates</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; From <b>${data.arrival || data.arrival_date || data.bookingDates?.split(' - ')?.[0] || ''}</b> To <b>${data.departure || data.departure_date || data.bookingDates?.split(' - ')?.[1] || ''}</b>
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 0 0 10px 0;'>
+                    <b>Guests</b> : &nbsp; &nbsp; &nbsp; &nbsp; ${data.adults || 0} Adults and ${data.childs || data.children || 0} Child
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 12px 0 15px 0;'>
+                    <b>Property ID</b> : &nbsp; &nbsp; ${data.propertyId || data.property_id || ''}
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 15px 0;border-bottom: solid 2px #132742;'>
+                    ${data.message || ''}
+                </td>
+            </tr>
+        </table>
+
+        <!-- Footer Section -->
+        <table width='100%' cellspacing='0' cellpadding='0' border='0' align='center'>
+            <tr>
+                <td bgcolor='#EDEDED' align='center' style='padding: 20px;'>
+                    <b>Mailing Address</b><br>
+                    Address: 19 Woodville St, Roxbury, MA, 02119 USA
+                </td>
+            </tr>
+            <tr>
+                <td style='background-color:#132742;color:#ffffff;padding: 15px;text-align:center;'>
+                    skyrunrentals.com © 2024 All Rights Reserved
+                </td>
+            </tr>
+        </table>
+    </div>
+    `;
+
+    const mailOptions: nodemailer.SendMailOptions = {
+      from: `"${fromName}" <${fromEmail}>`,
+      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+      subject: 'Skyrunrentals | Booking in Property.',
+      html: htmlContent,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      this.logger.log(`Booking email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send booking email:`, error.message);
       return false;
     }
   }

@@ -68,7 +68,7 @@ const Contact: React.FC = () => {
                 <MapPin size={28} />
               </div>
               <h3>Our Location</h3>
-              <p>19 Woodville St, Roxbury,MA, 02119, USA</p>
+              <p>2029 Century Park East, Suite 400N, Los Angeles, CA 90067</p>
             </div>
 
             <div className="info-card">
@@ -84,7 +84,7 @@ const Contact: React.FC = () => {
                 <Headphones size={28} />
               </div>
               <h3>Phone Number</h3>
-              <p>(+1) - 603-333-8490</p>
+              <p>+1 603-333-8490</p>
             </div>
           </div>
         </div>

@@ -88,11 +88,11 @@ const Footer: React.FC = () => {
             <ul className="contact-list">
               <li>
                 <MapPin size={20} className="contact-icon" />
-                <span>19 Woodville St, Roxbury,MA, 02119, USA</span>
+                <span>2029 Century Park East, Suite 400N, Los Angeles, CA 90067</span>
               </li>
               <li>
                 <Phone size={20} className="contact-icon" />
-                <span>(+1) - 603-333-8490</span>
+                <span>+1 603-333-8490</span>
               </li>
               <li>
                 <Mail size={20} className="contact-icon" />

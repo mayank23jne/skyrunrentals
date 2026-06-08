@@ -33,19 +33,20 @@ const ListProperty: React.FC = () => {
         const features = [];
         for (let i = 1; i <= 13; i++) {
           const desc = (plan as any)[`description${i}`];
-          if (desc && desc.trim() !== '' && desc.trim() !== '-----') {
+          if (typeof desc === 'string' && desc.trim() !== '' && desc.trim() !== '-----') {
             features.push(desc);
           }
         }
 
         let color = '#1a1a1a';
-        if (plan.planName.toLowerCase().includes('gold')) color = '#f59e0b';
-        else if (plan.planName.toLowerCase().includes('silver')) color = '#94a3b8';
-        else if (plan.planName.toLowerCase().includes('bronze')) color = '#d97706';
+        const pName = (plan.planName || '').toLowerCase();
+        if (pName.includes('gold')) color = '#f59e0b';
+        else if (pName.includes('silver')) color = '#94a3b8';
+        else if (pName.includes('bronze')) color = '#d97706';
 
         return {
-          name: plan.planName,
-          price: `$${plan.price}`,
+          name: plan.planName || 'Unnamed Plan',
+          price: plan.price ? `$${plan.price}` : '$0',
           duration: 'Annual Listing',
           features,
           color
@@ -61,6 +62,7 @@ const ListProperty: React.FC = () => {
   }, [plans]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const params = new URLSearchParams(window.location.search);
     if (params.get('scrollToPlans') === 'true') {
       const el = document.getElementById('pricing-plans');
@@ -126,11 +128,11 @@ const ListProperty: React.FC = () => {
               className="guarantee-glass-card"
             >
               <div className="guarantee-badge">OUR PROMISE</div>
-              <h3>THE 3-5 BOOKING GUARANTEE</h3>
+              <h3>THE 3-8 BOOKING GUARANTEE</h3>
               <div className="guarantee-icon-pulse">
                 <ShieldCheck size={80} />
               </div>
-              <p>We guarantee you at least <strong>3-5 bookings</strong> in your first 12 months. If you don't succeed, we extend your listing for free plus valuable extras. The power is in your hands.</p>
+              <p>We guarantee a minimum of <strong>3–8 bookings</strong> within the 12-month subscription period. If this target is not achieved, you can choose either a full refund or complimentary lifetime access to our services—the choice is entirely yours.</p>
               <div className="guarantee-shine"></div>
             </motion.div>
           </div>
@@ -391,7 +393,7 @@ const ListProperty: React.FC = () => {
                               <th key={i} className="plan-column-header" style={{ '--plan-color': plan.color } as any}>
                                 <div className="th-plan-name">{plan.name}</div>
                                 <div className="th-plan-price">{plan.price}</div>
-                                  <button className="th-plan-btn" onClick={() => {
+                                <button className="th-plan-btn" onClick={() => {
                                   if (isLoggedIn) navigate(`/payment?plan=${plan.name}`);
                                   else openAuthModal('register', '', `/payment?plan=${plan.name}`);
                                 }} style={{ maxWidth: isLoggedIn ? '100%' : '130px' }}>

@@ -29,10 +29,10 @@ export class MailService {
     const websiteUrl = 'https://skyrunrentals.com';
 
     const messagetable = `
-    <div style='width: 500px;margin: auto;border: solid 5px #579981;padding: 20px;border-radius: 10px;text-align:center;'>
+    <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center;'>
         <table style='width: 100%;padding: 25px;text-align: initial;'>
             <tr> 
-                <td style='border-bottom: solid 2px #579981;padding-bottom: 20px;'>
+                <td style='border-bottom: solid 2px #3a86ff;padding-bottom: 20px;'>
                     <img src='${logoURL}' alt='site-logo' style='height:50px; width:auto;margin-top:15px'>
                 </td> 
             </tr>
@@ -58,7 +58,7 @@ export class MailService {
             </tr>
             <tr> 
                 <td style='padding: 7px 0;'>
-                    <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
+                    <span style='color:#fe9d3d'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
                 </td> 
             </tr>
         </table>
@@ -95,10 +95,10 @@ export class MailService {
       to: toEmail,
       subject: 'Skyrunrentals | Reset password link.',
       html: `
-        <div style="width: 500px; margin: auto; border: solid 5px #579981; padding: 20px; border-radius: 10px; text-align: center; font-family: sans-serif;">
+        <div style="width: 500px; margin: auto; border: solid 5px #3a86ff; padding: 20px; border-radius: 10px; text-align: center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;">
           <table style="width: 100%; padding: 25px;">
             <tr>
-              <td style="border-bottom: solid 2px #579981; padding-bottom: 20px;">
+              <td style="border-bottom: solid 2px #3a86ff; padding-bottom: 20px;">
                 <img src="${logoURL}" alt="site-logo" style="height: 50px; width: auto; margin: auto; display: block;" title="site-logo">
               </td>
             </tr>
@@ -113,9 +113,9 @@ export class MailService {
               </td>
             </tr>
             <tr>
-              <td style="padding: 15px 0; border-bottom: solid 2px #579981; color: #4b5563; line-height: 1.6;">
+              <td style="padding: 15px 0; border-bottom: solid 2px #3a86ff; color: #4b5563; line-height: 1.6;">
                 <strong>A password reset has been requested for this email account</strong><br>
-                <strong>Please click:</strong> <a href="${resetLink}" style="color: #579981; font-weight: bold;">${resetLink}</a>
+                <strong>Please click:</strong> <a href="${resetLink}" style="color: #3a86ff; font-weight: bold;">${resetLink}</a>
               </td>
             </tr>
           </table>
@@ -144,10 +144,10 @@ export class MailService {
     const websiteUrl = 'https://skyrunrentals.com';
 
     const messagetable = `
-    <div style='width: 500px;margin: auto;border: solid 5px #579981;padding: 20px;border-radius: 10px;text-align:center;'>
+    <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center;'>
         <table style='width: 100%;padding: 25px;text-align: initial;'>
             <tr> 
-                <td style='border-bottom: solid 2px #579981;padding-bottom: 20px;'>
+                <td style='border-bottom: solid 2px #3a86ff;padding-bottom: 20px;'>
                     <img src='${logoURL}' alt='site-logo' style='height:50px; width:auto;margin-top:15px'>
                 </td> 
             </tr>
@@ -193,7 +193,7 @@ export class MailService {
             </tr>
             <tr> 
                 <td style='padding: 7px 0;'>
-                    <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
+                    <span style='color:#fe9d3d'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
                 </td> 
             </tr>
         </table>
@@ -244,11 +244,11 @@ export class MailService {
     }
 
     const messagetable = `
-<div style='width: 500px;margin: auto;border: solid 5px #132742;padding: 20px;border-radius: 10px;text-align:center; font-family: sans-serif;'>
+<div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;'>
    <table width='100%' cellspacing='0' cellpadding='0' border='0' bgcolor='#FFFFFF'>
       <tbody>
          <tr>
-            <td style='background-color: #1327422b;' align='center'>
+            <td style='background-color: #f8fafc;' align='center'>
                <table cellspacing='0' cellpadding='0' border='0' align='center'>
                   <tbody>
                      <tr>
@@ -284,8 +284,8 @@ export class MailService {
                                              <tbody>
                                                 <tr><td width='250' height='15' align='center'></td></tr>
                                                 <tr>
-                                                   <td style='text-decoration:none;color:#fff;font-family:Open sans,Arial,sans-serif;font-size:14px' align='center'>
-                                                      <a href='${baseUrl}/about_us' style='color:#fff;text-decoration:none;color:#fff !important;font-family:Open sans,Arial,sans-serif;font-size:14px' target='_blank'>About Us</a>
+                                                   <td style='text-decoration:none;color:#fff;font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:14px' align='center'>
+                                                      <a href='${baseUrl}/about_us' style='color:#fff;text-decoration:none;color:#fff !important;font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:14px' target='_blank'>About Us</a>
                                                    </td>
                                                 </tr>
                                              </tbody>
@@ -307,13 +307,13 @@ export class MailService {
                               <tbody>
                                  <tr><td height='50'></td></tr>
                                  <tr>
-                                    <td style='color:#132742;font-family:Century gothic,Arial,sans-serif;font-size:20px;font-weight:bold;line-height:36px' >
+                                    <td style='color:#3a86ff;font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:20px;font-weight:bold;line-height:36px' >
                                        Thank you for using skyrunrentals.com
                                     </td>
                                  </tr>
                                  <tr><td height='10'></td></tr>
                                  <tr>
-                                    <td style='font-family:Open sans,Arial,sans-serif;font-size:18px;color:#132742;line-height:26.1px' align='center'>
+                                    <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:18px;color:#3a86ff;line-height:26.1px' align='center'>
                                        Open Communication&nbsp; |&nbsp; Direct Bookings&nbsp; |&nbsp; Zero Service Fees 									
                                     </td>
                                  </tr>
@@ -330,7 +330,7 @@ export class MailService {
    </table>
    <table style='width: 100%;padding: 25px;text-align: initial;'>
       <tr>
-         <td style='font-family: Lato,Noto Sans JP,Noto Sans KR,Lucida Grande,Segoe UI,Tahoma,-apple-system,Roboto,sans-serif;font-size:30px;color:#132742;line-height:43.5px;font-weight:bold'>
+         <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:30px;color:#3a86ff;line-height:43.5px;font-weight:bold'>
             YOUR DETAILS
          </td>
       </tr>
@@ -341,7 +341,7 @@ export class MailService {
       </tr>
       <tr>
          <td style='padding: 10px 0;'>
-            <b>Email</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style='color:#132742;'>${data.email}</span> 
+            <b>Email</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style='color:#3a86ff;'>${data.email}</span> 
          </td>
       </tr>
       <tr>
@@ -365,7 +365,7 @@ export class MailService {
          </td>
       </tr>
       <tr>
-         <td style='padding: 15px 0;border-bottom: solid 2px #132742;'>
+         <td style='padding: 15px 0;border-bottom: solid 2px #3a86ff;'>
             ${data.message}
          </td>
       </tr>
@@ -395,7 +395,7 @@ export class MailService {
                                                                   <table width='100%' cellspacing='0' cellpadding='0' border='0'>
                                                                      <tbody>
                                                                         <tr>
-                                                                           <td style='font-family:"Open Sans",Arial,sans-serif;font-size:16px;color:#132742;line-height:27.2px;font-weight:bold;' align='left'>
+                                                                           <td style='font-family:"Open Sans",Arial,sans-serif;font-size:16px;color:#3a86ff;line-height:27.2px;font-weight:bold;' align='left'>
                                                                               Mailing Address
                                                                            </td>
                                                                         </tr>
@@ -405,7 +405,7 @@ export class MailService {
                                                             </tr>
                                                             <tr><td height='5'></td></tr>
                                                             <tr>
-                                                               <td style='font-family:Open sans,Arial,sans-serif;color:#132742;font-size:13px;line-height:28px' align='left'>
+                                                               <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;color:#3a86ff;font-size:13px;line-height:28px' align='left'>
                                                                Address: 19 Woodville St, Roxbury, MA, 02119 USA 
                                                                </td>
                                                             </tr>
@@ -429,7 +429,7 @@ export class MailService {
                                                                   <table width='100%' cellspacing='0' cellpadding='0' border='0'>
                                                                      <tbody>
                                                                         <tr>
-                                                                           <td style='font-family:"Open Sans",Arial,sans-serif;font-size:16px;color:#132742;line-height:27.2px;font-weight:bold;' align='left'>
+                                                                           <td style='font-family:"Open Sans",Arial,sans-serif;font-size:16px;color:#3a86ff;line-height:27.2px;font-weight:bold;' align='left'>
                                                                               Customer Support
                                                                            </td>
                                                                         </tr>
@@ -439,7 +439,7 @@ export class MailService {
                                                             </tr>
                                                             <tr><td height='5'></td></tr>
                                                             <tr>
-                                                               <td style='font-family:Open sans,Arial,sans-serif;color:#132742;font-size:13px;line-height:28px' align='left'>Visit our help center and website to see what skyrunrentals.com is all about. We are working hard to&nbsp;help you save&nbsp;money on your travel accommodations.
+                                                               <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;color:#3a86ff;font-size:13px;line-height:28px' align='left'>Visit our help center and website to see what skyrunrentals.com is all about. We are working hard to&nbsp;help you save&nbsp;money on your travel accommodations.
                                                                </td>
                                                             </tr>
                                                             <tr><td height='40'></td></tr>
@@ -461,7 +461,7 @@ export class MailService {
             </td>
          </tr>
          <tr>
-            <td style='background-color:#132742;' bgcolor='#6ec8c7' align='center'>
+            <td style='background-color:#3a86ff;' bgcolor='#6ec8c7' align='center'>
                <table cellspacing='0' cellpadding='0' border='0' align='center'>
                   <tbody>
                      <tr><td height='15'></td></tr>
@@ -475,7 +475,7 @@ export class MailService {
                                           <table width='90%' cellspacing='0' cellpadding='0' border='0' align='center'>
                                              <tbody>
                                                 <tr>
-                                                   <td style='font-family:Open Sans,Arial,sans-serif;font-size:13px;color:#ffffff;line-height:28px' align='center'>
+                                                   <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:13px;color:#ffffff;line-height:28px' align='center'>
                                                       skyrunrentals.com © 2024 All Rights Reserved
                                                    </td>
                                                 </tr>
@@ -539,10 +539,10 @@ export class MailService {
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
     const messagetable = `
-<div style='width: 500px;margin: auto;border: solid 5px #132742;padding: 20px;border-radius: 10px;text-align:center; font-family: sans-serif;'>
+<div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;'>
   <table style='width: 100%;padding: 25px;text-align: initial;'>
     <tr> 
-      <td style='border-bottom: solid 2px #132742;padding-bottom: 20px;'>
+      <td style='border-bottom: solid 2px #3a86ff;padding-bottom: 20px;'>
         <img src='${logoURL}' alt='site-logo' style='height:50px; width:auto;margin-top:15px'>
       </td> 
     </tr>
@@ -601,12 +601,12 @@ export class MailService {
     </tr>
     <tr> 
       <td style='padding: 7px 0;'>
-        <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Team Skyrunrentals</b></font></i></span></span>
+        <span style='color:#fe9d3d'><span><i><font size='4'><b>Team Skyrunrentals</b></font></i></span></span>
       </td> 
     </tr>
     <tr> 
       <td style='padding: 7px 0;'>
-        <span style='color:rgb(191,144,0)'><b><font size='4'>(<span dir='ltr'><a href='tel:+18554306273' target='_blank'>+1 855-430-6273</a></span>)</font></b></span>
+        <span style='color:#fe9d3d'><b><font size='4'>(<span dir='ltr'><a href='tel:+18554306273' target='_blank'>+1 855-430-6273</a></span>)</font></b></span>
       </td> 
     </tr>
   </table>
@@ -640,10 +640,10 @@ export class MailService {
     const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
     const messagetable = `
-<div style='width: 500px;margin: auto;border: solid 5px #132742;padding: 20px;border-radius: 10px;text-align:center; font-family: sans-serif;'>
+<div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;'>
   <table style='width: 100%;padding: 25px;text-align: initial;'>
     <tr> 
-      <td style='border-bottom: solid 2px #132742;padding-bottom: 20px;'>
+      <td style='border-bottom: solid 2px #3a86ff;padding-bottom: 20px;'>
         <img src='${logoURL}' alt='site-logo' style='height:50px; width:auto;margin-top:15px'>
       </td> 
     </tr>
@@ -692,7 +692,7 @@ export class MailService {
     </tr>
     <tr> 
       <td style='padding: 7px 0;'>
-        <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Team Skyrunrentals</b></font></i></span></span>
+        <span style='color:#fe9d3d'><span><i><font size='4'><b>Team Skyrunrentals</b></font></i></span></span>
       </td> 
     </tr>
   </table>
@@ -721,18 +721,18 @@ export class MailService {
     const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
 
     const htmlContent = `
-    <div style='width: 500px;margin: auto;border: solid 5px #132742;padding: 20px;border-radius: 10px;text-align:center;'>
+    <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center;'>
         <!-- Header Section -->
         <table width='100%' cellspacing='0' cellpadding='0' border='0' bgcolor='#FFFFFF'>
             <tr>
-                <td style='background-color: #1327422b; padding-top:20px; padding-bottom: 20px;' align='center'>
+                <td style='background-color: #f8fafc; padding-top:20px; padding-bottom: 20px;' align='center'>
                     <img src='${logoURL}' alt='logo' width='200'>
                     <br><br>
-                    <span style='color:#fff;font-family:Century gothic,Arial,sans-serif;font-size:20px;font-weight:bold;line-height:36px'>
+                    <span style='color:#fff;font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:20px;font-weight:bold;line-height:36px'>
                         Thank you for using skyrunrentals.com
                     </span>
                     <br>
-                    <span style='font-family:Open sans,Arial,sans-serif;font-size:18px;color:rgb(255,255,255);line-height:26.1px'>
+                    <span style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:18px;color:rgb(255,255,255);line-height:26.1px'>
                         Open Communication | Direct Bookings | Zero Service Fees
                     </span>
                 </td>
@@ -742,7 +742,7 @@ export class MailService {
         <!-- Details Section -->
         <table style='width: 100%;padding: 25px;text-align: initial;'>
             <tr>
-                <td style='font-family: Lato,sans-serif;font-size:30px;color:#132742;line-height:43.5px;font-weight:bold'>
+                <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:30px;color:#3a86ff;line-height:43.5px;font-weight:bold'>
                     YOUR DETAILS 
                 </td>
             </tr>
@@ -753,7 +753,7 @@ export class MailService {
             </tr>
             <tr>
                 <td style='padding: 10px 0;'>
-                    <b>Email</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style='color:#132742;'>${data.email || ''}</span> 
+                    <b>Email</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style='color:#3a86ff;'>${data.email || ''}</span> 
                 </td>
             </tr>
             <tr>
@@ -777,7 +777,7 @@ export class MailService {
                 </td>
             </tr>
             <tr>
-                <td style='padding: 15px 0;border-bottom: solid 2px #132742;'>
+                <td style='padding: 15px 0;border-bottom: solid 2px #3a86ff;'>
                     ${data.message || ''}
                 </td>
             </tr>
@@ -792,7 +792,7 @@ export class MailService {
                 </td>
             </tr>
             <tr>
-                <td style='background-color:#132742;color:#ffffff;padding: 15px;text-align:center;'>
+                <td style='background-color:#3a86ff;color:#ffffff;padding: 15px;text-align:center;'>
                     skyrunrentals.com © 2024 All Rights Reserved
                 </td>
             </tr>

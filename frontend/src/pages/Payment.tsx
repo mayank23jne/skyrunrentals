@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
 import StripePaymentModal from '../components/StripePaymentModal';
 import { planService, type SubscriptionPlan } from '../services/planService';
-import api from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, CreditCard, ChevronDown, CheckCircle2, Loader2, Plus } from 'lucide-react';
 import loginBg from '../assets/login-bg.png';
@@ -15,7 +15,10 @@ import loginBg from '../assets/login-bg.png';
 const Payment: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setUser } = useAuth();
+  const { user, setUser, token } = useAuth();
+
+  const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+  const [toastError, setToastError] = useState<string>('');
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [selectedProperty, setSelectedProperty] = useState<string>('1');
@@ -113,10 +116,16 @@ const Payment: React.FC = () => {
         const updatedUser = { ...user, subscription_type: 1 };
         setUser(updatedUser);
       }
-      navigate('/');
+      setIsModalOpen(false);
+      setPaymentSuccess(true);
+      setTimeout(() => {
+        window.location.href = `${API_BASE_URL}/admin/dashboard${token ? `?token=${token}` : ''}`;
+      }, 3000);
     },
     onError: (err) => {
-      alert('Payment processing failed. Please try again later.');
+      setIsModalOpen(false);
+      setToastError('Payment processing failed. Please try again later.');
+      setTimeout(() => setToastError(''), 5000);
     }
   });
 
@@ -160,8 +169,42 @@ const Payment: React.FC = () => {
     ? (appliedCustomDescription || 'Custom Duration / Features')
     : '12 Months';
 
+  if (paymentSuccess) {
+    return (
+      <div className="payment-page-container" style={{ overflowX: 'hidden', width: '100%' }}>
+        <Navbar />
+        <div style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: '20px', textAlign: 'center' }}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 20 }}>
+            <CheckCircle2 size={100} color="#22c55e" style={{ marginBottom: '24px' }} />
+          </motion.div>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ fontSize: '32px', color: '#0f172a', marginBottom: '16px', fontWeight: 'bold' }}>
+            Payment Successful!
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ color: '#64748b', fontSize: '18px' }}>
+            Thank you for subscribing. Redirecting you to your dashboard...
+          </motion.p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="payment-page-container" style={{ overflowX: 'hidden', width: '100%' }}>
+      <AnimatePresence>
+        {toastError && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -50 }}
+            style={{ position: 'fixed', top: '24px', right: '24px', background: '#ef4444', color: '#fff', padding: '16px 24px', borderRadius: '8px', zIndex: 9999, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '12px' }}
+          >
+            <span>{toastError}</span>
+            <button onClick={() => setToastError('')} style={{ color: '#fff', opacity: 0.8 }}>✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Navbar />
 
       <main className="payment-main-content">
@@ -314,7 +357,7 @@ const Payment: React.FC = () => {
                           <tr>
                             <td>{selectedProperty}</td>
                             <td>{displayDesc}</td>
-                            <td>{basePrice}</td>
+                            <td>${basePrice}</td>
                             <td className="total-price-cell">{displayPrice}</td>
                           </tr>
                         </tbody>
@@ -353,7 +396,7 @@ const Payment: React.FC = () => {
                           <h4 className="preview-plan-name">
                             {isSpecialPlan ? 'Special Custom Plan' : selectedPlan?.planName || 'Select a Plan'}
                           </h4>
-                          <div className="preview-plan-price">{basePrice}</div>
+                          <div className="preview-plan-price">${basePrice}</div>
                           <div className="preview-plan-desc">{displayDesc}</div>
                         </div>
                       </div>

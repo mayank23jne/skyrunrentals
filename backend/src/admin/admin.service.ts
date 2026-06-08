@@ -277,8 +277,9 @@ export class AdminService {
 
     // Send credentials email if system generated
     if (data.system_generated_password) {
+      const employeeRecipientEmails = [employee.email, 'info@skyrunrentals.com'];
       await this.mailService.sendEmployeeCredentials(
-        employee.email,
+        employeeRecipientEmails,
         employee.firstname,
         plainPassword,
       );
@@ -625,7 +626,8 @@ export class AdminService {
     }
 
     // 3. Send Email
-    await this.mailService.sendRegistrationEmail(user.email, user, pdfPath);
+    const recipientEmails = [user.email, 'info@skyrunrentals.com'];
+    await this.mailService.sendRegistrationEmail(recipientEmails, user, pdfPath);
 
     // 4. Cleanup local PDF
     if (fs.existsSync(pdfPath)) {

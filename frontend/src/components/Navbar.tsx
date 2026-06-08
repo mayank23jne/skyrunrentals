@@ -63,11 +63,6 @@ const Navbar: React.FC = () => {
         <div className="container top-bar-content">
           <div className="top-bar-left">
             <div className="info-item">
-              <MapPin size={14} />
-              <span>19 Woodville St, Roxbury, MA, 02119, USA</span>
-            </div>
-            <span className="separator">|</span>
-            <div className="info-item">
               <Phone size={14} />
               <span>(+1) - 603-333-8490</span>
             </div>

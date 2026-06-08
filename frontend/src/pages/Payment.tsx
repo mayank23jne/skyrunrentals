@@ -35,26 +35,33 @@ const Payment: React.FC = () => {
 
   const SPECIAL_PLAN_ID = 'skyrunrental-special';
 
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
   useEffect(() => {
-    if (plans.length > 0) {
+    if (plans.length > 0 && !isInitialized) {
       const searchParams = new URLSearchParams(location.search);
       const planNameFromUrl = searchParams.get('plan');
       
       let matchedPlanId = '';
       if (planNameFromUrl) {
-        const found = plans.find((p: any) => p?.planName?.toLowerCase() === planNameFromUrl.toLowerCase());
-        if (found) {
-          matchedPlanId = found.id.toString();
+        if (planNameFromUrl.toLowerCase() === 'special') {
+          matchedPlanId = SPECIAL_PLAN_ID;
+        } else {
+          const found = plans.find((p: any) => p?.planName?.toLowerCase() === planNameFromUrl.toLowerCase());
+          if (found) {
+            matchedPlanId = found.id.toString();
+          }
         }
       }
 
-      if (matchedPlanId && selectedPlanId !== matchedPlanId) {
+      if (matchedPlanId) {
         setSelectedPlanId(matchedPlanId);
-      } else if (!selectedPlanId && !matchedPlanId && plans[0]?.id) {
+      } else if (plans[0]?.id) {
         setSelectedPlanId(plans[0].id.toString());
       }
+      setIsInitialized(true);
     }
-  }, [plans, location.search, selectedPlanId]);
+  }, [plans, location.search, isInitialized]);
 
   const selectedPlan = plans.find((p: any) => p?.id?.toString() === selectedPlanId) || null;
   const isSpecialPlan = selectedPlanId === SPECIAL_PLAN_ID;
@@ -67,9 +74,19 @@ const Payment: React.FC = () => {
   };
 
   const handlePlanChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedPlanId(e.target.value);
+    const newId = e.target.value;
+    setSelectedPlanId(newId);
     setAppliedCustomPrice(null);
     setAppliedCustomDescription(null);
+    
+    const newPlan = plans.find((p: any) => p.id.toString() === newId);
+    const searchParams = new URLSearchParams(location.search);
+    if (newPlan) {
+      searchParams.set('plan', newPlan.planName);
+    } else if (newId === SPECIAL_PLAN_ID) {
+      searchParams.set('plan', 'special');
+    }
+    navigate({ search: searchParams.toString() }, { replace: true });
   };
 
   const paymentMutation = useMutation({
@@ -261,7 +278,7 @@ const Payment: React.FC = () => {
                         <input
                           type="text"
                           value={customDescription}
-
+                          onChange={(e) => setCustomDescription(e.target.value)}
                           placeholder="e.g. 6 Months Custom Promo"
                         />
                       </div>

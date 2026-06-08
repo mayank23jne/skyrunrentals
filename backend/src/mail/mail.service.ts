@@ -19,63 +19,65 @@ export class MailService {
   }
 
   async sendEmployeeCredentials(
-    toEmail: string,
+    toEmail: string | string[],
     firstname: string,
     password: string,
   ): Promise<boolean> {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+    const websiteUrl = 'https://skyrunrentals.com';
+
+    const messagetable = `
+    <div style='width: 500px;margin: auto;border: solid 5px #579981;padding: 20px;border-radius: 10px;text-align:center;'>
+        <table style='width: 100%;padding: 25px;text-align: initial;'>
+            <tr> 
+                <td style='border-bottom: solid 2px #579981;padding-bottom: 20px;'>
+                    <img src='${logoURL}' alt='site-logo' style='height:50px; width:auto;margin-top:15px'>
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding-top: 20px;'>
+                    <h3>Dear, ${firstname}<br> This message confirms that your user profile was recently updated on </h3><br> ${websiteUrl}
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Username</b> : <span style='margin-left: 49px;'>${Array.isArray(toEmail) ? toEmail[0] : toEmail}</span> 
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Password</b> : <span style='margin-left: 49px;'>${password}</span> 
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 7px 0;'>
+                    Best Regards,
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 7px 0;'>
+                    <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
+                </td> 
+            </tr>
+        </table>
+    </div>
+    `;
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
-      to: toEmail,
-      subject: 'Your Employee Account Credentials - Skyrunrentals',
-      html: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
-          <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 2.5rem; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 1.5rem; font-weight: 700;">Skyrunrentals</h1>
-            <p style="color: rgba(255,255,255,0.85); margin: 0.5rem 0 0; font-size: 0.9rem;">Employee Portal</p>
-          </div>
-          
-          <div style="padding: 2.5rem; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-            <h2 style="color: #1f2937; margin: 0 0 1rem; font-size: 1.25rem;">Welcome, ${firstname}!</h2>
-            <p style="color: #6b7280; line-height: 1.6; margin: 0 0 1.5rem;">
-              Your employee account has been created successfully. Below are your login credentials:
-            </p>
-            
-            <div style="background: #f8f9ff; border: 1.5px solid rgba(79,70,229,0.15); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 600;">Username (Email)</td>
-                  <td style="padding: 0.5rem 0; color: #1f2937; font-weight: 700; text-align: right;">${toEmail}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 0.5rem 0; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.875rem; font-weight: 600;">Password</td>
-                  <td style="padding: 0.5rem 0; border-top: 1px solid #e5e7eb; color: #1f2937; font-weight: 700; text-align: right; font-family: monospace; letter-spacing: 1px;">${password}</td>
-                </tr>
-              </table>
-            </div>
-            
-            <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
-              <p style="color: #92400e; margin: 0; font-size: 0.85rem; font-weight: 500;">
-                ⚠️ For security, please change your password after your first login.
-              </p>
-            </div>
-            
-            <p style="color: #9ca3af; font-size: 0.78rem; margin: 0; text-align: center;">
-              This is an automated message. Please do not reply directly to this email.
-            </p>
-          </div>
-        </div>
-      `,
+      to: Array.isArray(toEmail) ? toEmail.join(',') : toEmail,
+      subject: 'Skyrunrentals | Register Info',
+      html: messagetable,
     };
 
     try {
       await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Credentials email sent to ${toEmail}`);
+      this.logger.log(`Credentials email sent to ${Array.isArray(toEmail) ? toEmail.join(', ') : toEmail}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send email to ${toEmail}:`, error.message);
+      this.logger.error(`Failed to send email to ${Array.isArray(toEmail) ? toEmail.join(', ') : toEmail}:`, error.message);
       return false;
     }
   }
@@ -132,59 +134,75 @@ export class MailService {
   }
 
   async sendRegistrationEmail(
-    toEmail: string,
+    toEmails: string | string[],
     data: any,
     pdfPath?: string,
   ): Promise<boolean> {
     const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
-    const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
     const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+    const websiteUrl = 'https://skyrunrentals.com';
 
     const messagetable = `
-      <div style='width: 500px;margin: auto;border: solid 5px #579981;padding: 20px;border-radius: 10px;text-align:center;'>
+    <div style='width: 500px;margin: auto;border: solid 5px #579981;padding: 20px;border-radius: 10px;text-align:center;'>
         <table style='width: 100%;padding: 25px;text-align: initial;'>
-          <tr> 
-            <td style='border-bottom: solid 2px #579981;padding-bottom: 20px;'>
-              <img src='${logoURL}' alt='site-logo' style='height:50px; width:auto;margin-top:15px'>
-            </td> 
-          </tr>
-          <tr> 
-            <td style='padding-top: 20px;'>
-              <h3>Dear, ${data.firstname}<br> This message confirms that your user profile was recently updated on </h3><br> ${process.env.APP_URL || 'http://localhost:5173'}
-            </td> 
-          </tr>
-          <tr><td style='padding: 10px 0px 0px 0px;'>
-            <b>Customer ID</b> : <span style='padding-left: 36px;'>${data.id}</span>
-          </td> </tr>
-          <tr><td style='padding: 10px 0px 0px 0px;'>
-            <b>Name</b> : <span style='margin-left: 73px;'>${data.firstname} ${data.lastname}</span>
-          </td> </tr>
-          <tr> <td style='padding: 10px 0px 0px 0px;'>
-            <b>Username</b> : <span style='margin-left: 49px;'>${data.email}</span> 
-          </td> </tr>
-          <tr> <td style='padding: 10px 0px 0px 0px;'>
-            <b>Password</b> : <span style='margin-left: 49px;'>${data.original_password}</span> 
-          </td> </tr>
-          <tr> <td style='padding: 10px 0px 0px 0px;'>
-            <b>Phone/Mobile</b> : <span style='margin-left: 27px;'>${data.contact_number}</span> 
-          </td> </tr>
-          <tr> <td style='padding: 10px 0px 0px 0px;'>
-            <b>Address</b> : <span style='margin-left: 59px;'>${data.address}, ${data.city}, ${data.state}, ${data.country}, ${data.zipcode}</span>
-          </td> </tr>
-          <tr> <td style='padding: 7px 0;'>
-            Best Regards,
-          </td> </tr>
-          <tr> <td style='padding: 7px 0;'>
-            <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
-          </td> </tr>
+            <tr> 
+                <td style='border-bottom: solid 2px #579981;padding-bottom: 20px;'>
+                    <img src='${logoURL}' alt='site-logo' style='height:50px; width:auto;margin-top:15px'>
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding-top: 20px;'>
+                    <h3>Dear, ${data.firstname || ''}<br> This message confirms that your user profile was recently updated on </h3><br> ${websiteUrl}
+                </td> 
+            </tr>
+            <tr>
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Customer ID</b> : <span style='padding-left: 36px;'>${data.id || ''}</span>
+                </td> 
+            </tr>
+            <tr>
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Name</b> : <span style='margin-left: 73px;'>${data.firstname || ''} ${data.lastname || ''}</span> 
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Username</b> : <span style='margin-left: 49px;'>${data.email || ''}</span> 
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Password</b> : <span style='margin-left: 49px;'>${data.original_password || ''}</span> 
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Phone/Mobile</b> : <span style='margin-left: 27px;'>${data.contact_number || ''}</span> 
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 10px 0px 0px 0px;'>
+                    <b>Address</b> : <span style='margin-left: 59px;'>${data.address || ''}, ${data.city || ''}, ${data.state || ''}, ${data.country || ''}, ${data.zipcode || ''}</span> 
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 7px 0;'>
+                    Best Regards,
+                </td> 
+            </tr>
+            <tr> 
+                <td style='padding: 7px 0;'>
+                    <span style='color:rgb(191,144,0)'><span><i><font size='4'><b>Skyrunrentals</b></font></i></span></span>
+                </td> 
+            </tr>
         </table>
-      </div>
+    </div>
     `;
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
-      to: toEmail,
+      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
       subject: 'Skyrunrentals | Register Info',
       html: messagetable,
       attachments: pdfPath ? [{
@@ -195,10 +213,10 @@ export class MailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Registration email sent to ${toEmail}`);
+      this.logger.log(`Registration email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send registration email to ${toEmail}:`, error.message);
+      this.logger.error(`Failed to send registration email to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}:`, error.message);
       return false;
     }
   }

@@ -3,32 +3,32 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
-  private readonly logger = new Logger(MailService.name);
-  private transporter: nodemailer.Transporter;
+   private readonly logger = new Logger(MailService.name);
+   private transporter: nodemailer.Transporter;
 
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
-      auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASS || '',
-      },
-    });
-  }
+   constructor() {
+      this.transporter = nodemailer.createTransport({
+         host: process.env.SMTP_HOST || 'smtp.gmail.com',
+         port: parseInt(process.env.SMTP_PORT || '587'),
+         secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
+         auth: {
+            user: process.env.SMTP_USER || '',
+            pass: process.env.SMTP_PASS || '',
+         },
+      });
+   }
 
-  async sendEmployeeCredentials(
-    toEmail: string | string[],
-    firstname: string,
-    password: string,
-  ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
-    const websiteUrl = 'https://skyrunrentals.com';
+   async sendEmployeeCredentials(
+      toEmail: string | string[],
+      firstname: string,
+      password: string,
+   ): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+      const websiteUrl = 'https://skyrunrentals.com';
 
-    const messagetable = `
+      const messagetable = `
     <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center;'>
         <table style='width: 100%;padding: 25px;text-align: initial;'>
             <tr> 
@@ -65,36 +65,36 @@ export class MailService {
     </div>
     `;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: Array.isArray(toEmail) ? toEmail.join(',') : toEmail,
-      subject: 'Skyrunrentals | Register Info',
-      html: messagetable,
-    };
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: Array.isArray(toEmail) ? toEmail.join(',') : toEmail,
+         subject: 'Skyrunrentals | Register Info',
+         html: messagetable,
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Credentials email sent to ${Array.isArray(toEmail) ? toEmail.join(', ') : toEmail}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${Array.isArray(toEmail) ? toEmail.join(', ') : toEmail}:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Credentials email sent to ${Array.isArray(toEmail) ? toEmail.join(', ') : toEmail}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send email to ${Array.isArray(toEmail) ? toEmail.join(', ') : toEmail}:`, error.message);
+         return false;
+      }
+   }
 
-  async sendForgotPasswordEmail(
-    toEmail: string,
-    resetLink: string,
-  ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+   async sendForgotPasswordEmail(
+      toEmail: string,
+      resetLink: string,
+   ): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: toEmail,
-      subject: 'Skyrunrentals | Reset password link.',
-      html: `
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: toEmail,
+         subject: 'Skyrunrentals | Reset password link.',
+         html: `
         <div style="width: 500px; margin: auto; border: solid 5px #3a86ff; padding: 20px; border-radius: 10px; text-align: center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;">
           <table style="width: 100%; padding: 25px;">
             <tr>
@@ -121,29 +121,29 @@ export class MailService {
           </table>
         </div>
       `,
-    };
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Password reset email sent to ${toEmail}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${toEmail}:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Password reset email sent to ${toEmail}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send password reset email to ${toEmail}:`, error.message);
+         return false;
+      }
+   }
 
-  async sendRegistrationEmail(
-    toEmails: string | string[],
-    data: any,
-    pdfPath?: string,
-  ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
-    const websiteUrl = 'https://skyrunrentals.com';
+   async sendRegistrationEmail(
+      toEmails: string | string[],
+      data: any,
+      pdfPath?: string,
+   ): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+      const websiteUrl = 'https://skyrunrentals.com';
 
-    const messagetable = `
+      const messagetable = `
     <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center;'>
         <table style='width: 100%;padding: 25px;text-align: initial;'>
             <tr> 
@@ -200,50 +200,50 @@ export class MailService {
     </div>
     `;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Skyrunrentals | Register Info',
-      html: messagetable,
-      attachments: pdfPath ? [{
-        filename: `privacyPolicy_${data.id}.pdf`,
-        path: pdfPath,
-      }] : [],
-    };
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+         subject: 'Skyrunrentals | Register Info',
+         html: messagetable,
+         attachments: pdfPath ? [{
+            filename: `privacyPolicy_${data.id}.pdf`,
+            path: pdfPath,
+         }] : [],
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Registration email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send registration email to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Registration email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send registration email to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}:`, error.message);
+         return false;
+      }
+   }
 
-  async sendContactOwnerEmail(
-    toEmails: string | string[],
-    data: any,
-  ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
-    const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
-    const baseUrl = process.env.APP_URL || 'http://localhost:5173';
+   async sendContactOwnerEmail(
+      toEmails: string | string[],
+      data: any,
+   ): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
+      const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+      const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
-    const flexible = data.travel === '1' ? 'Dates are flexible.' : '';
+      const flexible = data.travel === '1' ? 'Dates are flexible.' : '';
 
-    let dateArrivals = '';
-    const arrivalFormat = data.arrival && data.arrival !== '01 Jan 1970' ? data.arrival : null;
-    const departureFormat = data.departure && data.departure !== '01 Jan 1970' ? data.departure : null;
+      let dateArrivals = '';
+      const arrivalFormat = data.arrival && data.arrival !== '01 Jan 1970' ? data.arrival : null;
+      const departureFormat = data.departure && data.departure !== '01 Jan 1970' ? data.departure : null;
 
-    if (!arrivalFormat && !departureFormat) {
-      dateArrivals = `<b>Dates</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style='color: red;font-size: 13px;margin-right: 65px;'>${flexible}</span>`;
-    } else {
-      dateArrivals = `<b>Dates</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  From &nbsp;<b>${arrivalFormat}</b>&nbsp; To &nbsp;<b>${departureFormat}<br><span style='color: red;font-size: 13px;float: right;margin-right: 65px;'>${flexible}</span>`;
-    }
+      if (!arrivalFormat && !departureFormat) {
+         dateArrivals = `<b>Dates</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style='color: red;font-size: 13px;margin-right: 65px;'>${flexible}</span>`;
+      } else {
+         dateArrivals = `<b>Dates</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  From &nbsp;<b>${arrivalFormat}</b>&nbsp; To &nbsp;<b>${departureFormat}<br><span style='color: red;font-size: 13px;float: right;margin-right: 65px;'>${flexible}</span>`;
+      }
 
-    const messagetable = `
+      const messagetable = `
 <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;'>
    <table width='100%' cellspacing='0' cellpadding='0' border='0' bgcolor='#FFFFFF'>
       <tbody>
@@ -406,7 +406,7 @@ export class MailService {
                                                             <tr><td height='5'></td></tr>
                                                             <tr>
                                                                <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;color:#3a86ff;font-size:13px;line-height:28px' align='left'>
-                                                               Address: 19 Woodville St, Roxbury, MA, 02119 USA 
+                                                               2029 Century Park East, Suite 400N, Los Angeles, CA 90067 
                                                                </td>
                                                             </tr>
                                                             <tr><td height='25'></td></tr>
@@ -476,7 +476,7 @@ export class MailService {
                                              <tbody>
                                                 <tr>
                                                    <td style='font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;font-size:13px;color:#ffffff;line-height:28px' align='center'>
-                                                      skyrunrentals.com © 2024 All Rights Reserved
+                                                      skyrunrentals.com © 2026 All Rights Reserved
                                                    </td>
                                                 </tr>
                                                 <tr><td height='10'></td></tr>
@@ -511,34 +511,34 @@ export class MailService {
    </table>
 </div>`;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Skyrunrentals | Booking in Property.',
-      html: messagetable,
-    };
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+         subject: 'Skyrunrentals | Booking in Property.',
+         html: messagetable,
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Contact owner email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send contact owner email:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Contact owner email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send contact owner email:`, error.message);
+         return false;
+      }
+   }
 
-  async sendBookingPaymentEmail(
-    toEmails: string | string[],
-    data: any,
-  ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
-    const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
-    const baseUrl = process.env.APP_URL || 'http://localhost:5173';
+   async sendBookingPaymentEmail(
+      toEmails: string | string[],
+      data: any,
+   ): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
+      const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+      const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
-    const messagetable = `
+      const messagetable = `
 <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;'>
   <table style='width: 100%;padding: 25px;text-align: initial;'>
     <tr> 
@@ -612,34 +612,34 @@ export class MailService {
   </table>
 </div>`;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Skyrunrentals | Payment Info',
-      html: messagetable,
-    };
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+         subject: 'Skyrunrentals | Payment Info',
+         html: messagetable,
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Booking payment email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send booking payment email:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Booking payment email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send booking payment email:`, error.message);
+         return false;
+      }
+   }
 
-  async sendSubscriptionPaymentEmail(
-    toEmails: string | string[],
-    data: any,
-  ): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
-    const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
-    const baseUrl = process.env.APP_URL || 'http://localhost:5173';
+   async sendSubscriptionPaymentEmail(
+      toEmails: string | string[],
+      data: any,
+   ): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@skyrunrentals.com';
+      const imgPath = process.env.IMG_PATH || 'https://holidayhavenhomes.com/';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+      const baseUrl = process.env.APP_URL || 'http://localhost:5173';
 
-    const messagetable = `
+      const messagetable = `
 <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;'>
   <table style='width: 100%;padding: 25px;text-align: initial;'>
     <tr> 
@@ -698,29 +698,29 @@ export class MailService {
   </table>
 </div>`;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Skyrunrentals | Payment Info',
-      html: messagetable,
-    };
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+         subject: 'Skyrunrentals | Payment Info',
+         html: messagetable,
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Subscription payment email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send Subscription payment email:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Subscription payment email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send Subscription payment email:`, error.message);
+         return false;
+      }
+   }
 
-  async sendBookingEmail(toEmails: string | string[], data: any): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+   async sendBookingEmail(toEmails: string | string[], data: any): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
 
-    const htmlContent = `
+      const htmlContent = `
     <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center;'>
         <!-- Header Section -->
         <table width='100%' cellspacing='0' cellpadding='0' border='0' bgcolor='#FFFFFF'>
@@ -788,41 +788,41 @@ export class MailService {
             <tr>
                 <td bgcolor='#EDEDED' align='center' style='padding: 20px;'>
                     <b>Mailing Address</b><br>
-                    Address: 19 Woodville St, Roxbury, MA, 02119 USA
+                    2029 Century Park East, Suite 400N, Los Angeles, CA 90067
                 </td>
             </tr>
             <tr>
                 <td style='background-color:#3a86ff;color:#ffffff;padding: 15px;text-align:center;'>
-                    skyrunrentals.com © 2024 All Rights Reserved
+                    skyrunrentals.com © 2026 All Rights Reserved
                 </td>
             </tr>
         </table>
     </div>
     `;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Skyrunrentals | Booking in Property.',
-      html: htmlContent,
-    };
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+         subject: 'Skyrunrentals | Booking in Property.',
+         html: htmlContent,
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Booking email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send booking email:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Booking email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send booking email:`, error.message);
+         return false;
+      }
+   }
 
-  async sendContactUsEmail(toEmails: string | string[], data: any): Promise<boolean> {
-    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
-    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+   async sendContactUsEmail(toEmails: string | string[], data: any): Promise<boolean> {
+      const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+      const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
 
-    const htmlContent = `
+      const htmlContent = `
     <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: sans-serif;'>
         <table width='100%' cellspacing='0' cellpadding='0' border='0' bgcolor='#FFFFFF'>
             <tr>
@@ -868,27 +868,27 @@ export class MailService {
         <table width='100%' cellspacing='0' cellpadding='0' border='0' align='center'>
             <tr>
                 <td style='background-color:#3a86ff;color:#ffffff;padding: 15px;text-align:center;'>
-                    skyrunrentals.com © 2024 All Rights Reserved
+                    skyrunrentals.com © 2026 All Rights Reserved
                 </td>
             </tr>
         </table>
     </div>
     `;
 
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
-      subject: 'Skyrunrentals | New Contact Us Submission',
-      html: htmlContent,
-    };
+      const mailOptions: nodemailer.SendMailOptions = {
+         from: `"${fromName}" <${fromEmail}>`,
+         to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+         subject: 'Skyrunrentals | New Contact Us Submission',
+         html: htmlContent,
+      };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Contact Us email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send Contact Us email:`, error.message);
-      return false;
-    }
-  }
+      try {
+         await this.transporter.sendMail(mailOptions);
+         this.logger.log(`Contact Us email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+         return true;
+      } catch (error) {
+         this.logger.error(`Failed to send Contact Us email:`, error.message);
+         return false;
+      }
+   }
 }

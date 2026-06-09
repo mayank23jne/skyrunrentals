@@ -420,9 +420,6 @@ const PropertyDetail: React.FC = () => {
     return null;
   };
 
-  console.log('property', property.rates);
-
-
   // Calculate reservation details using legacy booking rates logic
   const nightlyBaseRate = parseFloat(property.rates?.[0]?.nightly || '0') || 0;
 
@@ -979,13 +976,13 @@ const PropertyDetail: React.FC = () => {
                       style={{ gridColumn: 'span 2', gridRow: 'span 2', borderRadius: '20px', overflow: 'hidden' }}
                       onClick={() => { setActiveImageIndex(0); setLightboxOpen(true); }}
                     >
-                      <PropertyImage 
-                        photo={allPhotos[0]} 
-                        idx={0} 
-                        fallbackImages={fallbackImages} 
-                        alt="Main Gallery" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
-                        className="transition-transform duration-500 group-hover:scale-105" 
+                      <PropertyImage
+                        photo={allPhotos[0]}
+                        idx={0}
+                        fallbackImages={fallbackImages}
+                        alt="Main Gallery"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        className="transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
                     </div>
@@ -1000,13 +997,13 @@ const PropertyDetail: React.FC = () => {
                           style={{ gridColumn: 'span 1', gridRow: 'span 1', borderRadius: '16px', overflow: 'hidden' }}
                           onClick={() => { setActiveImageIndex(actualIdx); setLightboxOpen(true); }}
                         >
-                          <PropertyImage 
-                            photo={photo} 
-                            idx={actualIdx} 
-                            fallbackImages={fallbackImages} 
-                            alt={`Gallery ${actualIdx + 1}`} 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
-                            className="transition-transform duration-500 group-hover:scale-105" 
+                          <PropertyImage
+                            photo={photo}
+                            idx={actualIdx}
+                            fallbackImages={fallbackImages}
+                            alt={`Gallery ${actualIdx + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            className="transition-transform duration-500 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" style={{ zIndex: 5 }}></div>
 

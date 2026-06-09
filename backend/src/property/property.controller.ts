@@ -108,7 +108,6 @@ export class PropertyController {
       });
 
       const totalAllowedProperties = paymentAgg._sum.noOfProperty || 0;
-      console.log("totalAllowedProperties", totalAllowedProperties);
 
       if (totalAllowedProperties === 0) {
         return { limitReached: true };

@@ -181,7 +181,6 @@ export class SettingsController {
     @Query('search') search?: string,
     @Query('ajax') ajax?: string
   ) {
-    console.log('feedback settings');
     const currentPage = parseInt(page || '1', 10);
     const pageSize = 10;
     const skippedItems = (currentPage - 1) * pageSize;

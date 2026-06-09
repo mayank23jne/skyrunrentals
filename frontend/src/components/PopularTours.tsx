@@ -130,8 +130,6 @@ const PopularTours: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  console.log(properties, 'properties');
-
   const maxIndex = Math.max(0, properties.length - visibleCardsCount);
 
   const nextSlide = () => {

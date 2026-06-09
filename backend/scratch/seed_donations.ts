@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding donations...');
   const donations: any[] = [];
   for (let i = 1; i <= 15; i++) {
     donations.push({

@@ -26,25 +26,15 @@ export class AuthService {
   }
 
   async validateAdmin(email: string, pass: string): Promise<any> {
-    console.log("email", email);
-    console.log("pass", pass);
     const user = await this.prisma.user.findFirst({
       where: { email },
     });
-    console.log("user", user);
 
     if (user) {
-      console.log("user password", user.password);
-      console.log("input password", pass);
-
       // MD5 hashing for password verification
       const hashedInput = crypto.createHash('md5').update(pass).digest('hex');
-      console.log("hashedInput", hashedInput);
       const isMatch = hashedInput === user.password;
-
-      console.log("isMatch", isMatch);
       if (isMatch) {
-        console.log("user matched, is admin and active");
         const { password, ...result } = user;
         return result;
       }
@@ -162,14 +152,14 @@ export class AuthService {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: { token },
     });
 
     const resetLink = `${process.env.APP_URL || 'http://localhost:5173'}/reset-password?id=${user.id}&token=${token}`;
-    
+
     await this.mailService.sendForgotPasswordEmail(email, resetLink);
     return { success: true, message: 'Reset password link dispatched.' };
   }
@@ -187,7 +177,7 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { 
+      data: {
         password: hashedPassword,
         original_password: newPassword,
         token: '' // Clear token after successful reset

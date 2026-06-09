@@ -57,7 +57,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, avai
 
   // Standard max value
   const maxAllowedPrice = 1000;
-  console.log('availableFilters', availableFilters);
 
 
   return (
@@ -98,7 +97,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, avai
                 transition: 'left 0.1s, right 0.1s'
               }}
             />
-            
+
             {/* Elegant Tick Marks */}
             {[0, 250, 500, 750, 1000].map((point) => {
               const isActive = filters.priceRange[0] <= point && point <= filters.priceRange[1];

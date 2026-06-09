@@ -325,7 +325,7 @@
             width: 400px;
         }
 
-        .search-box input:focus + i {
+        .search-box input:focus+i {
             color: var(--primary);
         }
 
@@ -549,7 +549,7 @@
             window.updateStars = function (val) {
                 const stars = document.querySelectorAll('#star-selector > *');
                 const ratingNum = parseFloat(val);
-                
+
                 stars.forEach((s, idx) => {
                     const sVal = idx + 1;
                     // Reset
@@ -571,7 +571,7 @@
                 if (window.lucide) lucide.createIcons();
             };
 
-            window.showNotification = function(message, type = 'success') {
+            window.showNotification = function (message, type = 'success') {
                 const toast = document.createElement('div');
                 toast.style.cssText = `
                     position: fixed; top: 1.5rem; right: 1.5rem; padding: 1rem 1.5rem; 
@@ -589,7 +589,6 @@
             };
 
             window.openFeedbackModal = function (data = null) {
-                console.log('Opening Feedback Modal', data);
                 const modal = document.getElementById('feedback-modal');
                 const form = document.getElementById('feedback-form');
                 const idField = document.getElementById('feedback-id');
@@ -670,7 +669,6 @@
 
             // Initialize on DOM Load
             document.addEventListener('DOMContentLoaded', () => {
-                console.log('Feedback App Initializing...');
                 if (window.lucide) lucide.createIcons();
 
                 // Quill
@@ -688,11 +686,11 @@
                         const rect = star.getBoundingClientRect();
                         const x = e.clientX - rect.left;
                         const isHalf = x < rect.width / 2;
-                        
+
                         const stars = Array.from(document.getElementById('star-selector').children);
                         const baseVal = stars.indexOf(star) + 1;
                         const finalVal = isHalf ? baseVal - 0.5 : baseVal;
-                        
+
                         document.getElementById('field-rating').value = finalVal;
                         window.updateStars(finalVal);
                     }
@@ -716,7 +714,7 @@
                         } else {
                             window.showNotification('Error saving feedback', 'error');
                         }
-                    } catch (err) { 
+                    } catch (err) {
                         console.error(err);
                         window.showNotification('Network error occurred', 'error');
                     }

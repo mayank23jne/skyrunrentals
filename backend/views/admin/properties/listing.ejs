@@ -215,7 +215,7 @@
                                             <input type="text" id="property-search"
                                                 placeholder="Search headline, city, type..." value="<%= searchQuery %>">
                                         </div>
-                                        <a href="/admin/properties/add" class="btn-primary"
+                                        <a href="#" onclick="checkQuotaAndAddProperty(event)" class="btn-primary"
                                             style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; white-space: nowrap; padding: 0.75rem 1.25rem; border-radius: 0.75rem;">
                                             <i data-lucide="plus" size="18"></i> Add Property
                                         </a>
@@ -465,7 +465,31 @@
                 const cfg = document.getElementById('pagination-config').dataset;
                 renderPagination(window.currentPage, parseInt(cfg.totalPages) || 1);
                 updateInfo(window.currentPage, parseInt(cfg.totalCount) || 0);
+
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('limitReached') === 'true') {
+                    window.showNotification('Property limit reached! Please upgrade your plan or request admin to add more properties.', 'error');
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+                }
             });
+
+            async function checkQuotaAndAddProperty(event) {
+                event.preventDefault();
+                try {
+                    const response = await fetch('/api/admin/properties/check-quota');
+                    const result = await response.json();
+                    
+                    if (result.limitReached) {
+                        window.showNotification('Property limit reached! Please upgrade your plan or request admin to add more properties.', 'error');
+                    } else {
+                        window.location.href = '/admin/properties/add';
+                    }
+                } catch (error) {
+                    console.error(error);
+                    window.location.href = '/admin/properties/add';
+                }
+            }
         </script>
     </body>
 

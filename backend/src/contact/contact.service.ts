@@ -122,7 +122,12 @@ export class ContactService {
     const fromMail = process.env.SMTP_FROM_EMAIL || 'noreply@skyrunrentals.com';
     const otherMail = process.env.OTHER_MAIL_USER || '';
 
-    const adminList = [email, fromMail];
+    const adminList = [
+      email, 
+      fromMail,
+      'info@skyrunrentals.com',
+      'robin@skyrunrentals.com'
+    ];
     if (otherMail) adminList.push(otherMail);
 
     // Send to guest/admin list
@@ -149,7 +154,7 @@ export class ContactService {
     const firstname = nameParts[0] || '';
     const lastname = nameParts.slice(1).join(' ') || '';
     
-    return this.prisma.contactUs.create({
+    const contact = await this.prisma.contactUs.create({
       data: {
         firstname,
         lastname,
@@ -158,5 +163,14 @@ export class ContactService {
         message: data.address ? `Addr: ${data.address} | ${data.message}`.substring(0, 255) : (data.message || '').substring(0, 255),
       }
     });
+
+    const adminList = [
+      'info@skyrunrentals.com',
+      'robin@skyrunrentals.com'
+    ];
+
+    await this.mailService.sendContactUsEmail(adminList, data);
+
+    return contact;
   }
 }

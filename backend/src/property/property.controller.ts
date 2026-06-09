@@ -98,13 +98,55 @@ export class PropertyController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('check-quota')
+  @ApiOperation({ summary: 'Check if user can add more properties' })
+  async checkPropertyQuota(@Req() req) {
+    if (req.user.usertype === '1') {
+      const paymentAgg = await this.prisma.paymentDetail.aggregate({
+        where: { userId: req.user.id },
+        _sum: { noOfProperty: true }
+      });
+
+      const totalAllowedProperties = paymentAgg._sum.noOfProperty || 0;
+      console.log("totalAllowedProperties", totalAllowedProperties);
+
+      if (totalAllowedProperties === 0) {
+        return { limitReached: true };
+      }
+
+      const propertyCount = await this.prisma.property.count({
+        where: { assignTo: req.user.id }
+      });
+
+      if (propertyCount >= totalAllowedProperties) {
+        return { limitReached: true };
+      }
+    }
+    return { limitReached: false };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('add')
   @ApiOperation({ summary: 'Get the add property page' })
   async getAddPropertyPage(@Req() req, @Res() res, @Query('userId') userId?: string) {
     if (req.user.usertype === '1') {
-      const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
-      if (!user || user.subscription_type === 0) {
-        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property?scrollToPlans=true`);
+      const paymentAgg = await this.prisma.paymentDetail.aggregate({
+        where: { userId: req.user.id, status: { in: ['success', 'succeeded', 'Completed'] } },
+        _sum: { noOfProperty: true }
+      });
+
+      const totalAllowedProperties = paymentAgg._sum.noOfProperty || 0;
+
+      if (totalAllowedProperties === 0) {
+        return res.redirect(`/admin/properties?limitReached=true`);
+      }
+
+      const propertyCount = await this.prisma.property.count({
+        where: { assignTo: req.user.id }
+      });
+
+      if (propertyCount >= totalAllowedProperties) {
+        return res.redirect(`/admin/properties?limitReached=true`);
       }
     }
 
@@ -157,10 +199,8 @@ export class PropertyController {
     @UploadedFiles() files: Express.Multer.File[]
   ) {
     if (req.user.usertype === '1') {
-      const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
-      if (!user || user.subscription_type === 0) {
-        return res.redirect(`${process.env.APP_URL || 'http://localhost:5173'}/list-property?scrollToPlans=true`);
-      }
+      // For self users, force assignTo to their own ID since the field is hidden
+      createPropertyDto.assignTo = req.user.id.toString();
     }
 
     try {
@@ -264,6 +304,11 @@ export class PropertyController {
     @Body() updatePropertyDto: UpdatePropertyDto,
     @UploadedFiles() files: Express.Multer.File[]
   ) {
+    if (req.user.usertype === '1') {
+      // For self users, force assignTo to their own ID since the field is hidden
+      updatePropertyDto.assignTo = req.user.id.toString();
+    }
+
     try {
       const property = await this.propertyService.update(id, updatePropertyDto, files, req.user.id);
       return property;

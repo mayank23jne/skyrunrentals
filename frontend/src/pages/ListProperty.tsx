@@ -61,6 +61,8 @@ const ListProperty: React.FC = () => {
     return Array.from(new Set(all)).filter(f => f && f !== '-----');
   }, [plans]);
 
+  const [showToast, setShowToast] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const params = new URLSearchParams(window.location.search);
@@ -72,10 +74,54 @@ const ListProperty: React.FC = () => {
         }, 500);
       }
     }
+
+    if (params.get('limitReached') === 'true') {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 5000);
+      
+      const newUrl = window.location.pathname + window.location.search.replace(/&?limitReached=true/, '');
+      window.history.replaceState({}, '', newUrl);
+    }
   }, []);
 
   return (
     <div className="list-property-page">
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              background: '#e74c3c',
+              color: 'white',
+              padding: '16px 24px',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px rgba(231, 76, 60, 0.3)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontWeight: 600,
+              fontSize: '15px'
+            }}
+          >
+            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '6px', borderRadius: '50%', display: 'flex' }}>
+              <Check size={18} />
+            </div>
+            Property limit reached! Please upgrade your plan.
+            <button 
+              onClick={() => setShowToast(false)} 
+              style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', marginLeft: '12px', opacity: 0.8 }}
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <Navbar />
 
       <main className="lp-main">

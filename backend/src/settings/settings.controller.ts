@@ -245,12 +245,14 @@ export class SettingsController {
 
   // --- API DATA HELPERS ---
   @UseGuards(AuthGuard('jwt'))
+  @Roles('0', '1', '2')
   @Get('data/states')
   async getStatesByCountry(@Query('countryId') countryId?: string) {
     return this.settingsService.findStates({ countryId: countryId ? parseInt(countryId) : undefined });
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Roles('0', '1', '2')
   @Get('data/cities')
   async getCitiesByState(@Query('stateId', ParseIntPipe) stateId: number) {
     return this.settingsService.findCities({ stateId });

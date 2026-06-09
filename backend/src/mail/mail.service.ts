@@ -816,4 +816,79 @@ export class MailService {
       return false;
     }
   }
+
+  async sendContactUsEmail(toEmails: string | string[], data: any): Promise<boolean> {
+    const fromName = process.env.SMTP_FROM_NAME || 'Skyrunrentals';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'info@skyrunrentals.com';
+    const logoURL = `${process.env.APP_URL || 'http://localhost:5173'}/logo.png`;
+
+    const htmlContent = `
+    <div style='width: 500px;margin: auto;border: solid 5px #3a86ff;padding: 20px;border-radius: 10px;text-align:center; font-family: sans-serif;'>
+        <table width='100%' cellspacing='0' cellpadding='0' border='0' bgcolor='#FFFFFF'>
+            <tr>
+                <td style='background-color: #f8fafc; padding-top:20px; padding-bottom: 20px;' align='center'>
+                    <img src='${logoURL}' alt='logo' width='200'>
+                    <br><br>
+                    <span style='color:#3a86ff;font-size:20px;font-weight:bold;line-height:36px'>
+                        New Contact Us Message
+                    </span>
+                </td>
+            </tr>
+        </table>
+        
+        <table style='width: 100%;padding: 25px;text-align: initial;'>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Name</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ${data.name || ''}
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Email</b> : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style='color:#3a86ff;'>${data.email || ''}</span> 
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Phone</b> : &nbsp; &nbsp; &nbsp; &nbsp; ${data.phone || ''}
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 10px 0;'>
+                    <b>Address</b> : &nbsp; &nbsp; &nbsp; ${data.address || ''}
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 15px 0;border-top: solid 1px #e2e8f0; border-bottom: solid 2px #3a86ff;'>
+                    <b>Message:</b><br><br>
+                    ${data.message || ''}
+                </td>
+            </tr>
+        </table>
+
+        <table width='100%' cellspacing='0' cellpadding='0' border='0' align='center'>
+            <tr>
+                <td style='background-color:#3a86ff;color:#ffffff;padding: 15px;text-align:center;'>
+                    skyrunrentals.com © 2024 All Rights Reserved
+                </td>
+            </tr>
+        </table>
+    </div>
+    `;
+
+    const mailOptions: nodemailer.SendMailOptions = {
+      from: `"${fromName}" <${fromEmail}>`,
+      to: Array.isArray(toEmails) ? toEmails.join(',') : toEmails,
+      subject: 'Skyrunrentals | New Contact Us Submission',
+      html: htmlContent,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      this.logger.log(`Contact Us email sent to ${Array.isArray(toEmails) ? toEmails.join(', ') : toEmails}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send Contact Us email:`, error.message);
+      return false;
+    }
+  }
 }

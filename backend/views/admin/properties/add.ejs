@@ -2520,6 +2520,24 @@
                     }
                 });
 
+                // Toast notification helper
+                const showToast = (message, type = 'success') => {
+                    const toast = document.createElement('div');
+                    toast.style.cssText = `
+                        position: fixed; top: 1.5rem; right: 1.5rem; padding: 1rem 1.5rem; 
+                        background: ${type === 'success' ? '#10b981' : '#ef4444'}; color: white;
+                        border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+                        z-index: 9999; 
+                    `;
+                    toast.textContent = message;
+                    document.body.appendChild(toast);
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        toast.style.transition = 'opacity 0.5s';
+                        setTimeout(() => toast.remove(), 500);
+                    }, 5000); // 5 seconds display
+                };
+
                 // Show loading state
                 const submitBtn = e.submitter || propertyForm.querySelector('button[type="submit"]');
                 const originalBtnText = submitBtn.innerHTML;
@@ -2535,37 +2553,23 @@
                     const result = await response.json();
 
                     if (response.ok) {
-                        const alertBox = document.getElementById('alert');
-                        alertBox.textContent = 'Property saved successfully!';
-                        alertBox.className = 'alert alert-success';
-                        alertBox.style.display = 'block';
-                        alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
+                        showToast('Property saved successfully!', 'success');
                         submitBtn.innerHTML = 'Saved Successfully!';
                         setTimeout(() => { window.location.href = '/admin/properties'; }, 1500);
                         return; // Prevent resetting button text before redirect
                     } else {
-                        const alertBox = document.getElementById('alert');
-                        alertBox.textContent = 'Error saving property: ' + (result.message || 'Unknown error');
-                        alertBox.className = 'alert alert-error';
-                        alertBox.style.display = 'block';
-                        alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+                        showToast(result.message || 'Error saving property', 'error');
                     }
                 } catch (error) {
                     console.error('Submission error:', error);
-
-                    const alertBox = document.getElementById('alert');
-                    alertBox.textContent = 'An unexpected error occurred. Please check the console.';
-                    alertBox.className = 'alert alert-error';
-                    alertBox.style.display = 'block';
-                    alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
-                } 
-                
-                // Reset button text if an error occurred
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
+                    showToast('An unexpected error occurred. Please check the console.', 'error');
+                } finally {
+                    // Reset button state if not redirecting
+                    if (!submitBtn.disabled || submitBtn.innerHTML !== 'Saved Successfully!') {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                }
             });
         </script>
     </body>
